@@ -1,6 +1,6 @@
 ---
 title: "Indice Sintetico de Desigualdad Migratoria (ISDM)"
-subtitle: "Analisis con agregacion jerarquica por dimensiones - Chile Pobreza/Social imputado por interpolación lineal"
+subtitle: "Analisis con agregacion jerarquica por dimensiones - incluye 2020 (con imputación Chile)"
 author: "Natalia Debandi"
 date: "`r Sys.Date()`"
 output:
@@ -130,11 +130,7 @@ indicadores_con_brechas <- indicadores_con_brechas %>%
 
 cat("\n✓ Imputación completada\n\n")
 
-# Excluir año 2020 para ambos países (distorsión pandemia)
-indicadores_con_brechas <- indicadores_con_brechas %>%
-  filter(anio != 2020)
-
-cat("⚠ Año 2020 excluido para ambos países (distorsión pandemia)\n\n")
+cat("ℹ Año 2020 incluido para ambos países\n\n")
 
 # =============================================================================
 
@@ -900,7 +896,7 @@ cat(sprintf("   • Chile:     %+.2f pp → Nativos %s integrados\n\n",
             chl_dir, ifelse(chl_dir > 0, "MEJOR", "PEOR")))
 ```
 
-## Tests estadísticos y robustez
+## Test estadístico
 
 ```{r test_significancia}
 cat("\nTEST DE DIFERENCIA ENTRE PAÍSES\n")
@@ -947,86 +943,6 @@ if(test_t$p.value < 0.05) {
 } else {
   cat("  ⚠ Diferencias NO significativas (p ≥ 0.05)\n\n")
 }
-
-# --- DIFERENCIA DE MEDIAS ---
-cat("─────────────────────────────────────────\n")
-cat("Diferencia de medias observada:\n\n")
-
-medias <- isdm_jerarquico %>%
-  group_by(pais) %>%
-  summarise(
-    media = mean(isdm_absoluto_estandarizado, na.rm = TRUE),
-    sd    = sd(isdm_absoluto_estandarizado,   na.rm = TRUE),
-    n     = n(),
-    .groups = "drop"
-  )
-
-media_arg <- medias %>% filter(pais == "Argentina") %>% pull(media)
-media_chl <- medias %>% filter(pais == "Chile")     %>% pull(media)
-sd_arg    <- medias %>% filter(pais == "Argentina") %>% pull(sd)
-sd_chl    <- medias %>% filter(pais == "Chile")     %>% pull(sd)
-n_arg     <- medias %>% filter(pais == "Argentina") %>% pull(n)
-n_chl     <- medias %>% filter(pais == "Chile")     %>% pull(n)
-dif_medias <- media_arg - media_chl
-
-cat(sprintf("  • Media Argentina: %.4f SD  (n = %d)\n", media_arg, n_arg))
-cat(sprintf("  • Media Chile:     %.4f SD  (n = %d)\n", media_chl, n_chl))
-cat(sprintf("  • Diferencia (Arg - Chl): %+.4f SD\n\n", dif_medias))
-
-# --- COHEN'S D ---
-cat("─────────────────────────────────────────\n")
-cat("Tamaño del efecto - Cohen's d:\n\n")
-
-sd_pooled <- sqrt(((n_arg - 1) * sd_arg^2 + (n_chl - 1) * sd_chl^2) /
-                    (n_arg + n_chl - 2))
-cohens_d  <- dif_medias / sd_pooled
-
-interpretacion_d <- case_when(
-  abs(cohens_d) < 0.2 ~ "efecto PEQUEÑO",
-  abs(cohens_d) < 0.5 ~ "efecto PEQUEÑO-MODERADO",
-  abs(cohens_d) < 0.8 ~ "efecto MODERADO",
-  TRUE                ~ "efecto GRANDE"
-)
-
-cat(sprintf("  • SD pooled:  %.4f\n", sd_pooled))
-cat(sprintf("  • Cohen's d:  %.4f → %s\n\n", cohens_d, interpretacion_d))
-cat("  Referencia: |d| < 0.2 pequeño | 0.2–0.5 pequeño-moderado | 0.5–0.8 moderado | > 0.8 grande\n\n")
-
-# --- PERMUTATION TEST ---
-cat("─────────────────────────────────────────\n")
-cat("Permutation test (n = 10.000 permutaciones):\n\n")
-
-set.seed(42)
-n_perm  <- 10000
-valores <- isdm_jerarquico$isdm_absoluto_estandarizado
-grupos  <- isdm_jerarquico$pais
-
-dif_obs  <- mean(valores[grupos == "Argentina"]) - mean(valores[grupos == "Chile"])
-dif_perm <- replicate(n_perm, {
-  g <- sample(grupos)
-  mean(valores[g == "Argentina"]) - mean(valores[g == "Chile"])
-})
-p_perm <- mean(abs(dif_perm) >= abs(dif_obs))
-
-cat(sprintf("  • Diferencia observada:    %+.4f SD\n", dif_obs))
-cat(sprintf("  • p-valor permutación:     %.4f\n\n",   p_perm))
-
-if(p_perm < 0.05) {
-  cat("  ✓ Diferencias SIGNIFICATIVAS según permutation test (p < 0.05)\n\n")
-} else {
-  cat("  ⚠ Diferencias NO significativas según permutation test (p ≥ 0.05)\n\n")
-}
-
-# --- RESUMEN DE ROBUSTEZ ---
-cat("─────────────────────────────────────────\n")
-cat("RESUMEN DE PRUEBAS:\n\n")
-cat(sprintf("  %-28s p = %.4f  %s\n", "Test t de Welch:",
-            test_t$p.value,
-            ifelse(test_t$p.value < 0.05, "✓ Significativo", "⚠ No significativo")))
-cat(sprintf("  %-28s p = %.4f  %s\n", "Permutation test:",
-            p_perm,
-            ifelse(p_perm < 0.05, "✓ Significativo", "⚠ No significativo")))
-cat(sprintf("  %-28s d = %.4f  %s\n", "Cohen's d:", cohens_d, interpretacion_d))
 ```
 
 ---

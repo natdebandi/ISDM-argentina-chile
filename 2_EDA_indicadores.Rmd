@@ -53,20 +53,12 @@ En el caso e Chile para cada año y grupo se prioriza ENE y si no existe se usa 
 
 **ARGENTINA**
 
-Se eliminan del analisis los datos de 2020 ya que la muestra esta distorsionada por la pandemia y no es comparable con otros años
-
-
-
 ```{r}
 # Cargar datos
 indicadores_long <- read_csv(
   "Data/indicadores_unificados_arg_chile_2015_2024.csv",
   show_col_types = FALSE
 )
-
-indicadores_long <- indicadores_long %>%
-  # Eliminar datos de Argentina 2020
-  filter(!(pais == "Argentina" & anio == 2020))
 
 # UNIFICAR FUENTES DE CHILE: Priorizar ENE, usar CASEN como fallback
 

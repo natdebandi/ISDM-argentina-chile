@@ -65,6 +65,7 @@ library(readr)
 library(scales)
 library(knitr)
 library(kableExtra)
+library(zoo)
 
 # Operador auxiliar
 `%nin%` <- Negate(`%in%`)
@@ -83,13 +84,12 @@ indicadores_long <- read_csv(
   show_col_types = FALSE
 )
 
+# Excluir año 2020 para ambos países (distorsión pandemia)
 indicadores_long <- indicadores_long %>%
-  # Eliminar datos de Argentina 2020
-  filter(!(pais == "Argentina" & anio == 2020))
+  filter(anio != 2020)
 
-##saco los de ENE
+# Excluir ENE de Chile (solo CASEN tiene datos de migrantes recientes)
 indicadores_long <- indicadores_long %>%
-  # Eliminar datos de Argentina 2020
   filter(!(pais == "Chile" & fuente == "ENE"))
 
 
@@ -123,7 +123,43 @@ indicadores <- indicadores %>%
 #write_csv(indicadores, 
 #          "Data/indicadores_con_brechas_CASEN_arg_chile_2015_2024.csv")
 
-indicadores_con_brechas<- indicadores
+indicadores_con_brechas <- indicadores
+
+# =============================================================================
+# IMPUTACIÓN: interpolación lineal para Chile - todos los indicadores
+# (años inter-CASEN: 2018, 2019, 2021, 2023 — sin ENE, faltan todos)
+# =============================================================================
+
+# Todos los años del dataset (ambos países) para completar la serie de Chile
+anios_todos <- sort(unique(indicadores_con_brechas$anio))
+
+chile_imputado <- indicadores_con_brechas %>%
+  filter(pais == "Chile") %>%
+  complete(pais, indicador, anio = anios_todos) %>%
+  group_by(indicador) %>%
+  arrange(anio) %>%
+  fill(indicador_clean, .direction = "downup") %>%
+  mutate(
+    imputado       = is.na(brecha_nat_mig),
+    brecha_nat_mig = zoo::na.approx(brecha_nat_mig, na.rm = FALSE),
+    brecha_nat_rec = zoo::na.approx(brecha_nat_rec, na.rm = FALSE),
+    fuente         = if_else(imputado, "CASEN_interpolado", fuente)
+  ) %>%
+  ungroup()
+
+cat("Valores imputados por interpolación lineal (Chile - todos los indicadores):\n\n")
+chile_imputado %>%
+  filter(imputado) %>%
+  select(indicador, anio, brecha_nat_mig, brecha_nat_rec) %>%
+  arrange(indicador, anio) %>%
+  print(n = 60)
+
+indicadores_con_brechas <- indicadores_con_brechas %>%
+  filter(pais != "Chile") %>%
+  bind_rows(chile_imputado %>% select(-imputado)) %>%
+  arrange(pais, anio, indicador)
+
+cat("\n✓ Imputación completada —", nrow(indicadores_con_brechas), "filas totales\n\n")
 
 ```
 
@@ -161,9 +197,37 @@ disponibilidad <- indicadores_con_brechas %>%
 cat("DISPONIBILIDAD DE DATOS PARA MIGRANTES RECIENTES:\n")
 cat("================================================\n")
 cat(sprintf("  • Observaciones totales: %d\n", disponibilidad$obs_totales))
-cat(sprintf("  • Con datos de migrantes recientes: %d\n", disponibilidad$obs_con_mig_recientes))
-cat(sprintf("  • Con brecha nativos-recientes: %d\n", disponibilidad$obs_con_brecha_rec))
+cat(sprintf("  • Con datos de migrantes recientes (observados): %d\n", disponibilidad$obs_con_mig_recientes))
+cat(sprintf("  • Con brecha nativos-recientes (obs + imputados): %d\n", disponibilidad$obs_con_brecha_rec))
 cat(sprintf("  • Porcentaje de disponibilidad: %.1f%%\n\n", disponibilidad$pct_disponibilidad))
+
+# Desglose por país y año
+cat("COBERTURA POR PAÍS Y AÑO:\n")
+cat("=========================\n\n")
+
+indicadores_con_brechas %>%
+  group_by(pais, anio) %>%
+  summarise(
+    n_indicadores     = n(),
+    n_brecha_mig      = sum(!is.na(brecha_nat_mig)),
+    n_brecha_rec      = sum(!is.na(brecha_nat_rec)),
+    fuente_label      = paste(sort(unique(fuente)), collapse = " + "),
+    .groups = "drop"
+  ) %>%
+  arrange(pais, anio) %>%
+  kable(
+    caption = "Cobertura de indicadores por país y año (obs = observado, imp = interpolado)",
+    col.names = c("País", "Año", "N indicadores",
+                  "Brecha nat-mig", "Brecha nat-rec", "Fuente"),
+    digits = 0
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
+  row_spec(which(
+    (indicadores_con_brechas %>%
+       group_by(pais, anio) %>%
+       summarise(imp = any(fuente == "CASEN_interpolado"), .groups = "drop") %>%
+       arrange(pais, anio))$imp
+  ), background = "#FFF9C4")
 ```
 
 ## Clasificación de indicadores por dimensión
@@ -815,12 +879,38 @@ cat(sprintf("   • Chile:     %+.2f pp → Nativos %s integrados que migrantes 
             chl_dir, ifelse(chl_dir > 0, "MEJOR", "PEOR")))
 ```
 
-## Test estadístico
+## Tests estadísticos y robustez
 
 ```{r test_significancia}
 cat("\nTEST DE DIFERENCIA ENTRE PAÍSES (MIGRANTES RECIENTES)\n")
 cat("======================================================\n\n")
 
+# --- PRUEBA DE NORMALIDAD: SHAPIRO-WILK ---
+cat("Prueba de normalidad Shapiro-Wilk para ISDM Absoluto:\n\n")
+
+sw_arg <- shapiro.test(isdm_jerarquico %>% filter(pais == "Argentina") %>% pull(isdm_absoluto_estandarizado))
+sw_chl <- shapiro.test(isdm_jerarquico %>% filter(pais == "Chile")     %>% pull(isdm_absoluto_estandarizado))
+
+cat(sprintf("  • Argentina: W = %.4f, p-valor = %.4f %s\n",
+            sw_arg$statistic, sw_arg$p.value,
+            ifelse(sw_arg$p.value >= 0.05,
+                   "→ Distribución NORMAL (p ≥ 0.05)",
+                   "→ Distribución NO normal (p < 0.05)")))
+cat(sprintf("  • Chile:     W = %.4f, p-valor = %.4f %s\n\n",
+            sw_chl$statistic, sw_chl$p.value,
+            ifelse(sw_chl$p.value >= 0.05,
+                   "→ Distribución NORMAL (p ≥ 0.05)",
+                   "→ Distribución NO normal (p < 0.05)")))
+
+normalidad_ok <- sw_arg$p.value >= 0.05 & sw_chl$p.value >= 0.05
+if(normalidad_ok) {
+  cat("  ✓ Ambos grupos cumplen normalidad: el test t de Student es apropiado.\n\n")
+} else {
+  cat("  ⚠ Al menos un grupo no cumple normalidad: considerar test no paramétrico (Wilcoxon).\n\n")
+}
+
+# --- TEST T DE STUDENT ---
+cat("─────────────────────────────────────────\n")
 test_t <- t.test(
   isdm_absoluto_estandarizado ~ pais,
   data = isdm_jerarquico,
@@ -837,6 +927,86 @@ if(test_t$p.value < 0.05) {
 } else {
   cat("  ⚠ Diferencias NO significativas (p ≥ 0.05)\n\n")
 }
+
+# --- DIFERENCIA DE MEDIAS ---
+cat("─────────────────────────────────────────\n")
+cat("Diferencia de medias observada:\n\n")
+
+medias <- isdm_jerarquico %>%
+  group_by(pais) %>%
+  summarise(
+    media = mean(isdm_absoluto_estandarizado, na.rm = TRUE),
+    sd    = sd(isdm_absoluto_estandarizado,   na.rm = TRUE),
+    n     = n(),
+    .groups = "drop"
+  )
+
+media_arg  <- medias %>% filter(pais == "Argentina") %>% pull(media)
+media_chl  <- medias %>% filter(pais == "Chile")     %>% pull(media)
+sd_arg     <- medias %>% filter(pais == "Argentina") %>% pull(sd)
+sd_chl     <- medias %>% filter(pais == "Chile")     %>% pull(sd)
+n_arg      <- medias %>% filter(pais == "Argentina") %>% pull(n)
+n_chl      <- medias %>% filter(pais == "Chile")     %>% pull(n)
+dif_medias <- media_arg - media_chl
+
+cat(sprintf("  • Media Argentina: %.4f SD  (n = %d)\n", media_arg, n_arg))
+cat(sprintf("  • Media Chile:     %.4f SD  (n = %d)\n", media_chl, n_chl))
+cat(sprintf("  • Diferencia (Arg - Chl): %+.4f SD\n\n", dif_medias))
+
+# --- COHEN'S D ---
+cat("─────────────────────────────────────────\n")
+cat("Tamaño del efecto - Cohen's d:\n\n")
+
+sd_pooled <- sqrt(((n_arg - 1) * sd_arg^2 + (n_chl - 1) * sd_chl^2) /
+                    (n_arg + n_chl - 2))
+cohens_d  <- dif_medias / sd_pooled
+
+interpretacion_d <- case_when(
+  abs(cohens_d) < 0.2 ~ "efecto PEQUEÑO",
+  abs(cohens_d) < 0.5 ~ "efecto PEQUEÑO-MODERADO",
+  abs(cohens_d) < 0.8 ~ "efecto MODERADO",
+  TRUE                ~ "efecto GRANDE"
+)
+
+cat(sprintf("  • SD pooled:  %.4f\n", sd_pooled))
+cat(sprintf("  • Cohen's d:  %.4f → %s\n\n", cohens_d, interpretacion_d))
+cat("  Referencia: |d| < 0.2 pequeño | 0.2–0.5 pequeño-moderado | 0.5–0.8 moderado | > 0.8 grande\n\n")
+
+# --- PERMUTATION TEST ---
+cat("─────────────────────────────────────────\n")
+cat("Permutation test (n = 10.000 permutaciones):\n\n")
+
+set.seed(42)
+n_perm  <- 10000
+valores <- isdm_jerarquico$isdm_absoluto_estandarizado
+grupos  <- isdm_jerarquico$pais
+
+dif_obs  <- mean(valores[grupos == "Argentina"]) - mean(valores[grupos == "Chile"])
+dif_perm <- replicate(n_perm, {
+  g <- sample(grupos)
+  mean(valores[g == "Argentina"]) - mean(valores[g == "Chile"])
+})
+p_perm <- mean(abs(dif_perm) >= abs(dif_obs))
+
+cat(sprintf("  • Diferencia observada:    %+.4f SD\n", dif_obs))
+cat(sprintf("  • p-valor permutación:     %.4f\n\n",   p_perm))
+
+if(p_perm < 0.05) {
+  cat("  ✓ Diferencias SIGNIFICATIVAS según permutation test (p < 0.05)\n\n")
+} else {
+  cat("  ⚠ Diferencias NO significativas según permutation test (p ≥ 0.05)\n\n")
+}
+
+# --- RESUMEN DE ROBUSTEZ ---
+cat("─────────────────────────────────────────\n")
+cat("RESUMEN DE PRUEBAS:\n\n")
+cat(sprintf("  %-28s p = %.4f  %s\n", "Test t de Welch:",
+            test_t$p.value,
+            ifelse(test_t$p.value < 0.05, "✓ Significativo", "⚠ No significativo")))
+cat(sprintf("  %-28s p = %.4f  %s\n", "Permutation test:",
+            p_perm,
+            ifelse(p_perm < 0.05, "✓ Significativo", "⚠ No significativo")))
+cat(sprintf("  %-28s d = %.4f  %s\n", "Cohen's d:", cohens_d, interpretacion_d))
 ```
 
 ---
