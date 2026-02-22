@@ -1,5 +1,5 @@
 # Migmobs Nat — Índice Sintético de Desigualdad Migratoria (ISDM)
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18734971.svg)](https://doi.org/10.5281/zenodo.18734971)
 **Autora:** Natalia Debandi
 **Proyecto:** MIGMOBS Latam
 **Período de análisis:** 2015–2024
@@ -103,3 +103,21 @@ Datos crudos (CASEN / EPH)
 - **EPH** — Encuesta Permanente de Hogares, INDEC (Argentina)
 - **ENE** — Encuesta Nacional de Empleo (Chile)
 - **UNU-RIKS / UNU-CRIS** — Estimaciones de stock migratorio bilateral internacional
+
+
+## Cómo citar / How to cite
+
+**APA:**
+Debandi, N. (2025). Índice Sintético de Desigualdad Migratoria (ISDM): 
+Argentina y Chile (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18734971
+
+**BibTeX:**
+@software{debandi_2025_ISDM,
+  author    = {Debandi, Natalia},
+  title     = {ISDM-argentina-chile},
+  year      = {2025},
+  publisher = {Zenodo},
+  version   = {v1.0.0},
+  doi       = {10.5281/zenodo.18734971},
+  url       = {https://doi.org/10.5281/zenodo.18734971}
+}
