@@ -49,9 +49,10 @@ ISDM-argentina-chile/
 | `1_contexto_normativo.Rmd` | Análisis del marco normativo migratorio en Argentina y Chile. Incluye timeline de eventos legislativos clave. | `1_contexto_normativo.html` |
 | `1_migracion_ARG_CHL.Rmd` | Reporte sobre flujos y stocks de migración en ambos países. | *(sin .html en raíz)* |
 | `2_construccion_ISDM.Rmd` | **Reporte central.** Describe la construcción metodológica del ISDM: selección de indicadores, normalización y agregación. Análisis comparativo Argentina–Chile 2015–2024. | `2_construccion_ISDM.html` |
-| `2_EDA_indicadores.Rmd` | Análisis exploratorio de los indicadores antes de construir el índice. | *(sin .html en raíz)* |
-| `2_ISDM_jerarquico_migrantes.Rmd` | ISDM con agregación jerárquica por dimensiones. Compara **todos los migrantes** vs. nativos en Argentina y Chile. | `2_ISDM_jerarquico_migrantes.html` |
-| `2_ISDM_jerarquico_migrantes_recientes.Rmd` | ISDM con agregación jerárquica por dimensiones. Compara **migrantes recientes** (llegados en los últimos 5 años) vs. nativos. | `2_ISDM_jerarquico_migrantes_recientes.html` |
+| `2_EDA_indicadores.Rmd` | Análisis exploratorio de los indicadores antes de construir el índice. Incluye el año 2020 para mostrar la serie completa. | `2_EDA_indicadores.html` |
+| `2_ISDM_jerarquico_migrantes.Rmd` | ISDM con agregación jerárquica por dimensiones. Compara **todos los migrantes** vs. nativos en Argentina y Chile. **Excluye 2020** en ambos países. Para Chile, los indicadores de Pobreza y Social en años inter-CASEN (2018–2021, 2023) se **imputan por interpolación lineal**. Incluye Shapiro-Wilk, Cohen's d y permutation test como pruebas de robustez. | `2_ISDM_jerarquico_migrantes.html` |
+| `2_ISDM_jerarquico_migrantes_recientes.Rmd` | ISDM con agregación jerárquica por dimensiones. Compara **migrantes recientes** (llegados en los últimos 5 años) vs. nativos. **Excluye 2020** y la ENE de Chile (solo CASEN tiene datos de migrantes recientes). Los 10 indicadores de Chile en años inter-CASEN se **imputan por interpolación lineal**. Incluye los mismos tests de robustez. | `2_ISDM_jerarquico_migrantes_recientes.html` |
+| `2_ISDM_jerarquico_migrantes_con2020.Rmd` | Versión de comparación del ISDM jerárquico (todos los migrantes) **incluyendo el año 2020** para Chile (valor interpolado). Permite evaluar la robustez de los resultados ante la inclusión de 2020. | `2_ISDM_jerarquico_migrantes_con2020.html` |
 
 ### Otros archivos
 
@@ -94,6 +95,30 @@ Datos crudos (CASEN / EPH)
         ↓
 2_ISDM_jerarquico_*.Rmd   ← Análisis final con agregación jerárquica
 ```
+
+---
+
+## Decisiones metodológicas clave
+
+### Tratamiento del año 2020
+
+El año 2020 se excluye del análisis del ISDM jerárquico por las siguientes razones:
+
+- **Argentina (EPH):** la encuesta fue suspendida en el primer semestre de 2020 y migró a modalidad telefónica en el segundo semestre, generando una discontinuidad metodológica que compromete la comparabilidad con otros años.
+- **Chile (CASEN):** la encuesta de 2020 (año interpolado) coincide con el período de pandemia, lo que distorsiona los indicadores laborales y de pobreza.
+
+El archivo `2_ISDM_jerarquico_migrantes_con2020.Rmd` conserva 2020 para Chile y permite verificar que las conclusiones principales no cambian (análisis de robustez).
+
+El EDA (`2_EDA_indicadores.Rmd`) sí incluye 2020 para mostrar la serie completa de indicadores.
+
+### Imputación de años inter-CASEN para Chile
+
+La CASEN se aplica cada dos o tres años (2015, 2017, 2022, 2024), lo que genera años sin datos para Chile en indicadores de Pobreza y Social. Para mantener series temporales comparables con Argentina (EPH anual), se aplica **interpolación lineal** (`zoo::na.approx`) entre los valores CASEN observados:
+
+- **`2_ISDM_jerarquico_migrantes`:** se imputan Pobreza y Social en 2018–2021 y 2023 (Laboral disponible vía ENE).
+- **`2_ISDM_jerarquico_migrantes_recientes`:** se imputan los 10 indicadores en 2018–2019, 2021 y 2023 (la ENE no incluye el desglose de migrantes recientes).
+
+Los valores imputados se identifican con `fuente = "CASEN_interpolado"` en el dataset.
 
 ---
 
