@@ -16,21 +16,15 @@ Este repositorio contiene los scripts, reportes y datos procesados para la const
 ## Estructura del repositorio
 
 ```
-Migmobs_nat/
+ISDM-argentina-chile/
 ├── Scripts de procesamiento de datos (1_procesamiento_*.R)
 ├── Scripts de construcción de indicadores (1_indicadores_*.R)
 ├── Reportes de análisis (.Rmd / .html)
-├── Data/                  ← Datos procesados
-├── graficos/              ← Gráficos de brechas por indicador
-├── output/                ← Gráficos contextuales
-├── output_context/        ← Gráficos para la sección de contexto
-├── output_graficos/       ← Figuras del ISDM (todos los migrantes)
-├── output_graficos_recientes/ ← Figuras del ISDM (migrantes recientes)
-├── Documentacion/         ← Documentación metodológica de fuentes
-├── FMR_Latam/             ← Documento FMR Latam
-├── v1_nat/                ← Versión 1 de scripts (archivo histórico)
-└── V2_nat/                ← Versión 2 de scripts (archivo histórico)
+├── README.md
+└── Migmobs_nat.Rproj
 ```
+
+> **Nota:** Los datos, gráficos y carpetas de salida no se incluyen en este repositorio (ver sección [Datos](#datos)).
 
 ---
 
@@ -64,57 +58,22 @@ Migmobs_nat/
 | Archivo | Descripción |
 |---|---|
 | `Migmobs_nat.Rproj` | Archivo de proyecto de RStudio. |
-| `1_contexto_normativo_files/` | Archivos de soporte generados automáticamente por el reporte `1_contexto_normativo.Rmd`. |
 
 ---
 
-## Carpetas de datos
+## Datos
 
-### `Data/`
+> ⚠️ **Los datasets no están disponibles en este repositorio** por su tamaño y por las condiciones de uso de las fuentes originales.
 
-Contiene los datos procesados y construidos a lo largo del flujo de trabajo:
+Los datos pueden **reconstruirse íntegramente** ejecutando los scripts de procesamiento sobre los microdatos originales. A continuación se indican las fuentes y dónde descargarlos:
 
-| Archivo | Descripción |
-|---|---|
-| `Casen_unificado_2015_2024_proc.csv` | Base CASEN procesada, ondas 2015–2024. |
-| `EPH_indiv_2016_2024_proc.csv` | Base EPH individual procesada, 2016–2024. |
-| `EPH_hogar_2016_2024_proc.csv` | Base EPH hogar procesada, 2016–2024. |
-| `indicadores_unificados_arg_chile_2015_2024.csv` | Indicadores socioeconómicos unificados Argentina–Chile. |
-| `indicadores_con_brechas_arg_chile_2015_2024.csv` | Indicadores con brechas migrante/nativo calculadas. |
-| `indicadores_con_brechas_CASEN_arg_chile_2015_2024.csv` | Brechas calculadas a partir de datos CASEN específicamente. |
-| `Indicadores_Casen_2015_2024.csv` | Indicadores CASEN por año. |
-| `indicadores_eph_2016_2024.csv` | Indicadores EPH por trimestre/año. |
-| `calidad_indicadores.csv` / `.rds` | Métricas de calidad estadística de los indicadores. |
-| `indicadores_ENE_CH.xlsx` | Indicadores del mercado laboral chileno (ENE). |
-| `relevamiento_normativo_migraciones_ARG_CHL.csv` | Relevamiento de eventos normativos en materia migratoria. |
-| `migration_imputed_RIKS_dec2021.csv` | Stock migratorio estimado (fuente externa RIKS/UNU). |
-| `UNU_CRIS_adjusted.csv` | Datos ajustados de migración (UNU-CRIS). |
-| `v2/` | Versión 2 de datos intermedios procesados. |
+| Dataset | Fuente | Descarga |
+|---|---|---|
+| EPH — Encuesta Permanente de Hogares (Argentina, 2016–2024) | INDEC | [indec.gob.ar](https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos) |
+| CASEN — Encuesta de Caracterización Socioeconómica Nacional (Chile, 2015–2024) | Ministerio de Desarrollo Social de Chile | [observatorio.ministeriodesarrollosocial.gob.cl](https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen) |
+| Estimaciones de stock migratorio bilateral | UNU-CRIS / RIKS | [UNU-CRIS](https://cris.unu.edu) |
 
----
-
-## Carpetas de salida gráfica
-
-| Carpeta | Contenido |
-|---|---|
-| `output/` | Gráficos de contexto macroeconómico (PIB, Gini, analfabetismo) y normativo (timeline). |
-| `output_context/` | Versión final de gráficos para la sección de contexto, incluyendo stock migratorio. |
-| `output_graficos/` | Figuras del ISDM para **todos los migrantes** (brechas por dimensión, evolución temporal, comparación entre países). |
-| `output_graficos_recientes/` | Figuras del ISDM para **migrantes recientes** (mismas figuras, subgrupo reciente). |
-| `graficos/` | Gráficos individuales de brechas por indicador (series de tiempo, distribuciones estandarizadas). |
-
----
-
-## Carpetas de documentación e histórico
-
-| Carpeta | Contenido |
-|---|---|
-| `Documentacion/` | Documentación metodológica de las fuentes de datos: manual de conceptos EPH y diseño de registro EPH. |
-| `FMR_Latam/` | Documento de trabajo del proyecto FMR Latam (Free Movement/Migration Report). |
-| `v1_nat/` | Versión 1 del proyecto: scripts exploratorios iniciales, análisis temáticos (educación, pobreza, trabajo) y versiones preliminares del índice. Conservado como archivo histórico. |
-| `V2_nat/` | Versión 2 del proyecto: análisis de indicadores y primeras versiones del ISDM jerárquico. Conservado como archivo histórico. |
-| `backup/` | Respaldo de versiones anteriores de scripts. |
-| `_OLD JOACO/` | Scripts previos de una etapa anterior del proyecto. |
+Los datos procesados (bases homogeneizadas e indicadores construidos) pueden **solicitarse directamente** a la autora escribiendo a: **nataliadebandi@gmail.com**
 
 ---
 
@@ -143,4 +102,4 @@ Datos crudos (CASEN / EPH)
 - **CASEN** — Encuesta de Caracterización Socioeconómica Nacional (Chile)
 - **EPH** — Encuesta Permanente de Hogares, INDEC (Argentina)
 - **ENE** — Encuesta Nacional de Empleo (Chile)
-- **UNU-RIKS / UNU-CRIS** — Estimaciones de stock migratorio internacional
+- **UNU-RIKS / UNU-CRIS** — Estimaciones de stock migratorio bilateral internacional
