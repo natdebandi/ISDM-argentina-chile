@@ -1,0 +1,1035 @@
+---
+title: "Mobility & migration in LATAM "
+output: html_document
+date: "2025-04-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 12,
+  fig.height = 8,
+  dpi = 300
+)
+```
+
+```{r echo=FALSE, warning=FALSE}
+
+#install.packages("factoextra")
+
+
+# Cargar librerías
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+library(tidyr)
+library(kableExtra)
+library(migest)
+library(scales)
+
+rm(list = ls())
+
+##
+
+```
+
+
+
+
+
+##Indicadores globales
+
+## ARG y CHL comparación
+
+
+
+### GNI per Capita, PPP (constant international USD)
+
+
+
+GNI per capita is the Gross National Income (total income earned by residents) divided by the total population, providing a measure of a country's average income and living standards. 
+
+
+```{r echo=FALSE, warning=FALSE,fig.width=8, fig.height=6}
+
+# Install and load required packages
+if (!require(WDI)) install.packages("WDI")
+
+library(WDI)
+
+
+# Define Latin American countries for regional average
+latin_america_codes <- c(
+  "AR", "BO", "BR", "CL", "CO", "CR", "CU", "DO", "EC", "SV", 
+  "GT", "HN", "MX", "NI", "PA", "PY", "PE", "UY", "VE"
+)
+
+# Paleta homogénea (del análisis ISDM)
+colores_pais <- c(
+  "Chile" = "#1BA3A3",       
+  "Argentina" = "#D73027"    
+)
+
+colores_completos <- c(
+  "Argentina" = "#D73027",
+  "Chile" = "#1BA3A3",
+  "Media Regional (América Latina)" = "#FFA726"
+)
+
+```
+
+## GNI per Capita (PPP, Constant International USD)
+
+```{r cho=FALSE,}
+
+
+# Get GNI data for all Latin American countries
+gni_regional_data <- WDI(
+  country = latin_america_codes,
+  indicator = "NY.GNP.PCAP.PP.CD",
+  start = 1995,
+  end = 2022
+)
+
+# Clean and prepare regional data
+gni_regional_data <- gni_regional_data %>%
+  rename(
+    year = year,
+    country = country,
+    gni_ppp = NY.GNP.PCAP.PP.CD
+  ) %>%
+  filter(!is.na(gni_ppp))
+
+# Calculate regional average by year
+regional_average <- gni_regional_data %>%
+  group_by(year) %>%
+  summarise(
+    gni_ppp = mean(gni_ppp, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = "Regional Average",
+    iso2c = "LA"  # Adding iso2c for consistency
+  )
+
+# Get data specifically for Argentina and Chile
+gni_focus_countries <- gni_regional_data %>%
+  filter(iso2c %in% c("AR", "CL"))
+
+# Combine focus countries with regional average
+gni_combined <- bind_rows(gni_focus_countries, regional_average)
+
+# Create country labels for better display
+gni_combined <- gni_combined %>%
+  mutate(
+    country_label = case_when(
+      iso2c == "AR" ~ "Argentina",
+      iso2c == "CL" ~ "Chile",
+      country == "Regional Average" ~ "Media Regional (América Latina)",
+      TRUE ~ country
+    )
+  )
+
+
+# Plot the time series
+ggplot(gni_combined, aes(x = year, y = gni_ppp, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = dollar_format(prefix = "USD ")) +
+  labs(
+    title = "GNI per Capita (PPP, Constant International USD)",
+    subtitle = "Argentina & Chile (1995–2022)",,
+    x = "Year",
+    y = "GNI per Capita (USD, PPP)",
+    color = "Country",
+    caption = "Source: World Bank (WDI), indicator NY.GNP.PCAP.PP.CD"
+  ) +
+  scale_color_manual(values = colores_completos)+
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+
+# Plot the time series
+pp<-ggplot(gni_combined, aes(x = year, y = gni_ppp, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = dollar_format(prefix = "USD ")) +
+  labs(
+  #  title = "GNI per Capita (PPP, Constant International USD)",
+  #  subtitle = "Argentina & Chile (1995–2022)",,
+    x = "Year",
+    y = "GNI per Capita (USD, PPP)",
+    color = "Country"
+  #  caption = "Source: World Bank (WDI), indicator NY.GNP.PCAP.PP.CD"
+  ) +
+   scale_color_manual(values = colores_completos)+
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+
+#save plot
+ggsave("output_context/gni_per_capita_arg_chl_media.png", plot = pp, width = 8, height = 6)
+
+```
+
+
+GNI per Capita (OTROS PAISES)
+
+
+
+```{r cho=FALSE,}
+
+
+# Get GNI data for all Latin American countries
+gni_regional_data <- WDI(
+  country = latin_america_codes,
+  indicator = "NY.GNP.PCAP.PP.CD",
+  start = 1995,
+  end = 2022
+)
+
+# Clean and prepare regional data
+gni_regional_data <- gni_regional_data %>%
+  rename(
+    year = year,
+    country = country,
+    gni_ppp = NY.GNP.PCAP.PP.CD
+  ) %>%
+  filter(!is.na(gni_ppp))
+
+# Calculate regional average by year
+regional_average <- gni_regional_data %>%
+  group_by(year) %>%
+  summarise(
+    gni_ppp = mean(gni_ppp, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = "Regional Average",
+    iso2c = "LA"  # Adding iso2c for consistency
+  )
+
+# Get data specifically for Argentina and Chile
+gni_focus_countries <- gni_regional_data %>%
+  filter(iso2c %in% c("AR", "CL", "BR","UY"))
+
+# Combine focus countries with regional average
+gni_combined <- bind_rows(gni_focus_countries, regional_average)
+
+# Create country labels for better display
+gni_combined <- gni_combined %>%
+  mutate(
+    country_label = case_when(
+      iso2c == "AR" ~ "Argentina",
+      iso2c == "CL" ~ "Chile",
+      iso2c == "BR" ~ "Brasil",
+      iso2c == "UY" ~ "Uruguay",
+      country == "Regional Average" ~ "Media Regional (América Latina)",
+      TRUE ~ country
+    )
+  )
+
+
+# Plot the time series
+ggplot(gni_combined, aes(x = year, y = gni_ppp, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = dollar_format(prefix = "USD ")) +
+  labs(
+    title = "GNI per Capita (PPP, Constant International USD)",
+    x = "Year",
+    y = "GNI per Capita (USD, PPP)",
+    color = "Country",
+    caption = "Source: World Bank (WDI), indicator NY.GNP.PCAP.PP.CD"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+
+
+
+```
+
+
+### GDP per Capita
+
+GDP per capita is calculated as the value of all final goods and services produced each year in a country (the gross domestic product), divided by the population. It represents the average economic output per person
+
+
+
+**GDP con media regional**
+
+
+```{r echo=FALSE, warning=FALSE}
+
+
+# Get GDP data for all Latin American countries
+gdp_regional_data <- WDI(
+  country = latin_america_codes,
+  indicator = "NY.GDP.PCAP.PP.CD",
+  start = 1995,
+  end = 2022
+)
+
+# Clean and prepare regional data
+gdp_regional_data <- gdp_regional_data %>%
+  rename(
+    year = year,
+    country = country,
+    gdp_ppp = NY.GDP.PCAP.PP.CD
+  ) %>%
+  filter(!is.na(gdp_ppp))
+
+# Calculate regional average by year
+regional_average <- gdp_regional_data %>%
+  group_by(year) %>%
+  summarise(
+    gdp_ppp = mean(gdp_ppp, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = "Regional Average",
+    iso2c = "LA"  # Adding iso2c for consistency
+  )
+
+# Get data specifically for Argentina and Chile
+gdp_focus_countries <- gdp_regional_data %>%
+  filter(iso2c %in% c("AR", "CL"))
+
+# Combine focus countries with regional average
+gdp_combined <- bind_rows(gdp_focus_countries, regional_average)
+
+# Create country labels for better display
+gdp_combined <- gdp_combined %>%
+  mutate(
+    country_label = case_when(
+      iso2c == "AR" ~ "Argentina",
+      iso2c == "CL" ~ "Chile",
+      country == "Regional Average" ~ "Media Regional (América Latina)",
+      TRUE ~ country
+    )
+  )
+
+# Plot the time series
+ggplot(gdp_combined, aes(x = year, y = gdp_ppp, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = dollar_format(prefix = "USD ")) +
+  labs(
+    title = "GDP per Capita (PPP, Constant International USD)",
+    subtitle = "Argentina - Chile (1995–2022)",
+    x = "Año",
+    y = "PBI per Capita (USD, PPP)",
+    color = "Country",
+    caption = "Fuente: World Bank (WDI), indicator NY.GDP.PCAP.PP.CD"
+  ) +
+  scale_color_manual(values = colores_completos)+
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+# Plot the time series (version for saving)
+pp <- ggplot(gdp_combined, aes(x = year, y = gdp_ppp, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = dollar_format(prefix = "USD ")) +
+  labs(
+    #  title = "GDP per Capita (PPP, Constant International USD)",
+    #  subtitle = "Argentina & Chile (1995–2022)",
+    x = "Año",
+    y = "PBI per Capita (USD, PPP)",
+    color = "País"
+    #  caption = "Source: World Bank (WDI), indicator NY.GDP.PCAP.PP.CD"
+  ) +
+  theme_minimal(base_size = 12) +
+  scale_color_manual(values = colores_completos)+
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+# Save plot
+ggsave("output_context/gdp_per_capita_arg_chl_media.png", plot = pp, width = 8, height = 6)
+
+```
+
+
+
+
+**Calculo GDP otros paises para comparar**
+
+```{r echo=FALSE, warning=FALSE}
+
+
+    
+
+# Get GDP data for all Latin American countries
+gdp_regional_data <- WDI(
+  country = latin_america_codes,
+  indicator = "NY.GDP.PCAP.PP.CD",
+  start = 1995,
+  end = 2022
+)
+
+# Clean and prepare regional data
+gdp_regional_data <- gdp_regional_data %>%
+  rename(
+    year = year,
+    country = country,
+    gdp_ppp = NY.GDP.PCAP.PP.CD
+  ) %>%
+  filter(!is.na(gdp_ppp))
+
+# Calculate regional average by year
+regional_average <- gdp_regional_data %>%
+  group_by(year) %>%
+  summarise(
+    gdp_ppp = mean(gdp_ppp, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = "Regional Average",
+    iso2c = "LA"  # Adding iso2c for consistency
+  )
+
+# Get data specifically for Argentina and Chile
+gdp_focus_countries <- gdp_regional_data %>%
+  filter(iso2c %in% c("AR", "CL","BR","UY"))
+
+# Combine focus countries with regional average
+gdp_combined <- bind_rows(gdp_focus_countries, regional_average)
+
+# Create country labels for better display
+gdp_combined <- gdp_combined %>%
+  mutate(
+     country_label = case_when(
+      iso2c == "AR" ~ "Argentina",
+      iso2c == "CL" ~ "Chile",
+      iso2c == "BR" ~ "Brasil",
+      iso2c == "UY" ~ "Uruguay",
+      country == "Regional Average" ~ "Media Regional (América Latina)",
+      TRUE ~ country
+      
+    )
+  )
+
+# Plot the time series
+ggplot(gdp_combined, aes(x = year, y = gdp_ppp, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = dollar_format(prefix = "USD ")) +
+  labs(
+    title = "GDP per Capita (PPP, Constant International USD)",
+    subtitle = "Argentina & Chile (1995–2022)",
+    x = "Year",
+    y = "GDP per Capita (USD, PPP)",
+    color = "Country",
+    caption = "Source: World Bank (WDI), indicator NY.GDP.PCAP.PP.CD"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+
+```
+
+
+## GINI
+
+
+
+
+```{r echo=FALSE, warning=FALSE,fig.width=8, fig.height=6}
+
+# Get GDP data for all Latin American countries
+gini_data <- WDI(
+  country = latin_america_codes,
+  indicator = "SI.POV.GINI",
+  start = 1995,
+  end = 2022
+)
+
+# Clean and prepare regional data
+gini_data <- gini_data %>%
+  rename(
+    year = year,
+    country = country,
+    gini = SI.POV.GINI
+  ) %>%
+  filter(!is.na(gini))
+
+# Calculate regional average by year
+regional_average <- gini_data %>%
+  group_by(year) %>%
+  summarise(
+    gini = mean(gini, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = "Regional Average",
+    iso2c = "LA"  # Adding iso2c for consistency
+  )
+
+# Get data specifically for Argentina and Chile
+gini_focus_countries <- gini_data %>%
+  filter(iso2c %in% c("AR", "CL"))
+
+# Combine focus countries with regional average
+gini_combined <- bind_rows(gini_focus_countries, regional_average)
+
+# Create country labels for better display
+gini_combined <- gini_combined %>%
+  mutate(
+    country_label = case_when(
+      iso2c == "AR" ~ "Argentina",
+      iso2c == "CL" ~ "Chile",
+      country == "Regional Average" ~ "Media Regional (América Latina)",
+      TRUE ~ country
+    )
+  )
+
+
+# Plot the time series
+ggplot(gini_combined, aes(x = year, y = gini, color = country_label, group = country_label)) +
+   geom_line(size = 1.2) +
+   geom_point(size = 2) +
+   labs(
+    title = "Coeficiente de GINI ",
+    subtitle = "Argentina & Chile (1995–2022)",
+    x = "Year",
+    y = "Índice de Gini (0 = equidad perfecta, 100 = desigualdad total)",
+    color = "Country",
+    caption = "Source: World Bank (WDI), indicator SI.POV.GINI"
+  ) +
+  theme_minimal(base_size = 12) +
+    scale_color_manual(values = colores_completos)+
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+
+
+# Plot the time series (version for saving)
+pp <- ggplot(gini_combined, aes(x = year, y = gini, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  labs(
+    #  title = "GDP per Capita (PPP, Constant International USD)",
+    #  subtitle = "Argentina & Chile (1995–2022)",
+    x = "Año",
+    y = "Índice de Gini (0 = equidad perfecta, 100 = desigualdad total)",
+    color = "País"
+    #  caption = "Source: World Bank (WDI), indicator NY.GDP.PCAP.PP.CD"
+  ) +
+  theme_minimal(base_size = 12) +
+    scale_color_manual(values = colores_completos)+
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+# Save plot
+ggsave("output_context/gini_arg_chl_media.png", plot = pp, width = 8, height = 6)
+
+
+```
+
+
+
+
+##Indicadores educativos
+
+
+
+```{r}
+
+
+# Define education indicators
+education_indicators <- c(
+  "SE.PRM.NENR",        # Primary education, pupils out-of-school (% of primary school age)
+  "SE.SEC.NENR",        # Secondary education, pupils out-of-school (% of secondary school age)
+  "SE.ADT.LITR.ZS",     # Literacy rate, adult total (% of people ages 15 and above)
+  "SE.TER.ENRR",        # School enrollment, tertiary (% gross)
+  "SE.PRM.CMPT.ZS",     # Primary completion rate, total (% of relevant age group)
+  "SE.SEC.CMPT.LO.ZS",  # Lower secondary completion rate, total (% of relevant age group)
+  "BAR.SCHL.15UP",      # Barro-Lee: Average years of schooling, age 15+, total
+  "HD.HCI.EYRS",        # Expected years of school
+  "SE.SCH.LIFE",        # School life expectancy (years)
+  "SE.SEC.CUAT.UP.ZS",  # Educational attainment, at least completed upper secondary, population 25+, total (%) (cumulative)
+  "SE.PRM.CUAT.ZS",     # Educational attainment, at least completed primary, population 25+ years, total (%) (cumulative)
+  "HD.HCI.OVRL"         # Human Capital Index (HCI) (scale 0-1)
+)
+
+# Define year of interest
+year_of_interest <- 2019
+
+# Get education data
+education_data <- WDI(
+  country = latin_america_codes,
+  indicator = education_indicators,
+  start = 2019,
+  end = 2019
+)
+
+# Clean and prepare data
+education_data_clean <- education_data %>%
+  filter(year == year_of_interest) %>%
+  select(iso2c, country, year, all_of(education_indicators)) %>%
+  # Rename indicators for better readability
+  rename(
+    primary_out_of_school = SE.PRM.NENR,
+    secondary_out_of_school = SE.SEC.NENR,
+    adult_literacy = SE.ADT.LITR.ZS,
+    tertiary_enrollment = SE.TER.ENRR,
+    primary_completion = SE.PRM.CMPT.ZS,
+    secondary_completion = SE.SEC.CMPT.LO.ZS,
+    avg_years_schooling = BAR.SCHL.15UP,
+    expected_years_school = HD.HCI.EYRS,
+    school_life_expectancy = SE.SCH.LIFE,
+    upper_secondary_attainment = SE.SEC.CUAT.UP.ZS,
+    primary_attainment = SE.PRM.CUAT.ZS,
+    human_capital_index = HD.HCI.OVRL
+  ) %>%
+  # Calcular tasa de analfabetismo
+  mutate(
+    illiteracy_rate = 100 - adult_literacy
+  )
+
+# Calculate Latin America averages
+latin_america_averages <- education_data_clean %>%
+  summarise(
+    across(c(primary_out_of_school, secondary_out_of_school, adult_literacy, 
+             tertiary_enrollment, primary_completion, secondary_completion,
+             avg_years_schooling, expected_years_school, school_life_expectancy,
+             upper_secondary_attainment, primary_attainment, human_capital_index,
+             illiteracy_rate), 
+           ~ mean(.x, na.rm = TRUE)),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    iso2c = "LA",
+    country = "América Latina (Promedio)",
+    year = year_of_interest
+  )
+
+# Get data for Argentina and Chile
+focus_countries_data <- education_data_clean %>%
+  filter(iso2c %in% c("AR", "CL"))
+
+# Combine all data
+combined_data <- bind_rows(focus_countries_data, latin_america_averages) %>%
+  arrange(country)
+
+# Create summary table
+education_table <- combined_data %>%
+  select(-year, -iso2c) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2))) %>%
+  # Transpose to have indicators as rows
+  pivot_longer(
+    cols = -country,
+    names_to = "Indicador",
+    values_to = "Valor"
+  ) %>%
+  pivot_wider(
+    names_from = country,
+    values_from = Valor
+  ) %>%
+  mutate(
+    Indicador = case_when(
+      Indicador == "primary_out_of_school" ~ "Niños fuera de escuela primaria (%)",
+      Indicador == "secondary_out_of_school" ~ "Niños fuera de escuela secundaria (%)",
+      Indicador == "adult_literacy" ~ "Tasa de alfabetización adultos (%)",
+      Indicador == "illiteracy_rate" ~ "Tasa de analfabetismo (%)",
+      Indicador == "tertiary_enrollment" ~ "Matrícula educación terciaria (%)",
+      Indicador == "primary_completion" ~ "Tasa finalización primaria (%)",
+      Indicador == "secondary_completion" ~ "Tasa finalización sec. inferior (%)",
+      Indicador == "avg_years_schooling" ~ "Años promedio de escolaridad (15+)",
+      Indicador == "expected_years_school" ~ "Años esperados de escolaridad",
+      Indicador == "school_life_expectancy" ~ "Esperanza de vida escolar (años)",
+      Indicador == "upper_secondary_attainment" ~ "Población 25+ con secundaria superior completa (%)",
+      Indicador == "primary_attainment" ~ "Población 25+ con primaria completa (%)",
+      Indicador == "human_capital_index" ~ "Índice de Capital Humano (0-1)",
+      TRUE ~ Indicador
+    )
+  )
+
+# Print table
+cat("=== INDICADORES EDUCATIVOS 2020 ===\n\n")
+cat("Argentina, Chile y América Latina\n\n")
+
+table_output <- kable(education_table, 
+              format = "markdown", 
+              align = c("l", rep("c", ncol(education_table)-1)),
+              caption = "Indicadores Educativos - 2019")
+
+print(table_output)
+
+
+
+```
+
+
+```{r}
+
+# Datos manuales de alfabetización para Argentina y Chile (desde 1995)
+manual_data <- data.frame(
+  year = c(1996, 1998, 2000, 2003, 2006, 2009, 2011, 2013, 2015, 2017, 2022),
+  CH_literacy = c(95.9, 96.2, 96.6, 96.6, 97.0, 97.4, 97.5, 97.1, 97.8, 97.2, 98.2),
+  AR_literacy = c(98.8, 98.7, 98.6, 98.8, 99.0, 98.9, 99.3, 99.3, 99.3, 99.3, 99.3)
+)
+
+# Convertir a formato largo y calcular analfabetismo
+manual_data_long <- manual_data %>%
+  pivot_longer(
+    cols = c(CH_literacy, AR_literacy),
+    names_to = "country",
+    values_to = "literacy_rate"
+  ) %>%
+  mutate(
+    illiteracy_rate = 100 - literacy_rate,
+    iso2c = case_when(
+      country == "CH_literacy" ~ "CL",
+      country == "AR_literacy" ~ "AR"
+    ),
+    country_label = case_when(
+      country == "CH_literacy" ~ "Chile",
+      country == "AR_literacy" ~ "Argentina"
+    )
+  )
+
+# Get literacy data for all Latin American countries to calculate regional average
+literacy_regional_data <- WDI(
+  country = latin_america_codes,
+  indicator = "SE.ADT.LITR.ZS",
+  start = 1995,
+  end = 2022
+)
+
+# Calculate regional average by year (excluding 1994, starting from 1995)
+regional_average <- literacy_regional_data %>%
+  rename(
+    literacy_rate = SE.ADT.LITR.ZS
+  ) %>%
+  filter(!is.na(literacy_rate)) %>%
+  filter(year >= 1995) %>%  # EMPEZAR DESDE 1995
+  mutate(
+    illiteracy_rate = 100 - literacy_rate
+  ) %>%
+  group_by(year) %>%
+  summarise(
+    illiteracy_rate = mean(illiteracy_rate, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = "Regional Average",
+    iso2c = "LA",
+    country_label = "Media Regional (América Latina)"
+  )
+
+# Combine manual data with regional average
+illiteracy_combined <- bind_rows(
+  manual_data_long %>% select(year, illiteracy_rate, iso2c, country_label),
+  regional_average %>% select(year, illiteracy_rate, iso2c, country_label)
+)
+
+# Plot the time series
+pp <- ggplot(illiteracy_combined, aes(x = year, y = illiteracy_rate, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_x_continuous(breaks = seq(1995, 2022, by = 3)) +
+    scale_color_manual(values = colores_completos)+
+  labs(
+    title = "Tasa de Analfabetismo (% población 15+ años)",
+    subtitle = "Argentina, Chile y Media Regional de América Latina (1995-2022)",
+    x = "Año",
+    y = "Tasa de Analfabetismo (%)",
+    color = "País/Región",
+    caption = "Fuente: UNESCO Institute for Statistics (Argentina y Chile)- Banco Mundial - WDI (Media Regional) \ SEDLAC (CEDLAS y Banco Mundial)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray40"),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+# Show plot
+print(pp)
+
+# Plot the time series
+pp2 <- ggplot(illiteracy_combined, aes(x = year, y = illiteracy_rate, color = country_label, group = country_label)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_x_continuous(breaks = seq(1995, 2022, by = 3)) +
+    scale_color_manual(values = colores_completos)+
+  labs(
+#    title = "Tasa de Analfabetismo (% población 15+ años)",
+#    subtitle = "Argentina, Chile y Media Regional de América Latina (1995-2022)",
+    x = "Año",
+    y = "Tasa de Analfabetismo (%)",
+    color = "País/Región"
+#    caption = "Fuente: UNESCO Institute for Statistics (Argentina y Chile)\Banco Mundial - WDI (Media Regional) \ SEDLAC (CEDLAS y Banco #Mundial)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray40"),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ) +
+  guides(color = guide_legend(nrow = 1))
+
+
+# Save plot
+ggsave("output_context/tasa_analfabetismo_arg_chl_media.png", plot = pp2, width = 10, height = 6, dpi = 300)
+
+
+```
+
+
+
+```{r echo=FALSE, warning=FALSE}
+
+library(migest)
+library(countrycode)
+library(sf)
+library(scales)
+
+rm(list = ls())
+
+## Base UNU
+unu<- read_csv("Data/migration_imputed_RIKS_dec2021.csv")
+
+#suramerica
+countries_south_america <- c(
+  'ARG', 'BOL', 'BRA', 'CHL', 'COL', 'ECU',
+  'GUY', 'PRY', 'PER', 'SUR', 'URY', 'VEN'
+)
+countries_latam <- c(
+  # Centroamérica continental
+  'BLZ', 'CRI', 'SLV', 'GTM', 'HND', 'NIC', 'PAN', 'MEX',
+  # Caribe insular
+  'CUB', 'DOM', 'HTI', 'JAM', 'TTO', 'BRB', 'BHS', 'GRD', 'LCA', 'VCT', 'ATG', 'KNA', 'DMA', 'SLB',
+  'ARG', 'BOL', 'BRA', 'CHL', 'COL', 'ECU',
+  'GUY', 'PRY', 'PER', 'SUR', 'URY', 'VEN'
+)
+
+countries_north_america <- c('USA', 'CAN')
+
+countries_arg_chl <- c('ARG', 'CHL')
+
+
+```
+
+**Construiyo migrantes agrupados por pais de destino y corrigo daros arg y chl**
+
+
+```{r}
+# Base agrupada por país de destino y año
+unu_country_dest <- unu %>%
+  group_by(iso_des, year) %>%
+  summarise(stock = sum(stock, na.rm = TRUE),
+            flow = sum(flow, na.rm = TRUE),
+            inflow = sum(inflow, na.rm = TRUE),
+            outflow = sum(outflow, na.rm = TRUE)) %>%
+  ungroup()
+
+# Cargar datos ajustados
+df_unu_adjust <- read_csv("data/UNU_CRIS_adjusted.csv")
+df_unu_adjust <- df_unu_adjust %>%
+  filter(iso_des == "ARG" | iso_des == "CHL") 
+
+# SOLUCIÓN: Eliminar ARG y CHL de la base original y luego agregar los ajustados
+unu_country_dest <- unu_country_dest %>%
+  filter(!(iso_des %in% c("ARG", "CHL"))) %>%  # Eliminar ARG y CHL originales
+  bind_rows(df_unu_adjust) %>%  # Agregar datos ajustados completos
+  arrange(iso_des, year)  # Ordenar para mantener estructura
+
+# Filtrar para los países de América Latina
+unu_latam <- unu_country_dest %>%
+  filter(iso_des %in% countries_latam)
+
+unu_arg_chl <- unu_latam %>%
+  filter(iso_des %in% c("ARG", "CHL"))
+
+
+# Paleta homogénea (del análisis ISDM)
+colores_pais <- c(
+  "CHL" = "#1BA3A3",       
+  "ARG" = "#D73027"    
+)
+
+colores_completos <- c(
+  "ARG" = "#D73027",
+  "CHL" = "#1BA3A3",
+  "Media Regional (América Latina)" = "#FFA726"
+)
+
+```
+
+## Stock migratorio de Argentina y Chile
+
+
+```{r}
+
+# Separar datos en dos períodos
+unu_antes_2020 <- unu_arg_chl %>% filter(year < 2020)
+unu_desde_2020 <- unu_arg_chl %>% filter(year >= 2020)
+
+# Preparar datos para etiquetas 2024
+datos_2024 <- unu_arg_chl %>%
+  filter(year == 2024)
+
+# Gráfico de líneas con distinción de datos ajustados
+ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = iso_des)) +
+  # Líneas sólidas para antes de 2020
+  geom_line(
+    data = unu_antes_2020,
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Líneas punteadas para 2020-2024
+  geom_line(
+    data = unu_desde_2020,
+    linetype = "dotted",
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Más breaks en el eje Y
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 8),
+    expand = expansion(mult = c(0.05, 0.15))
+  ) +
+  # Más breaks en el eje X incluyendo 2024
+  scale_x_continuous(
+    breaks = seq(min(unu_arg_chl$year), 2024, by = 4)
+  ) +
+  labs(
+    title = "Stock migratorio de Argentina y Chile",
+    subtitle = "Líneas punteadas: datos ajustados (2020-2024)",
+    x = "Año",
+    y = "Stock (x 1.000)",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 13) +
+    scale_color_manual(values = colores_completos)+
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10, color = "gray40"),
+    legend.position = "bottom",
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(color = "black"),
+    legend.text = element_text(size = 10)
+  ) +
+  guides(color = guide_legend(nrow = 1, override.aes = list(linewidth = 3)))
+
+#guardo sin titulo para el documento
+# Gráfico de líneas con distinción de datos ajustados
+pp<-ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = iso_des)) +
+  # Líneas sólidas para antes de 2020
+  geom_line(
+    data = unu_antes_2020,
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Líneas punteadas para 2020-2024
+  geom_line(
+    data = unu_desde_2020,
+    linetype = "dotted",
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Más breaks en el eje Y
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 8),
+    expand = expansion(mult = c(0.05, 0.15))
+  ) +
+  # Más breaks en el eje X incluyendo 2024
+  scale_x_continuous(
+    breaks = seq(min(unu_arg_chl$year), 2024, by = 4)
+  ) +
+  labs(
+    x = "Año",
+    y = "Stock (x 1.000)",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 13) +
+   scale_color_manual(values = colores_completos)+
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10, color = "gray40"),
+    legend.position = "bottom",
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(color = "black"),
+    legend.text = element_text(size = 10)
+  ) +
+  guides(color = guide_legend(nrow = 1, override.aes = list(linewidth = 3)))
+
+#save plot pp
+ggsave("output_context/stock_migratorio_arg_chl.png", plot = pp, width = 10, height = 6, dpi = 300)
+
+```
+

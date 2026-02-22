@@ -1,0 +1,348 @@
+---
+title: "Migración Argentina y Chile"
+output: html_document
+date: "2025-04-22"
+---
+
+## Migración Argentina y Chile
+
+
+
+```{r echo=FALSE, warning=FALSE}
+
+#install.packages("factoextra")
+
+
+# Cargar librerías
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+library(tidyr)
+library(kableExtra)
+library(migest)
+library(countrycode)
+
+
+# Cargar las librerías necesarias
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggrepel)
+library(scales)
+library(patchwork)
+library(gridExtra)
+
+rm(list = ls())
+
+## Base UNU
+unu<- read_csv("Data/migration_imputed_RIKS_dec2021.csv")
+
+#suramerica
+countries_south_america <- c(
+  'ARG', 'BOL', 'BRA', 'CHL', 'COL', 'ECU',
+  'GUY', 'PRY', 'PER', 'SUR', 'URY', 'VEN'
+)
+countries_latam <- c(
+  # Centroamérica continental
+  'BLZ', 'CRI', 'SLV', 'GTM', 'HND', 'NIC', 'PAN', 'MEX',
+  # Caribe insular
+  'CUB', 'DOM', 'HTI', 'JAM', 'TTO', 'BRB', 'BHS', 'GRD', 'LCA', 'VCT', 'ATG', 'KNA', 'DMA', 'SLB',
+  'ARG', 'BOL', 'BRA', 'CHL', 'COL', 'ECU',
+  'GUY', 'PRY', 'PER', 'SUR', 'URY', 'VEN'
+)
+
+countries_north_america <- c('USA', 'CAN')
+
+countries_arg_chl <- c('ARG', 'CHL')
+
+
+```
+
+**Construiyo migrantes agrupados por pais de destino y corrigo daros arg y chl**
+
+
+```{r}
+# Base agrupada por país de destino y año
+unu_country_dest <- unu %>%
+  group_by(iso_des, year) %>%
+  summarise(stock = sum(stock, na.rm = TRUE),
+            flow = sum(flow, na.rm = TRUE),
+            inflow = sum(inflow, na.rm = TRUE),
+            outflow = sum(outflow, na.rm = TRUE)) %>%
+  ungroup()
+
+# Cargar datos ajustados
+df_unu_adjust <- read_csv("data/UNU_CRIS_adjusted.csv")
+df_unu_adjust <- df_unu_adjust %>%
+  filter(iso_des == "ARG" | iso_des == "CHL") 
+
+# SOLUCIÓN: Eliminar ARG y CHL de la base original y luego agregar los ajustados
+unu_country_dest <- unu_country_dest %>%
+  filter(!(iso_des %in% c("ARG", "CHL"))) %>%  # Eliminar ARG y CHL originales
+  bind_rows(df_unu_adjust) %>%  # Agregar datos ajustados completos
+  arrange(iso_des, year)  # Ordenar para mantener estructura
+
+# Filtrar para los países de América Latina
+unu_latam <- unu_country_dest %>%
+  filter(iso_des %in% countries_latam)
+
+unu_arg_chl <- unu_latam %>%
+  filter(iso_des %in% c("ARG", "CHL"))
+
+
+# Paleta homogénea (del análisis ISDM)
+colores_pais <- c(
+  "CHL" = "#1BA3A3",       
+  "ARG" = "#D73027"    
+)
+
+colores_completos <- c(
+  "ARG" = "#D73027",
+  "CHL" = "#1BA3A3",
+  "Media Regional (América Latina)" = "#FFA726"
+)
+
+```
+
+## Stock migratorio de Argentina y Chile
+
+
+```{r}
+
+# Separar datos en dos períodos
+unu_antes_2020 <- unu_arg_chl %>% filter(year < 2020)
+unu_desde_2020 <- unu_arg_chl %>% filter(year >= 2020)
+
+# Preparar datos para etiquetas 2024
+datos_2024 <- unu_arg_chl %>%
+  filter(year == 2024)
+
+# Gráfico de líneas con distinción de datos ajustados
+ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = iso_des)) +
+  # Líneas sólidas para antes de 2020
+  geom_line(
+    data = unu_antes_2020,
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Líneas punteadas para 2020-2024
+  geom_line(
+    data = unu_desde_2020,
+    linetype = "dotted",
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Más breaks en el eje Y
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 8),
+    expand = expansion(mult = c(0.05, 0.15))
+  ) +
+  # Más breaks en el eje X incluyendo 2024
+  scale_x_continuous(
+    breaks = seq(min(unu_arg_chl$year), 2024, by = 4)
+  ) +
+  labs(
+    title = "Stock migratorio de Argentina y Chile",
+    subtitle = "Líneas punteadas: datos ajustados (2020-2024)",
+    x = "Año",
+    y = "Stock (x 1.000)",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 13) +
+    scale_color_manual(values = colores_completos)+
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10, color = "gray40"),
+    legend.position = "bottom",
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(color = "black"),
+    legend.text = element_text(size = 10)
+  ) +
+  guides(color = guide_legend(nrow = 1, override.aes = list(linewidth = 3)))
+
+#guardo sin titulo para el documento
+# Gráfico de líneas con distinción de datos ajustados
+pp<-ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = iso_des)) +
+  # Líneas sólidas para antes de 2020
+  geom_line(
+    data = unu_antes_2020,
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Líneas punteadas para 2020-2024
+  geom_line(
+    data = unu_desde_2020,
+    linetype = "dotted",
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  # Más breaks en el eje Y
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 8),
+    expand = expansion(mult = c(0.05, 0.15))
+  ) +
+  # Más breaks en el eje X incluyendo 2024
+  scale_x_continuous(
+    breaks = seq(min(unu_arg_chl$year), 2024, by = 4)
+  ) +
+  labs(
+    x = "Año",
+    y = "Stock (x 1.000)",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 13) +
+   scale_color_manual(values = colores_completos)+
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10, color = "gray40"),
+    legend.position = "bottom",
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(color = "black"),
+    legend.text = element_text(size = 10)
+  ) +
+  guides(color = guide_legend(nrow = 1, override.aes = list(linewidth = 3)))
+
+#save plot pp
+ggsave("output_context/stock_migratorio_arg_chl.png", plot = pp, width = 10, height = 6, dpi = 300)
+
+```
+
+
+
+
+
+### % de migrantes sobr total población
+
+**Variable construida**
+
+```{r}
+#base agrupada por pais de destino y año
+unu_country_dest <- unu %>%
+  group_by(iso_des, year) %>%
+  summarise(stock = sum(stock, na.rm = TRUE),
+            flow = sum(flow,na.rm = TRUE),
+            inflow = sum(inflow,na.rm = TRUE),
+            outflow = sum(outflow,na.rm = TRUE))%>%
+  ungroup()
+
+df_unu_adjust <- read_csv("data/UNU_CRIS_adjusted.csv")
+df_unu_adjust_ar <- df_unu_adjust %>%
+  filter(iso_des == "ARG") 
+  
+rm(df_unu_adjust)
+
+#
+
+# Definir los indicadores
+indicadores <- c(
+  "SM.POP.NETM",    # Migración neta (número)
+  "SM.POP.TOTL.ZS",  # International migrant stock (% of population)
+  "SM.POP.TOTL",      # Población migrante total stock
+  "SP.POP.TOTL"      # Población total
+)
+
+# Función para obtener datos del Banco Mundial
+obtener_datos_bm <- function(indicadores, start_year = 1960, end_year = 2023) {
+  
+  cat("Conectando a la API del Banco Mundial...\n")
+  
+  # Obtener datos para todos los países y años disponibles
+  datos <- WDI(
+    indicator = indicadores,
+    country = "all",
+    start = start_year,
+    end = end_year,
+    extra = TRUE  # Incluye información adicional sobre países
+  )
+  
+  cat("Datos obtenidos exitosamente!\n")
+  cat("Dimensiones del dataset:", dim(datos), "\n")
+  
+  return(datos)
+}
+
+
+datos_poblacion <- obtener_datos_bm(indicadores)
+
+##Banco mundial indicators
+bm_indicators <- datos_poblacion %>%
+  # Filtrar solo países (excluir agregados regionales)
+  filter(region != "Aggregates") %>%
+  # Renombrar columnas para mayor claridad
+  rename(
+    net_mig= SM.POP.NETM,
+    pop_mig_pct = SM.POP.TOTL.ZS,
+    pop_total = SP.POP.TOTL,
+    year = year,
+    country = country,
+    country_code = iso3c
+  ) %>%
+  # Seleccionar columnas relevantes
+  select(country_code,  year, pop_total, pop_mig_pct, net_mig,region, income) %>%
+  # Ordenar por país y año
+  arrange(country_code, year)
+
+
+# Filtrar para los países de América Latina
+bm_latam <- bm_indicators %>%
+  filter(country_code %in% countries_south_america) %>%
+  filter(year>=1990)
+
+
+# Reemplazar los valores de stock de Argentina en la base original
+unu_country_dest <- unu_country_dest %>%
+  left_join(df_unu_adjust_ar, by = c("iso_des", "year")) %>%
+  mutate(stock = ifelse(is.na(stock.y), stock.x, stock.y)) %>%
+  select(iso_des, year, stock, flow, inflow,outflow) 
+
+# Filtrar para los países de América Latina
+unu_latam <- unu_country_dest %>%
+  filter(iso_des %in% countries_south_america)
+
+
+# agregar los indicadores de bm_indicators en unu_country_dest join by year & iso_des
+unu_country_dest <- unu_country_dest %>%
+  rename(iso_des = iso_des) %>%
+  left_join(bm_indicators, by = c("iso_des" = "country_code", "year" = "year")) %>%
+  mutate(pop_mig_pct_calculated = stock / pop_total * 100) 
+
+
+# Filtrar para los países de América Latina
+unu_latam <- unu_country_dest %>%
+  filter(iso_des %in% countries_south_america)
+
+unu_latam_table <- unu_latam %>%
+  select(iso_des, year, pop_mig_pct_calculated) %>%
+  # Filtrar solo años divisibles por 5
+  filter(year %% 5 == 0) %>%
+  # Redondear a 1 decimal
+  mutate(pop_mig_pct_calculated = round(pop_mig_pct_calculated, 1)) %>%
+  pivot_wider(
+    names_from = year, 
+    values_from = pop_mig_pct_calculated
+  ) %>%
+  arrange(iso_des)
+
+kable(unu_latam_table) %>%
+  kable_styling(full_width = F, position = "left") 
+  
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

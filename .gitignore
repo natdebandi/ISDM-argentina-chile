@@ -1,0 +1,23 @@
+# R session files
+.RData
+.RDataTmp
+.Rhistory
+.Rproj.user/
+
+# Carpetas del proyecto (datos, outputs, versiones anteriores)
+Data/
+graficos/
+output/
+output_context/
+output_graficos/
+output_graficos_recientes/
+1_contexto_normativo_files/
+v1_nat/
+V2_nat/
+backup/
+_OLD JOACO/
+Documentacion/
+FMR_Latam/
+
+# Windows
+desktop.ini
