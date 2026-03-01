@@ -50,6 +50,7 @@ NOTAS:
 **cHILE**
 
 En el caso e Chile para cada año y grupo se prioriza ENE y si no existe se usa CASEN.
+No se mezclan las fuentes para un mismo indicador.
 
 **ARGENTINA**
 
@@ -144,7 +145,6 @@ cat("✓ Brechas calculadas por año individual\n")
 cat("  Total de observaciones:", nrow(indicadores), "\n\n")
 
 #save indicadores con brechas a un csv 
-write_csv(indicadores, "Data/indicadores_con_brechas_arg_chile_2015_2024.csv")
 
 ```
 
@@ -1577,458 +1577,12 @@ ggsave(
 ```
 
 
-
-
-
-# (I4) Informalidad total
+# (I4) Cuentapropismo
 
 
 ```{r}
 
-indicador_objetivo <- "I4_informalidad_total"  # coincide con tu columna indicador_clean
-
-df_ind <- indicadores %>%
-  filter(indicador == indicador_objetivo) %>%
-  arrange(pais, anio)
-
-fuente_txt <- df_ind %>%
-  distinct(pais, fuente) %>%
-  mutate(
-    fuente_pais = paste0(fuente, " (", pais, ")")
-  ) %>%
-  arrange(pais, fuente) %>%
-  pull(fuente_pais) %>%
-  paste(collapse = " – ")
-
-indicador_txt<-df_ind %>%
-  distinct(indicador_clean) 
-
-fuente_txt <- paste0("Fuente: ", fuente_txt)
-```
-
-
-## Datos completos
-
-### Argentina
-
-```{r}
-tabla_ind <- df_ind %>%
-  select(
-    pais, fuente, anio, indicador_clean,
-    nativos, migrantes, migrantes_recientes,
-    brecha_nat_mig, brecha_nat_rec
-  ) %>%
-  mutate(across(where(is.numeric), ~ round(.x, 2))) %>%
-  arrange(pais, anio)
-
-tabla_ind %>%
-  filter(pais == "Argentina")
-
-
-
-```
-
-### Chile
-
-```{r}
-
-tabla_ind %>%
-  filter(pais == "Chile")
-
-
-
-```
-
-## Datos por perìodo
-
-```{r}
-
-periodos_levels <- c("2015-2016","2017-2019","2020-2022","2023-2024")
-
-df_ind_p <- df_ind %>%
-  mutate(
-    anio = as.integer(anio),
-    periodo = case_when(
-      anio %in% 2015:2016 ~ "2015-2016",
-      anio %in% 2017:2019 ~ "2017-2019",
-      anio %in% 2020:2022 ~ "2020-2022",
-      anio %in% 2023:2024 ~ "2023-2024",
-      TRUE ~ NA_character_
-    ),
-    periodo = factor(periodo, levels = periodos_levels)
-  ) %>%
-  filter(!is.na(periodo))
-
-# (A) Valores promedio por período (niveles)
-tabla_valores_periodo <- df_ind_p %>%
-  group_by(pais, fuente, indicador_clean, periodo) %>%
-  summarise(
-    nativos = mean(nativos, na.rm = TRUE),
-    migrantes = mean(migrantes, na.rm = TRUE),
-    migrantes_recientes = mean(migrantes_recientes, na.rm = TRUE),
-    n_anios = n_distinct(anio),
-    n_anios_migrec = sum(!is.na(migrantes_recientes)),
-    .groups = "drop"
-  ) %>%
-  mutate(across(where(is.numeric), ~ round(.x, 2))) %>%
-  arrange(pais, periodo)
-
-
-# 1) Armar tabla con niveles + brecha (Nativos - migrantes)
-tabla_niveles_brecha <- tabla_valores_periodo %>%
-  transmute(
-    pais,
-    periodo,
-    nativos,
-    migrantes,
-    brecha_mig_nat = nativos - migrantes
-  ) %>%
-  pivot_wider(
-    names_from = pais,
-    values_from = c(nativos, migrantes, brecha_mig_nat),
-    names_glue = "{pais}_{.value}"
-  ) %>%
-  arrange(periodo)
-
-# 2) Render con gt (spanners por país)
-tabla_niveles_brecha %>%
-  gt() %>%
-  tab_header(
-    title = "Tasa de actividad (I1) — Niveles y brecha por período",
-    subtitle = "Brecha = Nativos - Migrantes (puntos porcentuales). Chile: ENE prioritaria; CASEN si corresponde al indicador."
-  ) %>%
-  tab_spanner(
-    label = "Argentina",
-    columns = c(Argentina_nativos, Argentina_migrantes, Argentina_brecha_mig_nat)
-  ) %>%
-  tab_spanner(
-    label = "Chile",
-    columns = c(Chile_nativos, Chile_migrantes, Chile_brecha_mig_nat)
-  ) %>%
-  cols_label(
-    periodo = "Período",
-    Argentina_nativos = "Nativos",
-    Argentina_migrantes = "Migrantes",
-    Argentina_brecha_mig_nat = "Brecha",
-    Chile_nativos = "Nativos",
-    Chile_migrantes = "Migrantes",
-    Chile_brecha_mig_nat = "Brecha"
-  ) %>%
-  fmt_number(columns = -periodo, decimals = 1) %>%
-  tab_source_note(
-    source_note = "Nota: valores en puntos porcentuales. Brecha positiva implica mayor valor en migrantes."
-  )
-
-```
-
-
-## Serie temporal 
-
-
-```{r}
-
-df_niveles <- df_ind %>%
-  select(pais, anio, nativos, migrantes, migrantes_recientes) %>%
-  pivot_longer(
-    cols = c(nativos, migrantes, migrantes_recientes),
-    names_to = "grupo",
-    values_to = "valor"
-  ) %>%
-  mutate(
-    grupo = recode(grupo,
-                   nativos = "Nativos",
-                   migrantes = "Migrantes",
-                   migrantes_recientes = "Migrantes recientes")
-  )
-
-ggplot(df_niveles, aes(x = anio, y = valor, color = grupo)) +
-  geom_line(linewidth = 0.9, na.rm = TRUE) +
-  geom_point(size = 2, na.rm = TRUE) +
-  facet_wrap(~pais, scales = "free_y") +
-  scale_color_manual(values = colores_grupo) +
-  theme_minimal(base_size = 13) +
- labs(
-    title = paste0(indicador_txt, " – valores anuales"),
-    subtitle = "Argentina y Chile (2015-2024 segun datos disponibles)",
-    x = "Año",
-    y = indicador_objetivo,
-    color = "Grupo",
-    caption = fuente_txt
-  )
-
-ggsave(
-  filename = paste0("Output/serie_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-## Brechas nativos - migrantes
-
-
-```{r}
-ggplot(df_ind, aes(x = anio, y = brecha_nat_mig, color = pais)) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_line(linewidth = 0.9, na.rm = TRUE) +
-  geom_point(size = 2, na.rm = TRUE) +
-  scale_color_manual(values = colores_pais) +
-  theme_minimal(base_size = 13) +
-  labs(
-    title = paste0(indicador_txt, " – brecha nativos-migrantes"),
-    x = "Año", y = "Brecha (puntos del indicador)", color = "País"
-  )
-
-
-ggsave(
-  filename = paste0("Output/brecha_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-##Brechas - incorporación migración reciente
-
-
-EN CHile la fuente ENE no contempla esta información. 
-
-Es más relevante el análisis para Argentina porque permite mayor comparibilidad con Chile donde la migración está más concentrada en migración reciente
-
-
-```{r}
-df_plot <- df_ind %>%
-  select(pais, anio, brecha_nat_mig, brecha_nat_rec) %>%
-  pivot_longer(
-    cols = c(brecha_nat_mig, brecha_nat_rec),
-    names_to = "tipo_brecha",
-    values_to = "brecha_dir"
-  ) %>%
-  mutate(
-    tipo_brecha = recode(
-      tipo_brecha,
-      brecha_nat_mig = "Nativos - migrantes",
-      brecha_nat_rec = "Nativos - migrantes recientes"
-    )
-  )
-
-ggplot(
-  df_plot,
-  aes(
-    x = anio,
-    y = brecha_dir,
-    color = pais,
-    linetype = tipo_brecha,
-    group = interaction(pais, tipo_brecha)
-  )
-) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-  geom_line(linewidth = 0.9, na.rm = TRUE) +
-  geom_point(size = 2, na.rm = TRUE) +
-  scale_color_manual(values = colores_pais) +
-  scale_linetype_manual(
-    values = c(
-      "Nativos - migrantes" = "solid",
-      "Nativos - migrantes recientes" = "dotted"
-    )
-  ) +
-  theme_minimal(base_size = 13) +
-  labs(
-    title = paste0(indicador_txt, " – brechas"),
-    x = "Año",
-    y = "Brechas",
-    color = "País",
-    linetype = "Tipo de brecha",
-    caption = fuente_txt
-  )
-
-
-ggsave(
-  filename = paste0("Output/brecha2t_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-
-## Brechas estandarizadas
-
-Bajo esta transformación, las brechas estandarizadas se interpretan como desviaciones respecto del promedio del indicador:
-
-	Z_(i,c,t)>0: integración relativa de la población migrante superior al promedio del indicador
-	
-	Z_(i,c,t)<0: integración relativa inferior al promedio
-	
-	Z_(i,c,t)=0: brecha equivalente al promedio del indicador
-	
-La magnitud de Z_(i,c,t)indica cuántos desvíos estándar se encuentra la brecha observada respecto de la media.
-
-
-
-
-```{r}
-df_std <- df_ind %>%
-  mutate(
-    brecha_z_nat_mig = as.numeric(scale(brecha_nat_mig)),
-    brecha_z_nat_rec = as.numeric(scale(brecha_nat_rec))
-  )
-
-df_std_long <- df_std %>%
-  select(pais, anio, brecha_z_nat_mig, brecha_z_nat_rec) %>%
-  pivot_longer(
-    cols = c(brecha_z_nat_mig, brecha_z_nat_rec),
-    names_to = "tipo",
-    values_to = "brecha_z"
-  ) %>%
-  mutate(tipo = recode(tipo,
-                       brecha_z_nat_mig = "Brecha z: Nativos-migrantes",
-                       brecha_z_nat_rec = "Brecha z: Nativos-Migrantes recientes"))
-
-ggplot(df_std_long, aes(x = anio, y = brecha_z, color = pais)) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_line(linewidth = 0.9, na.rm = TRUE) +
-  geom_point(size = 2, na.rm = TRUE) +
-  facet_wrap(~tipo) +
-  theme_minimal(base_size = 13) +
-  labs(
-    title = paste0(indicador_txt, " – brechas estandarizadas (z-score)"),
-    x = "Año", y = "Brecha estandarizada", color = "País"
-  )
-ggsave(
-  filename = paste0("Output/brecha_std_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-## Distribución de brechas
-
-```{r}
-ggplot(df_ind, aes(x = pais, y = brecha_nat_mig, color = pais)) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-  geom_boxplot(outlier.alpha = 0.4, width = 0.45, na.rm = TRUE) +
-  geom_jitter(width = 0.10, height = 0, alpha = 0.5, na.rm = TRUE) +
-  scale_color_manual(values = colores_pais) +
-  theme_minimal(base_size = 13) +
-  labs(
-    title = paste0(indicador_txt, " – distribución de brechas (Nativos - Migrantes)"),
-    x = "", y = "Brecha (Nativos - Migrantes)", color = "País",
-    caption = fuente_txt
-  ) +
-  theme(legend.position = "none")
-ggsave(
-  filename = paste0("Output/brecha_dist_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-## Distribucion de brechas - grafico 2
-
-
-```{r}
-ggplot(df_ind, aes(x = pais, y = brecha_nat_mig, fill = pais)) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-  geom_violin(trim = FALSE, alpha = 0.35, na.rm = TRUE) +
-  geom_boxplot(width = 0.18, outlier.alpha = 0.3, na.rm = TRUE) +
-  scale_fill_manual(values = colores_pais) +
-  theme_minimal(base_size = 13) +
-  labs(
-    title = paste0(indicador_txt, " – distribución de brechas (Nativos - Migrantes)"),
-    x = "", y = "Brecha (Nativos - Migrantes)", fill = "País",
-    caption = fuente_txt
-  ) +
-  theme(legend.position = "none")
-
-ggsave(
-  filename = paste0("Output/brecha_dist2_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-## distribucion de brechas migracion general y reciente en Argentina
-
-```{r}
-df_brechas <- df_ind %>%
-#  filter(pais == "Argentina") %>%
-  select(pais, brecha_nat_mig, brecha_nat_rec) %>%
-  pivot_longer(
-    cols = c(brecha_nat_mig, brecha_nat_rec),
-    names_to = "tipo_brecha",
-    values_to = "brecha"
-  ) %>%
-  mutate(
-    tipo_brecha = recode(
-      tipo_brecha,
-      brecha_nat_mig = "Nativos-migrantes",
-      brecha_nat_rec = "Nativos-migrantes recientes"
-    )
-  )
-
-ggplot(df_brechas, aes(x = tipo_brecha, y = brecha, color = pais)) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-  geom_boxplot(width = 0.45, outlier.alpha = 0.4, na.rm = TRUE) +
-  geom_jitter(width = 0.12, alpha = 0.5, na.rm = TRUE) +
-  facet_wrap(~pais) +
-  scale_color_manual(values = colores_pais) +
-  theme_minimal(base_size = 13) +
-  labs(
-    title = paste0(
-      indicador_txt,
-      " – comparación de brechas según tipo de población migrante"
-    ),
-    x = "",
-    y = "Brecha (Nativos-Migrantes)",
-    color = "País",
-    caption = fuente_txt
-  ) +
-  theme(
-    legend.position = "none",
-    strip.text = element_text(face = "bold")
-  )
-
-ggsave(
-  filename = paste0("Output/brecha_dist3_", indicador_txt, ".png"),
-  plot = last_plot(),
-  width = 12,
-  height = 6,
-  dpi = 300,
-  bg = "white"
-)
-
-```
-
-
-
-# (I5) Cuentapropismo
-
-
-```{r}
-
-indicador_objetivo <- "I5_cuentapropismo"  # coincide con tu columna indicador_clean
+indicador_objetivo <- "I4_cuentapropismo"  # coincide con tu columna indicador_clean
 
 df_ind <- indicadores %>%
   filter(indicador == indicador_objetivo) %>%
@@ -2470,12 +2024,12 @@ ggsave(
 
 
 
-# (I6) Pobreza monetaria
+# (I5) Pobreza monetaria
 
 
 ```{r}
 
-indicador_objetivo <- "I6_pobreza"  # coincide con tu columna indicador_clean
+indicador_objetivo <- "I5_pobreza"  # coincide con tu columna indicador_clean
 
 df_ind <- indicadores %>%
   filter(indicador == indicador_objetivo) %>%
@@ -2915,12 +2469,12 @@ ggsave(
 
 
 
-# (I7) Pobreza extrema / Indigencia
+# (I6) Pobreza extrema / Indigencia
 
 
 ```{r}
 
-indicador_objetivo <- "I7_pobreza_extrema"  # coincide con tu columna indicador_clean
+indicador_objetivo <- "I6_pobreza_extrema"  # coincide con tu columna indicador_clean
 
 df_ind <- indicadores %>%
   filter(indicador == indicador_objetivo) %>%
@@ -3361,12 +2915,12 @@ ggsave(
 
 
 
-# (I8) Asistencia escolar obligatoria (6 a 17 años) - primaria y secundaria obligatoria
+# (I7) Asistencia escolar obligatoria (6 a 17 años) - primaria y secundaria obligatoria
 
 
 ```{r}
 
-indicador_objetivo <- "I8_asistencia_escolar_6_17"  # coincide con tu columna indicador_clean
+indicador_objetivo <- "I7_asistencia_escolar_6_17"  # coincide con tu columna indicador_clean
 
 df_ind <- indicadores %>%
   filter(indicador == indicador_objetivo) %>%
@@ -3807,12 +3361,12 @@ ggsave(
 
 
 
-# (I9) Asistencia a estudios superiroes (18 a 29 años)  tercierarios, universitarios y postgrados
+# (I8) Asistencia a estudios superiroes (18 a 29 años)  tercierarios, universitarios y postgrados
 
 
 ```{r}
 
-indicador_objetivo <- "I9_asistencia_superior_18_29"  # coincide con tu columna indicador_clean
+indicador_objetivo <- "I8_asistencia_superior_18_29"  # coincide con tu columna indicador_clean
 
 df_ind <- indicadores %>%
   filter(indicador == indicador_objetivo) %>%
@@ -4240,12 +3794,12 @@ ggsave(
 
 ```
 
-# (I10) Dependencia/acceso al sistema de salud publico
+# (I9) Dependencia/acceso al sistema de salud publico
 
 
 ```{r}
 
-indicador_objetivo <- "I10_sistema_salud_publico"  # coincide con tu columna indicador_clean
+indicador_objetivo <- "I9_sistema_salud_publico"  # coincide con tu columna indicador_clean
 
 df_ind <- indicadores %>%
   filter(indicador == indicador_objetivo) %>%
@@ -4811,3 +4365,103 @@ cat("✓ Archivo guardado en: /mnt/user-data/outputs/tablas_indicadores_por_peri
 
 ```
 
+
+
+# Correlaciones entre indicadores
+
+La correlación se calcula sobre la **brecha estandarizada** siguiendo la misma metodología del ISDNM:
+1. **Normalización direccional**: se invierte el signo de las brechas en indicadores "negativos" (mayor valor = peor integración), de modo que todos apunten en la misma dirección.
+2. **Z-score por indicador**: se estandariza cada indicador usando su propia media y desvío estándar sobre todos los años y países.
+
+```{r corr-prep}
+library(reshape2)
+
+# Clasificacion de indicadores (igual que en el ISDNM)
+clasificacion_indicadores <- tribble(
+  ~indicador,                       ~tipo,
+  "I1_tasa_actividad",              "positivo",
+  "I2_tasa_desempleo",              "negativo",
+  "I3_informalidad_asalariada",     "negativo",
+  "I4_cuentapropismo",              "negativo",
+  "I5_pobreza",                     "negativo",
+  "I6_pobreza_extrema",             "negativo",
+  "I7_asistencia_escolar_6_17",     "positivo",
+  "I8_asistencia_superior_18_29",   "positivo",
+  "I9_sistema_salud_publico",      "positivo"
+)
+
+# Funcion: normalizar + estandarizar una brecha y calcular correlacion
+preparar_brecha_std <- function(df, var_brecha) {
+  df %>%
+    left_join(clasificacion_indicadores, by = "indicador") %>%
+    mutate(
+      brecha_normalizada = case_when(
+        tipo == "negativo" ~ -{{ var_brecha }},
+        tipo == "positivo" ~ {{ var_brecha }},
+        TRUE ~ NA_real_
+      )
+    ) %>%
+    group_by(indicador) %>%
+    mutate(
+      brecha_estandarizada = (brecha_normalizada - mean(brecha_normalizada, na.rm = TRUE)) /
+                              sd(brecha_normalizada, na.rm = TRUE)
+    ) %>%
+    ungroup()
+}
+
+# Funcion: graficar matriz de correlacion
+plot_corr_std <- function(df_std, pais_sel, titulo) {
+  mat <- df_std %>%
+    filter(pais == pais_sel) %>%
+    select(anio, indicador_clean, brecha_estandarizada) %>%
+    pivot_wider(names_from = indicador_clean, values_from = brecha_estandarizada) %>%
+    select(-anio)
+
+  cor_mat <- cor(mat, use = "pairwise.complete.obs")
+
+  cor_long <- reshape2::melt(cor_mat) %>%
+    rename(ind1 = Var1, ind2 = Var2, correlacion = value)
+
+  ggplot(cor_long, aes(x = ind1, y = ind2, fill = correlacion)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = round(correlacion, 2)), size = 2.8) +
+    scale_fill_gradient2(
+      low = "#D73027", mid = "white", high = "#1A9850",
+      midpoint = 0, limits = c(-1, 1), name = "r"
+    ) +
+    labs(title = titulo, x = NULL, y = NULL) +
+    theme_minimal(base_size = 11) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(face = "bold")
+    )
+}
+
+# Preparar brechas estandarizadas para cada tipo
+indicadores_std_mig    <- preparar_brecha_std(indicadores, brecha_nat_mig)
+indicadores_std_rec    <- preparar_brecha_std(indicadores, brecha_nat_rec)
+```
+
+## Brecha nativo / migrante
+
+```{r corr-mig-arg, fig.height=10, fig.width=11}
+plot_corr_std(indicadores_std_mig, "Argentina",
+              "Correlacion entre indicadores (Z-score) - Brecha Nativo/Migrante - Argentina")
+```
+
+```{r corr-mig-chile, fig.height=10, fig.width=11}
+plot_corr_std(indicadores_std_mig, "Chile",
+              "Correlacion entre indicadores (Z-score) - Brecha Nativo/Migrante - Chile")
+```
+
+## Brecha nativo / migrante reciente
+
+```{r corr-rec-arg, fig.height=10, fig.width=11}
+plot_corr_std(indicadores_std_rec, "Argentina",
+              "Correlacion entre indicadores (Z-score) - Brecha Nativo/Migrante reciente - Argentina")
+```
+
+```{r corr-rec-chile, fig.height=10, fig.width=11}
+plot_corr_std(indicadores_std_rec, "Chile",
+              "Correlacion entre indicadores (Z-score) - Brecha Nativo/Migrante reciente - Chile")
+```

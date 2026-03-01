@@ -93,7 +93,7 @@ calc_calidad_prop <- function(df,
 }
 
 # -----------------------------
-# 1) Cargar microdatos procesados (mismos insumos que tus scripts)
+# 1) Cargar microdatos procesados 
 # -----------------------------
 # Ajustá rutas si es necesario
 EPH_indiv_unificado <- read_csv("Data/EPH_indiv_2016_2024_proc.csv", show_col_types = FALSE)

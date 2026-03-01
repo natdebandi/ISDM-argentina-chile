@@ -1,6 +1,6 @@
 ---
 title: "Indice Sintetico de Desigualdad Migratoria (ISDM)"
-subtitle: "Analisis con agregacion jerarquica por dimensiones - incluye 2020 (con imputación Chile)"
+subtitle: "Análisis con agregación jerárquica por dimensiones: Brechas Nativos vs Migrantes - Argentina y Chile 2015-2024"
 author: "Natalia Debandi"
 date: "`r Sys.Date()`"
 output:
@@ -42,7 +42,7 @@ El ISDM se construye mediante una **agregación jerárquica en dos niveles** que
 
 Se calculan tres sub-índices, uno por cada dimensión:
 
-- **Dimensión Laboral** (5 indicadores): tasa de actividad, desempleo, informalidad asalariada, informalidad total, cuentapropismo
+- **Dimensión Laboral** (4 indicadores): tasa de actividad, desempleo, informalidad asalariada, cuentapropismo
 - **Dimensión Pobreza** (2 indicadores): pobreza monetaria, pobreza extrema
 - **Dimensión Social** (3 indicadores): asistencia escolar, asistencia superior, acceso a salud pública
 
@@ -52,12 +52,7 @@ Cada sub-índice es el **promedio de los indicadores estandarizados** (Z-scores)
 
 El ISDM final es el **promedio de los tres sub-índices**, asignando **igual peso (33.3%)** a cada dimensión, independientemente del número de indicadores que contenga.
 
-### **Ventajas de este enfoque**
 
-✓ Evita sobreponderación de dimensiones con más indicadores  
-✓ Equilibra la importancia conceptual de cada área temática  
-✓ Permite analizar qué dimensiones impulsan las diferencias  
-✓ Facilita interpretación por dimensión analítica
 
 ---
 
@@ -84,53 +79,22 @@ indicadores_con_brechas <- read_csv(
   "Data/indicadores_con_brechas_arg_chile_2015_2024.csv",
   show_col_types = FALSE
 )
+```
 
-# =============================================================================
-# IMPUTACIÓN: interpolación lineal para Chile - Pobreza y Social
-# (años inter-CASEN: 2018-2021 y 2023)
-# =============================================================================
+> **Nota metodológica:** la interpolación lineal para los años inter-CASEN de Chile (indicadores de Pobreza y Social) se aplica en el paso previo de construcción del dataset (`1_construccion_brechas.Rmd`), sobre los valores originales por grupo migratorio. Las filas interpoladas quedan marcadas con `fuente = "CASEN_interpolado"`.
 
-indicadores_casen <- c("I6_pobreza", "I7_pobreza_extrema",
-                       "I8_asistencia_escolar_6_17",
-                       "I9_asistencia_superior_18_29",
-                       "I10_sistema_salud_publico")
-
-# Años presentes en el dataset para Chile (excluye 2016 que no tiene datos)
-anios_chile <- sort(unique(
-  indicadores_con_brechas %>% filter(pais == "Chile") %>% pull(anio)
-))
-
-# Completar filas faltantes e interpolar
-chile_casen_imputado <- indicadores_con_brechas %>%
-  filter(pais == "Chile", indicador %in% indicadores_casen) %>%
-  complete(pais, indicador, anio = anios_chile) %>%
-  group_by(indicador) %>%
-  arrange(anio) %>%
-  fill(indicador_clean, .direction = "downup") %>%
-  mutate(
-    imputado       = is.na(brecha_nat_mig),
-    brecha_nat_mig = zoo::na.approx(brecha_nat_mig, na.rm = FALSE),
-    fuente         = if_else(imputado, "CASEN_interpolado", fuente)
-  ) %>%
-  ungroup()
-
-# Mostrar valores imputados
-cat("Valores imputados por interpolación lineal (Chile - Pobreza y Social):\n\n")
-chile_casen_imputado %>%
-  filter(imputado) %>%
-  select(indicador, anio, brecha_nat_mig) %>%
-  arrange(indicador, anio) %>%
-  print(n = 40)
-
-# Reemplazar en el dataset original
+```{r filtro-2020}
+# Excluir año 2020 para ambos países (distorsión pandemia)
 indicadores_con_brechas <- indicadores_con_brechas %>%
-  filter(!(pais == "Chile" & indicador %in% indicadores_casen)) %>%
-  bind_rows(chile_casen_imputado %>% select(-imputado)) %>%
-  arrange(pais, anio, indicador)
+  filter(anio != 2020)
 
-cat("\n✓ Imputación completada\n\n")
+cat("⚠ Año 2020 excluido para ambos países (distorsión pandemia)\n\n")
 
-cat("ℹ Año 2020 incluido para ambos países\n\n")
+# Excluir I4_informalidad_total del análisis
+indicadores_con_brechas <- indicadores_con_brechas %>%
+  filter(indicador != "I4_informalidad_total")
+
+cat("✓ I4_informalidad_total excluido del análisis\n\n")
 
 # =============================================================================
 
@@ -156,13 +120,12 @@ clasificacion_indicadores <- tribble(
   "I1_tasa_actividad",                "Laboral",     "positivo",   "Mayor actividad = Mejor integración",
   "I2_tasa_desempleo",                "Laboral",     "negativo",   "Mayor desempleo = PEOR integración",
   "I3_informalidad_asalariada",       "Laboral",     "negativo",   "Mayor informalidad = PEOR integración", 
-  "I4_informalidad_total",            "Laboral",     "negativo",   "Mayor informalidad = PEOR integración",
-  "I5_cuentapropismo",                "Laboral",     "negativo",   "Mayor cuentapropismo = PEOR integración",
-  "I6_pobreza",                       "Pobreza",     "negativo",   "Mayor pobreza = PEOR integración",
-  "I7_pobreza_extrema",               "Pobreza",     "negativo",   "Mayor pobreza extrema = PEOR integración",
-  "I8_asistencia_escolar_6_17",       "Social",      "positivo",   "Mayor asistencia = MEJOR integración",
-  "I9_asistencia_superior_18_29",     "Social",      "positivo",   "Mayor asistencia = MEJOR integración",
-  "I10_sistema_salud_publico",        "Social",      "positivo",   "Mayor acceso salud pública = MEJOR integración"
+  "I4_cuentapropismo",                "Laboral",     "negativo",   "Mayor cuentapropismo = PEOR integración",
+  "I5_pobreza",                       "Pobreza",     "negativo",   "Mayor pobreza = PEOR integración",
+  "I6_pobreza_extrema",               "Pobreza",     "negativo",   "Mayor pobreza extrema = PEOR integración",
+  "I7_asistencia_escolar_6_17",       "Social",      "positivo",   "Mayor asistencia = MEJOR integración",
+  "I8_asistencia_superior_18_29",     "Social",      "positivo",   "Mayor asistencia = MEJOR integración",
+  "I9_sistema_salud_publico",        "Social",      "positivo",   "Mayor acceso salud pública = MEJOR integración"
 )
 
 kable(clasificacion_indicadores, 
@@ -579,9 +542,9 @@ tabla_comparativa %>%
                                   "#A23B72", 
                                   ifelse(tabla_comparativa$mayor_brecha == "Argentina",
                                          "#2E86AB", "#CCCCCC"))) %>%
-  pack_rows("Laboral", 1, 5, label_row_css = "background-color: #E3F2FD; color: #000;") %>%
-  pack_rows("Pobreza", 6, 7, label_row_css = "background-color: #FCE4EC; color: #000;") %>%
-  pack_rows("Social", 8, 10, label_row_css = "background-color: #FFF3E0; color: #000;")
+  pack_rows("Laboral", 1, 4, label_row_css = "background-color: #E3F2FD; color: #000;") %>%
+  pack_rows("Pobreza", 5, 6, label_row_css = "background-color: #FCE4EC; color: #000;") %>%
+  pack_rows("Social", 7, 9, label_row_css = "background-color: #FFF3E0; color: #000;")
 
 
 ```
@@ -896,7 +859,7 @@ cat(sprintf("   • Chile:     %+.2f pp → Nativos %s integrados\n\n",
             chl_dir, ifelse(chl_dir > 0, "MEJOR", "PEOR")))
 ```
 
-## Test estadístico
+## Tests estadísticos y robustez
 
 ```{r test_significancia}
 cat("\nTEST DE DIFERENCIA ENTRE PAÍSES\n")
@@ -943,6 +906,86 @@ if(test_t$p.value < 0.05) {
 } else {
   cat("  ⚠ Diferencias NO significativas (p ≥ 0.05)\n\n")
 }
+
+# --- DIFERENCIA DE MEDIAS ---
+cat("─────────────────────────────────────────\n")
+cat("Diferencia de medias observada:\n\n")
+
+medias <- isdm_jerarquico %>%
+  group_by(pais) %>%
+  summarise(
+    media = mean(isdm_absoluto_estandarizado, na.rm = TRUE),
+    sd    = sd(isdm_absoluto_estandarizado,   na.rm = TRUE),
+    n     = n(),
+    .groups = "drop"
+  )
+
+media_arg <- medias %>% filter(pais == "Argentina") %>% pull(media)
+media_chl <- medias %>% filter(pais == "Chile")     %>% pull(media)
+sd_arg    <- medias %>% filter(pais == "Argentina") %>% pull(sd)
+sd_chl    <- medias %>% filter(pais == "Chile")     %>% pull(sd)
+n_arg     <- medias %>% filter(pais == "Argentina") %>% pull(n)
+n_chl     <- medias %>% filter(pais == "Chile")     %>% pull(n)
+dif_medias <- media_arg - media_chl
+
+cat(sprintf("  • Media Argentina: %.4f SD  (n = %d)\n", media_arg, n_arg))
+cat(sprintf("  • Media Chile:     %.4f SD  (n = %d)\n", media_chl, n_chl))
+cat(sprintf("  • Diferencia (Arg - Chl): %+.4f SD\n\n", dif_medias))
+
+# --- COHEN'S D ---
+cat("─────────────────────────────────────────\n")
+cat("Tamaño del efecto - Cohen's d:\n\n")
+
+sd_pooled <- sqrt(((n_arg - 1) * sd_arg^2 + (n_chl - 1) * sd_chl^2) /
+                    (n_arg + n_chl - 2))
+cohens_d  <- dif_medias / sd_pooled
+
+interpretacion_d <- case_when(
+  abs(cohens_d) < 0.2 ~ "efecto PEQUEÑO",
+  abs(cohens_d) < 0.5 ~ "efecto PEQUEÑO-MODERADO",
+  abs(cohens_d) < 0.8 ~ "efecto MODERADO",
+  TRUE                ~ "efecto GRANDE"
+)
+
+cat(sprintf("  • SD pooled:  %.4f\n", sd_pooled))
+cat(sprintf("  • Cohen's d:  %.4f → %s\n\n", cohens_d, interpretacion_d))
+cat("  Referencia: |d| < 0.2 pequeño | 0.2–0.5 pequeño-moderado | 0.5–0.8 moderado | > 0.8 grande\n\n")
+
+# --- PERMUTATION TEST ---
+cat("─────────────────────────────────────────\n")
+cat("Permutation test (n = 10.000 permutaciones):\n\n")
+
+set.seed(42)
+n_perm  <- 10000
+valores <- isdm_jerarquico$isdm_absoluto_estandarizado
+grupos  <- isdm_jerarquico$pais
+
+dif_obs  <- mean(valores[grupos == "Argentina"]) - mean(valores[grupos == "Chile"])
+dif_perm <- replicate(n_perm, {
+  g <- sample(grupos)
+  mean(valores[g == "Argentina"]) - mean(valores[g == "Chile"])
+})
+p_perm <- mean(abs(dif_perm) >= abs(dif_obs))
+
+cat(sprintf("  • Diferencia observada:    %+.4f SD\n", dif_obs))
+cat(sprintf("  • p-valor permutación:     %.4f\n\n",   p_perm))
+
+if(p_perm < 0.05) {
+  cat("  ✓ Diferencias SIGNIFICATIVAS según permutation test (p < 0.05)\n\n")
+} else {
+  cat("  ⚠ Diferencias NO significativas según permutation test (p ≥ 0.05)\n\n")
+}
+
+# --- RESUMEN DE ROBUSTEZ ---
+cat("─────────────────────────────────────────\n")
+cat("RESUMEN DE PRUEBAS:\n\n")
+cat(sprintf("  %-28s p = %.4f  %s\n", "Test t de Welch:",
+            test_t$p.value,
+            ifelse(test_t$p.value < 0.05, "✓ Significativo", "⚠ No significativo")))
+cat(sprintf("  %-28s p = %.4f  %s\n", "Permutation test:",
+            p_perm,
+            ifelse(p_perm < 0.05, "✓ Significativo", "⚠ No significativo")))
+cat(sprintf("  %-28s d = %.4f  %s\n", "Cohen's d:", cohens_d, interpretacion_d))
 ```
 
 ---
@@ -1268,85 +1311,3 @@ cat("✓ Gráfico guardado: output_graficos/fig_subindices_direccionales.png\n\n
 ```
 
 
----
-
-# Conclusiones
-
-```{r conclusiones, results='asis'}
-cat("\n## Hallazgos principales\n\n")
-
-cat("### 1. Magnitud de la desigualdad migratoria\n\n")
-cat(sprintf("- **%s** presenta %.1f%% %s desigualdad que **%s**\n",
-            pais_mayor, abs(dif_pct), 
-            ifelse(dif_pct > 0, "mayor", "menor"),
-            pais_menor))
-cat(sprintf("- ISDM promedio: %s = %.3f SD vs. %s = %.3f SD\n\n",
-            pais_mayor, max(arg_abs, chl_abs),
-            pais_menor, min(arg_abs, chl_abs)))
-
-cat("### 2. Desigualdad por dimensión\n\n")
-
-# Crear ranking consolidado
-ranking_dimensiones <- resumen_dimensiones %>%
-  group_by(pais) %>%
-  arrange(desc(subindice_abs_promedio)) %>%
-  mutate(ranking = row_number()) %>%
-  ungroup()
-
-for(p in unique(ranking_dimensiones$pais)) {
-  cat(sprintf("**%s:**\n\n", p))
-  dims <- ranking_dimensiones %>% filter(pais == p)
-  for(i in 1:nrow(dims)) {
-    cat(sprintf("%d. %s (%.3f SD)\n", 
-                dims$ranking[i], dims$dimension[i], dims$subindice_abs_promedio[i]))
-  }
-  cat("\n")
-}
-
-cat("### 3. Significancia estadística\n\n")
-if(test_t$p.value < 0.05) {
-  cat(sprintf("- Las diferencias entre países son **estadísticamente significativas** (p = %.4f)\n\n",
-              test_t$p.value))
-} else {
-  cat(sprintf("- Las diferencias NO alcanzan significancia estadística (p = %.4f)\n\n",
-              test_t$p.value))
-}
-
-cat("### 4. Ventajas de la agregación jerárquica\n\n")
-cat("- ✓ Equilibra el peso de las tres dimensiones (33.3% cada una)\n")
-cat("- ✓ Evita que la dimensión laboral domine el índice (peso reducido de 50% a 33%)\n")
-cat("- ✓ Permite identificar qué áreas impulsan las diferencias entre países\n")
-cat("- ✓ Facilita interpretación conceptual por dimensión analítica\n\n")
-```
-
----
-
-# Referencias metodológicas
-
-- **Agregación jerárquica**: Construcción de índices compuestos mediante sub-índices dimensionales (OECD, 2008)
-- **Normalización direccional**: Técnica de recodificación para alinear interpretación de indicadores heterogéneos
-- **Estandarización Z-score**: $(x - \mu) / \sigma$, método estándar en análisis multivariado (Johnson & Wichern, 2007)
-- **Índices sintéticos**: Agregación de múltiples indicadores en medida única (PNUD)
-
----
-
-# Información de sesión
-
-```{r session_info}
-cat("\n## Software utilizado\n\n")
-cat("**R version:**", R.version.string, "\n\n")
-cat("**Paquetes principales:**\n")
-cat("  • tidyverse:", as.character(packageVersion("tidyverse")), "\n")
-cat("  • knitr:", as.character(packageVersion("knitr")), "\n")
-cat("  • kableExtra:", as.character(packageVersion("kableExtra")), "\n\n")
-cat("**Fecha de generación:**", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n")
-```
-
----
-
-**Documento generado automáticamente mediante R Markdown**  
-**Autora:** Natalia Debandi  
-
----
-
-*Nota: Todos los gráficos han sido guardados en formato PNG de alta resolución (300 dpi) en la carpeta `output_graficos/` para su uso en publicaciones.*

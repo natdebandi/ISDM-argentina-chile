@@ -3,7 +3,7 @@
 # =============================================================================
 # Descripción: Procesamiento y homogeneización de datos de la Encuesta CASEN
 #              (Caracterización Socioeconómica Nacional) de Chile
-#              para los años 2015, 2017, 2022 y 2024
+#              para los años 2015, 2017, 2020, 2022 y 2024
 # Autor: Natalia Debandi - con el apoyo inicial de Joaquín Zajac
 # Fecha: Enero 2026
 # Mejoras: Variables de formalidad comparables con EPH Argentina
@@ -42,6 +42,18 @@ Casen_2017 <- read_dta("c:/Data/Casen/Casen_2017.dta") %>%
          seguro_comple=s14, asiste, nivel_asiste=e6a, educ, activ,
          residencia_5anios_atras=r1b)  
 
+# CASEN 2020 ("en pandemia"): nomenclatura distinta a otros años
+# - nacionalidad: lugar_nac (0=Chile, 1=extranjero) en vez de r1a (1/2/3)
+# - residencia hace 5 años: r2 (4=otro país) en vez de r1b (3=otro país)
+# - descuento jubilatorio: o32, igual que 2022/2024
+# - salud: s13 (1=FONASA, 2=FF.AA., 3=ISAPRE, 4=Ninguno, 5=Otro) — sin subgrupos FONASA
+# - sin variables de tipo/temporalidad de contrato (o16/o17 en 2020 son para cuentapropistas)
+Casen_2020 <- read_dta("c:/Data/Casen/Casen_2020.dta") %>%
+  select(expr, nacionalidad=lugar_nac, edad, pobreza, condicion_ocupacional=o15,
+         descuento_jubilatorio=o32, acceso_salud=s13,
+         seguro_comple=s15, asiste, nivel_asiste=e6a, educ=educc, activ,
+         residencia_5anios_atras=r2)
+
 Casen_2022 <- read_dta("c:/Data/Casen/Casen_2022.dta") %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o18, 
          formalidad_contrato=o19, descuento_jubilatorio=o32, acceso_salud=s13, acceso_salud_fonasa=s13_fonasa,
@@ -59,6 +71,7 @@ Casen_2024 <- read_dta("c:/Data/Casen/Casen_2024.dta") %>%
 # -----------------------------------------------------------------------------
 Casen_2015 <- Casen_2015 %>% mutate(anio = 2015)
 Casen_2017 <- Casen_2017 %>% mutate(anio = 2017)
+Casen_2020 <- Casen_2020 %>% mutate(anio = 2020)
 Casen_2022 <- Casen_2022 %>% mutate(anio = 2022)
 Casen_2024 <- Casen_2024 %>% mutate(anio = 2024)
 
@@ -67,6 +80,7 @@ Casen_2024 <- Casen_2024 %>% mutate(anio = 2024)
 # -----------------------------------------------------------------------------
 Casen_2015 <- Casen_2015 %>% zap_labels()
 Casen_2017 <- Casen_2017 %>% zap_labels()
+Casen_2020 <- Casen_2020 %>% zap_labels()
 Casen_2022 <- Casen_2022 %>% zap_labels()
 Casen_2024 <- Casen_2024 %>% zap_labels()
 
@@ -76,18 +90,17 @@ Casen_2024 <- Casen_2024 %>% zap_labels()
 Casen_unificado <- bind_rows(
   Casen_2015,
   Casen_2017,
+  Casen_2020,
   Casen_2022,
   Casen_2024
 )
 
 #borrar las bases casen individuales para liberar memoria
-rm(Casen_2015, Casen_2017, Casen_2022,Casen_2024)
+rm(Casen_2015, Casen_2017, Casen_2020, Casen_2022, Casen_2024)
 
 # =============================================================================
 # PARTE 2: RECODIFICACIÓN DE VARIABLES
 # =============================================================================
-
-
 
 Casen_unificado_proc <- Casen_unificado %>%
   mutate(
@@ -95,8 +108,12 @@ Casen_unificado_proc <- Casen_unificado %>%
     # 1. MIGRANTE
     # -------------------------------------------------------------------------
     migrante = case_when(
-      nacionalidad < 3 ~ "Nativos",
-      nacionalidad == 3 ~ "Migrantes",
+      # 2015, 2017, 2022, 2024: r1a — 1=Chilena, 2=Doble con chilena, 3=Extranjera
+      anio != 2020 & nacionalidad < 3 ~ "Nativos",
+      anio != 2020 & nacionalidad == 3 ~ "Migrantes",
+      # 2020: lugar_nac — 0=Nacido en Chile, 1=Nacido fuera de Chile
+      anio == 2020 & nacionalidad == 0 ~ "Nativos",
+      anio == 2020 & nacionalidad == 1 ~ "Migrantes",
       TRUE ~ NA_character_
     ),
 
@@ -110,24 +127,32 @@ Casen_unificado_proc <- Casen_unificado %>%
     #   * Valores: 1=Esta comuna, 2=Otra comuna, 3=Otro país, 9=No sabe
     #   * Migrante reciente: vivía en otro país hace 5 años (valor 3)
     #
+    # - 2020: Pregunta dónde vivía hace 5 años (r2), valores distintos
+    #   * Valores: 1=Aún no nacía, 2=Misma comuna, 3=Otra comuna Chile, 4=Otro país, 9=No sabe
+    #   * Migrante reciente: vivía en otro país hace 5 años (valor 4)
+    #
     # - 2024: Pregunta período de llegada
     #   * Valores: 1=2024, 2=2022-2023, 3=2020-2021, 4=2018-2019, 5=2015-2017, etc.
     #   * Migrante reciente: llegó entre 2020-2024 (valores 1, 2, 3)
     #   * Nota: 2024 se aplicó en 2024, entonces <5 años = desde 2020
-    
+
     migrante_reciente = case_when(
       # Solo aplica a migrantes (nativos no pueden ser migrantes recientes)
       migrante == "Nativos" ~ "No",
-      
-      # Para 2015, 2017, 2022: usar residencia_5anios_atras
+
+      # Para 2015, 2017, 2022: usar residencia_5anios_atras (valor 3 = otro país)
       anio %in% c(2015, 2017, 2022) & residencia_5anios_atras == 3 ~ "Si",
       anio %in% c(2015, 2017, 2022) & residencia_5anios_atras %in% c(1, 2) ~ "No",
-      
+
+      # Para 2020: usar residencia_5anios_atras (valor 4 = otro país)
+      anio == 2020 & residencia_5anios_atras == 4 ~ "Si",
+      anio == 2020 & residencia_5anios_atras %in% c(1, 2, 3) ~ "No",
+
       # Para 2024: usar periodo_llegada
       # Valores 1-3 = llegó entre 2020-2024 (menos de 5 años)
       anio == 2024 & periodo_llegada %in% c(1, 2, 3) ~ "Si",
       anio == 2024 & periodo_llegada >= 4 ~ "No",
-      
+
       # Casos sin información o no sabe
       TRUE ~ NA_character_
     ),
@@ -165,8 +190,8 @@ Casen_unificado_proc <- Casen_unificado %>%
       # Para 2015-2017: convertir código 7 a código 6
       anio %in% c(2015, 2017) & descuento_jubilatorio == 7 ~ 6,
       
-      # Para 2022-2024: ya está en el formato correcto (o32)
-      anio %in% c(2022, 2024) ~ descuento_jubilatorio,
+      # Para 2020, 2022 y 2024: ya está en el formato correcto (o32)
+      anio %in% c(2020, 2022, 2024) ~ descuento_jubilatorio,
       
       # Otros casos (NS/NR, etc)
       TRUE ~ descuento_jubilatorio
@@ -289,37 +314,47 @@ Casen_unificado_proc <- Casen_unificado %>%
     #
     # CAMBIO EN 2022: La variable de salud se dividió en dos:
     # - acceso_salud: indica el sistema (FONASA, ISAPRE, etc.)
-    # - acceso_salud_fonasa: indica el grupo dentro de FONASA (solo 2022)
+    # - acceso_salud_fonasa: indica el grupo dentro de FONASA (solo 2022 y 2024)
+    #
+    # 2020: s13 tiene codificación propia (1=FONASA, 2=FF.AA., 3=ISAPRE, 4=Ninguno, 5=Otro)
+    #       Sin variable de subgrupo FONASA → decisión metodológica: todo FONASA = gratuito
     #
     # DECISIÓN METODOLÓGICA: Se asigna NA a quienes:
     # - No saben o no responden
-    # - Declaran FONASA pero no especifican si pagan o no (solo en 2022)
-    
+    # - Declaran FONASA pero no especifican si pagan o no (solo en 2022 y 2024)
+
     sistema_salud = case_when(
       # FONASA grupos A y B (gratuito)
-      anio %in% c(2022, 2024) & acceso_salud == 1 & 
+      anio %in% c(2022, 2024) & acceso_salud == 1 &
         acceso_salud_fonasa %in% c(1, 2) ~ "Accede a salud pública gratuita",
-      anio %in% c(2015, 2017) & acceso_salud %in% c(1, 2) ~ 
+      anio %in% c(2015, 2017) & acceso_salud %in% c(1, 2) ~
         "Accede a salud pública gratuita",
-      
+      # 2020: FONASA sin subgrupo, se asigna como gratuito
+      anio == 2020 & acceso_salud == 1 ~ "Accede a salud pública gratuita",
+
       # FONASA grupos C y D (paga)
-      anio %in% c(2022, 2024) & acceso_salud == 1 & 
+      anio %in% c(2022, 2024) & acceso_salud == 1 &
         acceso_salud_fonasa %in% c(3, 4) ~ "Accede a salud pública paga",
-      anio %in% c(2015, 2017) & acceso_salud %in% c(3, 4) ~ 
+      anio %in% c(2015, 2017) & acceso_salud %in% c(3, 4) ~
         "Accede a salud pública paga",
-      
+
       # ISAPRE (seguro privado obligatorio)
-      anio %in% c(2022, 2024) & acceso_salud == 2 ~ 
+      anio %in% c(2022, 2024) & acceso_salud == 2 ~
         "ISAPRE (seguro laboral obligatorio)",
-      anio %in% c(2015, 2017) & acceso_salud == 7 ~ 
+      anio %in% c(2015, 2017) & acceso_salud == 7 ~
         "ISAPRE (seguro laboral obligatorio)",
-      
+      anio == 2020 & acceso_salud == 3 ~
+        "ISAPRE (seguro laboral obligatorio)",
+
       # Particulares y otros
-      anio %in% c(2022, 2024) & acceso_salud %in% c(3, 4, 5) ~ 
+      anio %in% c(2022, 2024) & acceso_salud %in% c(3, 4, 5) ~
         "Particulares y otros sistemas",
-      anio %in% c(2015, 2017) & acceso_salud %in% c(6, 8, 9) ~ 
+      anio %in% c(2015, 2017) & acceso_salud %in% c(6, 8, 9) ~
         "Particulares y otros sistemas",
-      
+      # 2020: FF.AA.(2), Ninguno(4), Otro(5)
+      anio == 2020 & acceso_salud %in% c(2, 4, 5) ~
+        "Particulares y otros sistemas",
+
       TRUE ~ NA_character_
     )
     

@@ -81,6 +81,28 @@ datos_unificados <- bind_rows(
   )
 
 
+# =============================================================================
+# RENUMERACIÓN: eliminar I4_informalidad_total y renombrar I5-I10 → I4-I9
+# =============================================================================
+
+datos_unificados <- datos_unificados %>%
+  filter(indicador != "I4_informalidad_total") %>%
+  mutate(
+    indicador = case_when(
+      indicador == "I5_cuentapropismo"           ~ "I4_cuentapropismo",
+      indicador == "I6_pobreza"                  ~ "I5_pobreza",
+      indicador == "I7_pobreza_extrema"          ~ "I6_pobreza_extrema",
+      indicador == "I8_asistencia_escolar_6_17"  ~ "I7_asistencia_escolar_6_17",
+      indicador == "I9_asistencia_superior_18_29"~ "I8_asistencia_superior_18_29",
+      indicador == "I10_sistema_salud_publico"   ~ "I9_sistema_salud_publico",
+      TRUE ~ indicador
+    ),
+    # Regenerar indicador_clean a partir del nuevo nombre
+    indicador_clean = str_replace(indicador, "I[0-9]+_", "") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title()
+  )
+
 #guardar los datos de indicadores
 write_csv(datos_unificados, "Data/indicadores_unificados_arg_chile_2015_2024.csv")
 

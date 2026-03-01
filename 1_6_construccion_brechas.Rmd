@@ -1,0 +1,442 @@
+---
+title: "Construcción de brechas — Argentina y Chile"
+subtitle: "Generación de indicadores_con_brechas_arg_chile_2015_2024.csv"
+author: "Natalia Debandi"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r libs}
+library(tidyverse)
+library(gt)
+library(zoo)
+```
+
+# Carga de datos
+
+```{r carga}
+indicadores_long <- read_csv(
+  "Data/indicadores_unificados_arg_chile_2015_2024.csv",
+  show_col_types = FALSE
+)
+
+cat("Filas cargadas:", nrow(indicadores_long), "\n")
+cat("Indicadores:", paste(sort(unique(indicadores_long$indicador)), collapse = ", "), "\n")
+cat("Países:", paste(unique(indicadores_long$pais), collapse = ", "), "\n")
+cat("Años:", min(indicadores_long$anio), "-", max(indicadores_long$anio), "\n")
+cat("Fuentes:", paste(unique(indicadores_long$fuente), collapse = ", "), "\n")
+```
+
+# Unificación de fuentes
+
+**Regla:** para Chile se prioriza ENE cuando está disponible para el indicador; si no, se usa CASEN. Argentina (EPH) siempre se mantiene.
+
+```{r unificacion}
+# Indicadores que tienen ENE en Chile
+indicadores_con_ene <- indicadores_long %>%
+  filter(pais == "Chile", fuente == "ENE") %>%
+  distinct(indicador) %>%
+  pull(indicador)
+
+# Aplicar lógica de prioridad
+indicadores <- indicadores_long %>%
+  filter(
+    pais == "Argentina" |
+    (pais == "Chile" & (
+      (indicador %in% indicadores_con_ene  & fuente == "ENE") |
+      (!indicador %in% indicadores_con_ene & fuente == "CASEN")
+    ))
+  )
+```
+
+## Fuente resultante por indicador y país
+
+```{r tabla-fuentes}
+resumen_fuentes <- indicadores %>%
+  distinct(pais, indicador, indicador_clean, fuente) %>%
+  arrange(indicador, pais)
+
+resumen_fuentes %>%
+  pivot_wider(names_from = pais, values_from = fuente) %>%
+  select(indicador, indicador_clean, Argentina, Chile) %>%
+  gt() %>%
+  tab_header(title = "Fuente utilizada por indicador y país") %>%
+  cols_label(
+    indicador       = "Indicador (código)",
+    indicador_clean = "Indicador (nombre)",
+    Argentina       = "Argentina",
+    Chile           = "Chile"
+  ) %>%
+  tab_style(
+    style = cell_fill(color = "#E8F5E9"),
+    locations = cells_body(columns = Argentina)
+  ) %>%
+  tab_style(
+    style = cell_fill(color = "#E3F2FD"),
+    locations = cells_body(columns = Chile)
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()
+  )
+```
+
+# Interpolación lineal — Chile CASEN
+
+Los indicadores de Chile provenientes de CASEN sólo tienen datos en los años de encuesta (2015, 2017, 2020, 2022, 2024). Para los años intermedios se aplica interpolación lineal sobre el valor del indicador original, por grupo migratorio, antes de calcular las brechas.
+
+```{r interpolacion}
+# Indicadores de Chile que vienen de CASEN (detectados automáticamente)
+indicadores_casen <- indicadores %>%
+  filter(pais == "Chile", fuente == "CASEN") %>%
+  distinct(indicador) %>%
+  pull(indicador)
+
+cat("Indicadores CASEN a interpolar:", paste(indicadores_casen, collapse = ", "), "\n\n")
+
+# Todos los años presentes en el dataset
+anios_todos <- sort(unique(indicadores$anio))
+
+# Completar filas faltantes e interpolar por indicador × grupo
+chile_interpolado <- indicadores %>%
+  filter(pais == "Chile", indicador %in% indicadores_casen) %>%
+  complete(pais, indicador, grupo, anio = anios_todos) %>%
+  group_by(indicador, grupo) %>%
+  arrange(anio) %>%
+  fill(indicador_clean, .direction = "downup") %>%
+  mutate(
+    imputado = is.na(valor),
+    valor    = zoo::na.approx(valor, na.rm = FALSE),
+    fuente   = if_else(imputado, "CASEN_interpolado", fuente)
+  ) %>%
+  ungroup()
+
+# Reemplazar en indicadores
+indicadores <- indicadores %>%
+  filter(!(pais == "Chile" & indicador %in% indicadores_casen)) %>%
+  bind_rows(chile_interpolado %>% select(-imputado)) %>%
+  arrange(pais, indicador, grupo, anio)
+
+# Mostrar valores imputados
+cat("Valores imputados (primeras filas):\n\n")
+chile_interpolado %>%
+  filter(imputado, !is.na(valor)) %>%
+  select(indicador, grupo, anio, valor) %>%
+  arrange(indicador, grupo, anio) %>%
+  print(n = 60)
+
+cat("\n✓ Interpolación completada\n")
+cat("  Filas tras interpolación:", nrow(indicadores), "\n")
+```
+
+## Series observadas e interpoladas
+
+```{r plot-interpolacion, fig.width = 12, fig.height = 9}
+colores_grupo <- c(
+  "Nativos"             = "#1B9E77",
+  "Migrantes"           = "#D95F02",
+  "Migrantes recientes" = "#7570B3"
+)
+
+chile_interpolado %>%
+  filter(!is.na(valor)) %>%
+  mutate(tipo = if_else(imputado, "Interpolado", "Observado")) %>%
+  ggplot(aes(x = anio, y = valor, color = grupo)) +
+  geom_line(linewidth = 0.7) +
+  geom_point(aes(shape = tipo), size = 2.5) +
+  scale_color_manual(values = colores_grupo, name = "Grupo") +
+  scale_shape_manual(
+    values = c("Observado" = 16, "Interpolado" = 1),
+    name   = NULL
+  ) +
+  scale_x_continuous(breaks = anios_todos) +
+  facet_wrap(~indicador_clean, scales = "free_y", ncol = 2) +
+  labs(
+    title    = "Indicadores Chile CASEN — series observadas e interpoladas",
+    subtitle = "Puntos sólidos = observado | Puntos vacíos = interpolado linealmente",
+    x = "Año", y = "Valor (proporción)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    axis.text.x     = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    strip.text      = element_text(face = "bold")
+  )
+```
+
+# Cálculo de brechas
+
+**Brecha 1** = Nativos − Migrantes (todos)
+**Brecha 2** = Nativos − Migrantes recientes (≤ 5 años en el país)
+
+```{r brechas}
+indicadores_brechas <- indicadores %>%
+  pivot_wider(
+    names_from  = grupo,
+    values_from = valor,
+    values_fn   = mean
+  ) %>%
+  mutate(
+    brecha_nat_mig = Nativos - Migrantes,
+    brecha_nat_rec = Nativos - `Migrantes recientes`,
+    anio = as.integer(anio)
+  ) %>%
+  filter(!is.na(brecha_nat_mig)) %>%
+  select(pais, fuente, anio, indicador, indicador_clean,
+         nativos            = Nativos,
+         migrantes          = Migrantes,
+         migrantes_recientes = `Migrantes recientes`,
+         brecha_nat_mig, brecha_nat_rec) %>%
+  arrange(pais, indicador, anio)
+
+cat("✓ Brechas calculadas:", nrow(indicadores_brechas), "observaciones\n")
+```
+
+# Cobertura de datos
+
+## Brecha nativo / migrante (`brecha_nat_mig`)
+
+```{r cob-mig, fig.width=11, fig.height=5}
+cobertura_mig <- indicadores_brechas %>%
+  mutate(disponible = !is.na(brecha_nat_mig)) %>%
+  select(pais, indicador_clean, anio, disponible)
+
+ggplot(cobertura_mig, aes(x = factor(anio), y = indicador_clean, fill = disponible)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  scale_fill_manual(
+    values = c("TRUE" = "#43A047", "FALSE" = "#E53935"),
+    labels = c("TRUE" = "Disponible", "FALSE" = "Faltante"),
+    name   = NULL
+  ) +
+  facet_wrap(~pais) +
+  labs(
+    title = "Cobertura: Brecha Nativo / Migrante",
+    x = "Año", y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    axis.text.x    = element_text(angle = 45, hjust = 1),
+    strip.text     = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## Brecha nativo / migrante reciente (`brecha_nat_rec`)
+
+```{r cob-rec, fig.width=11, fig.height=5}
+cobertura_rec <- indicadores_brechas %>%
+  mutate(disponible = !is.na(brecha_nat_rec)) %>%
+  select(pais, indicador_clean, anio, disponible)
+
+ggplot(cobertura_rec, aes(x = factor(anio), y = indicador_clean, fill = disponible)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  scale_fill_manual(
+    values = c("TRUE" = "#1E88E5", "FALSE" = "#E53935"),
+    labels = c("TRUE" = "Disponible", "FALSE" = "Faltante"),
+    name   = NULL
+  ) +
+  facet_wrap(~pais) +
+  labs(
+    title = "Cobertura: Brecha Nativo / Migrante reciente",
+    x = "Año", y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    axis.text.x    = element_text(angle = 45, hjust = 1),
+    strip.text     = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## Detalle de valores faltantes
+
+```{r faltantes}
+faltantes <- indicadores_brechas %>%
+  filter(is.na(brecha_nat_mig) | is.na(brecha_nat_rec)) %>%
+  mutate(
+    falta_mig = is.na(brecha_nat_mig),
+    falta_rec = is.na(brecha_nat_rec)
+  ) %>%
+  select(pais, fuente, anio, indicador, indicador_clean, falta_mig, falta_rec) %>%
+  arrange(pais, indicador, anio)
+
+if (nrow(faltantes) == 0) {
+  cat("✓ No hay valores faltantes en brecha_nat_mig.\n")
+} else {
+  cat("Observaciones con algún valor faltante:", nrow(faltantes), "\n\n")
+}
+
+faltantes %>%
+  gt() %>%
+  tab_header(title = "Detalle de brechas faltantes") %>%
+  cols_label(
+    pais            = "País",
+    fuente          = "Fuente",
+    anio            = "Año",
+    indicador       = "Código",
+    indicador_clean = "Nombre",
+    falta_mig       = "Falta brecha_nat_mig",
+    falta_rec       = "Falta brecha_nat_rec"
+  ) %>%
+  tab_style(
+    style = cell_fill(color = "#FFCDD2"),
+    locations = cells_body(rows = falta_mig == TRUE, columns = falta_mig)
+  ) %>%
+  tab_style(
+    style = cell_fill(color = "#FFCDD2"),
+    locations = cells_body(rows = falta_rec == TRUE, columns = falta_rec)
+  )
+```
+
+## Resumen de cobertura por indicador y país
+
+```{r resumen-cobertura}
+resumen_cob <- indicadores_brechas %>%
+  group_by(pais, indicador, indicador_clean) %>%
+  summarise(
+    n_anios_total   = n_distinct(anio),
+    n_mig_ok        = sum(!is.na(brecha_nat_mig)),
+    n_rec_ok        = sum(!is.na(brecha_nat_rec)),
+    anios_mig_ok    = paste(sort(anio[!is.na(brecha_nat_mig)]),  collapse = ", "),
+    anios_rec_ok    = paste(sort(anio[!is.na(brecha_nat_rec)]),  collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  arrange(pais, indicador)
+
+resumen_cob %>%
+  select(pais, indicador_clean, n_anios_total, n_mig_ok, n_rec_ok,
+         anios_mig_ok, anios_rec_ok) %>%
+  gt() %>%
+  tab_header(title = "Cobertura por indicador, país y tipo de brecha") %>%
+  cols_label(
+    pais            = "País",
+    indicador_clean = "Indicador",
+    n_anios_total   = "N años",
+    n_mig_ok        = "N con brecha_mig",
+    n_rec_ok        = "N con brecha_rec",
+    anios_mig_ok    = "Años brecha_mig",
+    anios_rec_ok    = "Años brecha_rec"
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()
+  ) %>%
+  tab_row_group(label = "Chile",     rows = pais == "Chile") %>%
+  tab_row_group(label = "Argentina", rows = pais == "Argentina")
+```
+
+# Guardar CSV
+
+```{r guardar}
+write_csv(indicadores_brechas, "Data/indicadores_con_brechas_arg_chile_2015_2024.csv")
+cat("✓ Archivo guardado: Data/indicadores_con_brechas_arg_chile_2015_2024.csv\n")
+cat("  Filas:", nrow(indicadores_brechas), "\n")
+cat("  Indicadores:", n_distinct(indicadores_brechas$indicador), "\n")
+cat("  Países:", paste(unique(indicadores_brechas$pais), collapse = ", "), "\n")
+cat("  Período:", min(indicadores_brechas$anio), "-", max(indicadores_brechas$anio), "\n")
+```
+
+# Versión solo CASEN (Chile)
+
+Versión alternativa donde se descarta ENE y se usa exclusivamente CASEN para todos los indicadores de Chile. Los años inter-encuesta se cubren con interpolación lineal sobre el valor original de cada indicador × grupo.
+
+## Fuente y interpolación
+
+```{r solocasen-interp}
+# Chile: solo CASEN
+indicadores_sc <- indicadores_long %>%
+  filter(
+    pais == "Argentina" |
+    (pais == "Chile" & fuente == "CASEN")
+  )
+
+# Todos los indicadores de Chile son CASEN, se interpolam todos
+anios_todos_sc <- sort(unique(indicadores_sc$anio))
+
+chile_interpolado_sc <- indicadores_sc %>%
+  filter(pais == "Chile") %>%
+  complete(pais, indicador, grupo, anio = anios_todos_sc) %>%
+  group_by(indicador, grupo) %>%
+  arrange(anio) %>%
+  fill(indicador_clean, .direction = "downup") %>%
+  mutate(
+    imputado = is.na(valor),
+    valor    = zoo::na.approx(valor, na.rm = FALSE),
+    fuente   = if_else(imputado, "CASEN_interpolado", fuente)
+  ) %>%
+  ungroup()
+
+indicadores_sc <- indicadores_sc %>%
+  filter(pais != "Chile") %>%
+  bind_rows(chile_interpolado_sc %>% select(-imputado)) %>%
+  arrange(pais, indicador, grupo, anio)
+
+cat("✓ Interpolación solocasen completada\n")
+cat("  Filas:", nrow(indicadores_sc), "\n")
+```
+
+## Series observadas e interpoladas (solo CASEN)
+
+```{r solocasen-plot, fig.width = 12, fig.height = 9}
+chile_interpolado_sc %>%
+  filter(!is.na(valor)) %>%
+  mutate(tipo = if_else(imputado, "Interpolado", "Observado")) %>%
+  ggplot(aes(x = anio, y = valor, color = grupo)) +
+  geom_line(linewidth = 0.7) +
+  geom_point(aes(shape = tipo), size = 2.5) +
+  scale_color_manual(values = colores_grupo, name = "Grupo") +
+  scale_shape_manual(values = c("Observado" = 16, "Interpolado" = 1), name = NULL) +
+  scale_x_continuous(breaks = anios_todos_sc) +
+  facet_wrap(~indicador_clean, scales = "free_y", ncol = 2) +
+  labs(
+    title    = "Indicadores Chile — solo CASEN, series observadas e interpoladas",
+    subtitle = "Puntos sólidos = observado | Puntos vacíos = interpolado linealmente",
+    x = "Año", y = "Valor (proporción)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    axis.text.x     = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    strip.text      = element_text(face = "bold")
+  )
+```
+
+## Cálculo de brechas y guardado
+
+```{r solocasen-brechas-guardar}
+indicadores_brechas_sc <- indicadores_sc %>%
+  pivot_wider(
+    names_from  = grupo,
+    values_from = valor,
+    values_fn   = mean
+  ) %>%
+  mutate(
+    brecha_nat_mig = Nativos - Migrantes,
+    brecha_nat_rec = Nativos - `Migrantes recientes`,
+    anio = as.integer(anio)
+  ) %>%
+  filter(!is.na(brecha_nat_mig)) %>%
+  select(pais, fuente, anio, indicador, indicador_clean,
+         nativos             = Nativos,
+         migrantes           = Migrantes,
+         migrantes_recientes = `Migrantes recientes`,
+         brecha_nat_mig, brecha_nat_rec) %>%
+  arrange(pais, indicador, anio)
+
+write_csv(indicadores_brechas_sc, "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv")
+cat("✓ Archivo guardado: Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv\n")
+cat("  Filas:", nrow(indicadores_brechas_sc), "\n")
+cat("  Indicadores:", n_distinct(indicadores_brechas_sc$indicador), "\n")
+cat("  Países:", paste(unique(indicadores_brechas_sc$pais), collapse = ", "), "\n")
+cat("  Período:", min(indicadores_brechas_sc$anio), "-", max(indicadores_brechas_sc$anio), "\n")
+```

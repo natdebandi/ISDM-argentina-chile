@@ -20,30 +20,6 @@ library(dplyr)
 # Operador auxiliar "not in"
 `%nin%` <- Negate(`%in%`)
 
-
-
-casen <- read_csv("Data/Casen_unificado_2015_2024_proc.csv", show_col_types = FALSE)
-
-
-# =============================================================================
-# PARTE 3B: CALCULAR INDICADORES PARA CASEN
-# =============================================================================
-
-
-# Dataframe para almacenar todos los indicadores
-indicadores_csv <- data.frame()
-
-message("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-message("CALCULANDO INDICADORES CASEN")
-message("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-
-# =============================================================================
-# PARTE 3B: CALCULAR INDICADORES PARA CASEN (migrantes = TOTAL)
-# =============================================================================
-
-library(tidyverse)
-library(readr)
-
 casen <- read_csv("Data/Casen_unificado_2015_2024_proc.csv", show_col_types = FALSE)
 
 indicadores_csv <- data.frame()
