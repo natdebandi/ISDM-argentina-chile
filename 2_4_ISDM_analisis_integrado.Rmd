@@ -1,0 +1,633 @@
+---
+title: "ISDM — Análisis integrado: Migrantes y Migrantes Recientes"
+subtitle: "Brechas por dimensión e Índice Sintético de Desigualdad Migratoria — Argentina y Chile 2015-2024"
+author: "Natalia Debandi"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 12,
+  fig.height = 7
+)
+```
+
+```{r libs}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(gt)
+```
+
+# Datos
+
+```{r carga}
+# brecha_nat_mig: CSV con ENE (más denso para indicadores laborales)
+# brecha_nat_rec: CSV solo CASEN (fuente única para migrantes recientes)
+indicadores_full <- read_csv(
+  "Data/indicadores_con_brechas_arg_chile_2015_2024.csv",
+  show_col_types = FALSE
+)
+indicadores_sc <- read_csv(
+  "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv",
+  show_col_types = FALSE
+)
+
+indicadores_con_brechas <- indicadores_full %>%
+  select(pais, fuente, anio, indicador, indicador_clean, brecha_nat_mig) %>%
+  left_join(
+    indicadores_sc %>% select(pais, anio, indicador, brecha_nat_rec),
+    by = c("pais", "anio", "indicador")
+  )
+
+cat("Filas:", nrow(indicadores_con_brechas), "\n")
+cat("Período:", min(indicadores_con_brechas$anio), "-", max(indicadores_con_brechas$anio), "\n")
+cat("Indicadores:", paste(sort(unique(indicadores_con_brechas$indicador)), collapse = ", "), "\n")
+```
+
+```{r clasificacion}
+clasificacion_indicadores <- tribble(
+  ~indicador,                     ~dimension,  ~tipo,
+  "I1_tasa_actividad",            "Laboral",   "positivo",
+  "I2_tasa_desempleo",            "Laboral",   "negativo",
+  "I3_informalidad_asalariada",   "Laboral",   "negativo",
+  "I4_cuentapropismo",            "Laboral",   "negativo",
+  "I5_pobreza",                   "Pobreza",   "negativo",
+  "I6_pobreza_extrema",           "Pobreza",   "negativo",
+  "I7_asistencia_escolar_6_17",   "Social",    "positivo",
+  "I8_asistencia_superior_18_29", "Social",    "positivo",
+  "I9_sistema_salud_publico",     "Social",    "positivo"
+)
+
+colores_tipo <- c(
+  "Migrantes"           = "#D95F02",
+  "Migrantes recientes" = "#7570B3"
+)
+
+colores_pais <- c(
+  "Argentina" = "#2E86AB",
+  "Chile"     = "#A23B72"
+)
+
+etiquetas_ind <- c(
+  "I1_tasa_actividad"            = "Tasa de actividad",
+  "I2_tasa_desempleo"            = "Tasa de desempleo",
+  "I3_informalidad_asalariada"   = "Informalidad asalariada",
+  "I4_cuentapropismo"            = "Cuentapropismo",
+  "I5_pobreza"                   = "Pobreza monetaria",
+  "I6_pobreza_extrema"           = "Pobreza extrema",
+  "I7_asistencia_escolar_6_17"   = "Asistencia escolar (6-17)",
+  "I8_asistencia_superior_18_29" = "Asistencia superior (18-29)",
+  "I9_sistema_salud_publico"     = "Acceso salud pública"
+)
+
+if (!dir.exists("output_integrados")) dir.create("output_integrados")
+```
+
+```{r preparacion}
+# Formato largo: una fila por indicador × año × país × tipo_migrante
+datos_largo <- indicadores_con_brechas %>%
+  filter(indicador %in% clasificacion_indicadores$indicador) %>%
+  select(pais, fuente, anio, indicador, indicador_clean,
+         brecha_nat_mig, brecha_nat_rec) %>%
+  pivot_longer(
+    cols      = c(brecha_nat_mig, brecha_nat_rec),
+    names_to  = "tipo_migrante",
+    values_to = "brecha"
+  ) %>%
+  mutate(
+    tipo_migrante = if_else(tipo_migrante == "brecha_nat_mig",
+                            "Migrantes", "Migrantes recientes")
+  ) %>%
+  left_join(clasificacion_indicadores, by = "indicador") %>%
+  # Normalización direccional: brecha > 0 siempre = nativos mejor
+  mutate(
+    brecha_normalizada = if_else(tipo == "negativo", -brecha, brecha)
+  )
+
+# Estandarización conjunta: media/SD calculados sobre ambos tipos de migrante
+datos_largo <- datos_largo %>%
+  group_by(indicador) %>%
+  mutate(
+    media_conj = mean(brecha_normalizada, na.rm = TRUE),
+    sd_conj    = sd(brecha_normalizada,   na.rm = TRUE),
+    brecha_z   = (brecha_normalizada - media_conj) / sd_conj
+  ) %>%
+  ungroup()
+
+cat("✓ Datos preparados:", nrow(datos_largo), "filas\n")
+cat("  Tipos de migrante:", paste(unique(datos_largo$tipo_migrante), collapse = ", "), "\n")
+```
+
+---
+
+# Dimensión Laboral
+
+> **Nota de interpretación:** brecha normalizada = Nativos − Migrantes (con signo ajustado). Valores positivos indican que los nativos están en mejor situación; valores negativos indican que los migrantes están en mejor situación. Cada punto representa un año.
+
+## Sin estandarizar (puntos porcentuales)
+
+```{r laboral-raw, fig.height=5}
+p <- datos_largo %>%
+  filter(dimension == "Laboral", !is.na(brecha_normalizada)) %>%
+  mutate(indicador_label = etiquetas_ind[indicador]) %>%
+  ggplot(aes(x = indicador_label, y = brecha_normalizada, color = pais)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(0.8), outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+              alpha = 0.6, size = 2) +
+  coord_flip() +
+  scale_color_manual(values = colores_pais, name = "País") +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Brecha normalizada (pp)\nIzquierda (negativo) = Migrantes mejor | Derecha (positivo) = Nativos mejor",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+print(p)
+ggsave("output_integrados/laboral_original.png", plot = p, width = 12, height = 5, dpi = 300)
+```
+
+## Estandarización conjunta (Z-scores)
+
+La estandarización se calcula sobre la **distribución conjunta** de ambos grupos (migrantes y migrantes recientes), de modo que los Z-scores son directamente comparables entre sí.
+
+$$Z_i = \frac{x_i - \bar{x}_{conj}}{\sigma_{conj}}$$
+
+donde $\bar{x}_{conj}$ y $\sigma_{conj}$ se calculan sobre todas las observaciones del indicador (ambos tipos de migrante, ambos países, todos los años).
+
+```{r laboral-z, fig.height=5}
+p <- datos_largo %>%
+  filter(dimension == "Laboral", !is.na(brecha_z)) %>%
+  mutate(indicador_label = etiquetas_ind[indicador]) %>%
+  ggplot(aes(x = indicador_label, y = brecha_z, color = pais)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(0.8), outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+              alpha = 0.6, size = 2) +
+  coord_flip() +
+  scale_color_manual(values = colores_pais, name = "País") +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Brecha estandarizada (SD)\nIzquierda (negativo) = Migrantes mejor | Derecha (positivo) = Nativos mejor",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+print(p)
+ggsave("output_integrados/laboral_z.png", plot = p, width = 12, height = 5, dpi = 300)
+```
+
+---
+
+# Dimensión Pobreza
+
+## Sin estandarizar (puntos porcentuales)
+
+```{r pobreza-raw, fig.height=4}
+p <- datos_largo %>%
+  filter(dimension == "Pobreza", !is.na(brecha_normalizada)) %>%
+  mutate(indicador_label = etiquetas_ind[indicador]) %>%
+  ggplot(aes(x = indicador_label, y = brecha_normalizada, color = pais)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(0.8), outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+              alpha = 0.6, size = 2) +
+  coord_flip() +
+  scale_color_manual(values = colores_pais, name = "País") +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Brecha normalizada (pp)\nIzquierda (negativo) = Migrantes mejor | Derecha (positivo) = Nativos mejor",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+print(p)
+ggsave("output_integrados/pobreza_original.png", plot = p, width = 12, height = 4, dpi = 300)
+```
+
+## Estandarización conjunta (Z-scores)
+
+```{r pobreza-z, fig.height=4}
+p <- datos_largo %>%
+  filter(dimension == "Pobreza", !is.na(brecha_z)) %>%
+  mutate(indicador_label = etiquetas_ind[indicador]) %>%
+  ggplot(aes(x = indicador_label, y = brecha_z, color = pais)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(0.8), outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+              alpha = 0.6, size = 2) +
+  coord_flip() +
+  scale_color_manual(values = colores_pais, name = "País") +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Brecha estandarizada (SD)\nIzquierda (negativo) = Migrantes mejor | Derecha (positivo) = Nativos mejor",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+print(p)
+ggsave("output_integrados/pobreza_z.png", plot = p, width = 12, height = 4, dpi = 300)
+```
+
+---
+
+# Dimensión Social
+
+## Sin estandarizar (puntos porcentuales)
+
+```{r social-raw, fig.height=5}
+p <- datos_largo %>%
+  filter(dimension == "Social", !is.na(brecha_normalizada)) %>%
+  mutate(indicador_label = etiquetas_ind[indicador]) %>%
+  ggplot(aes(x = indicador_label, y = brecha_normalizada, color = pais)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(0.8), outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+              alpha = 0.6, size = 2) +
+  coord_flip() +
+  scale_color_manual(values = colores_pais, name = "País") +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Brecha normalizada (pp)\nIzquierda (negativo) = Migrantes mejor | Derecha (positivo) = Nativos mejor",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+print(p)
+ggsave("output_integrados/social_original.png", plot = p, width = 12, height = 5, dpi = 300)
+```
+
+## Estandarización conjunta (Z-scores)
+
+```{r social-z, fig.height=5}
+p <- datos_largo %>%
+  filter(dimension == "Social", !is.na(brecha_z)) %>%
+  mutate(indicador_label = etiquetas_ind[indicador]) %>%
+  ggplot(aes(x = indicador_label, y = brecha_z, color = pais)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(0.8), outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+              alpha = 0.6, size = 2) +
+  coord_flip() +
+  scale_color_manual(values = colores_pais, name = "País") +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Brecha estandarizada (SD)\nIzquierda (negativo) = Migrantes mejor | Derecha (positivo) = Nativos mejor",
+    color = "País"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+print(p)
+ggsave("output_integrados/social_z.png", plot = p, width = 12, height = 5, dpi = 300)
+```
+
+---
+
+# Tablas resumen
+
+> **Nota:** valores expresados en puntos porcentuales (pp). Positivo = nativos en mejor situación; negativo = migrantes en mejor situación. Media calculada sobre todos los años disponibles.
+
+```{r tablas-prep}
+resumen <- datos_largo %>%
+  filter(!is.na(brecha_normalizada), anio != 2020) %>%
+  group_by(dimension, indicador, pais, tipo_migrante) %>%
+  summarise(media = mean(brecha_normalizada, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(
+    names_from  = c(tipo_migrante, pais),
+    values_from = media,
+    names_sep   = "_"
+  ) %>%
+  mutate(
+    dif_mig     = `Migrantes_Chile` - `Migrantes_Argentina`,
+    dif_rec     = `Migrantes recientes_Chile` - `Migrantes recientes_Argentina`,
+    ind_label   = etiquetas_ind[indicador]
+  )
+```
+
+## Dimensión Laboral
+
+```{r tabla-laboral}
+resumen %>%
+  filter(dimension == "Laboral") %>%
+  select(
+    Indicador = ind_label,
+    mig_ARG   = `Migrantes_Argentina`,
+    mig_CHL   = `Migrantes_Chile`,
+    mig_dif   = dif_mig,
+    rec_ARG   = `Migrantes recientes_Argentina`,
+    rec_CHL   = `Migrantes recientes_Chile`,
+    rec_dif   = dif_rec
+  ) %>%
+  gt() %>%
+  fmt_number(columns = where(is.numeric), decimals = 1) %>%
+  tab_spanner(
+    label   = "Brecha nativo \u2212 migrantes generales (pp)",
+    columns = c(mig_ARG, mig_CHL, mig_dif)
+  ) %>%
+  tab_spanner(
+    label   = "Brecha nativo \u2212 migrantes recientes (pp)",
+    columns = c(rec_ARG, rec_CHL, rec_dif)
+  ) %>%
+  cols_label(
+    mig_ARG = "ARG", mig_CHL = "CHL", mig_dif = "CHL\u2212ARG",
+    rec_ARG = "ARG", rec_CHL = "CHL", rec_dif = "CHL\u2212ARG"
+  ) %>%
+  tab_style(
+    style     = cell_text(weight = "bold"),
+    locations = cells_column_spanners()
+  )
+```
+
+## Dimensión Pobreza
+
+```{r tabla-pobreza}
+resumen %>%
+  filter(dimension == "Pobreza") %>%
+  select(
+    Indicador = ind_label,
+    mig_ARG   = `Migrantes_Argentina`,
+    mig_CHL   = `Migrantes_Chile`,
+    mig_dif   = dif_mig,
+    rec_ARG   = `Migrantes recientes_Argentina`,
+    rec_CHL   = `Migrantes recientes_Chile`,
+    rec_dif   = dif_rec
+  ) %>%
+  gt() %>%
+  fmt_number(columns = where(is.numeric), decimals = 1) %>%
+  tab_spanner(
+    label   = "Brecha nativo \u2212 migrantes generales (pp)",
+    columns = c(mig_ARG, mig_CHL, mig_dif)
+  ) %>%
+  tab_spanner(
+    label   = "Brecha nativo \u2212 migrantes recientes (pp)",
+    columns = c(rec_ARG, rec_CHL, rec_dif)
+  ) %>%
+  cols_label(
+    mig_ARG = "ARG", mig_CHL = "CHL", mig_dif = "CHL\u2212ARG",
+    rec_ARG = "ARG", rec_CHL = "CHL", rec_dif = "CHL\u2212ARG"
+  ) %>%
+  tab_style(
+    style     = cell_text(weight = "bold"),
+    locations = cells_column_spanners()
+  )
+```
+
+## Dimensión Social
+
+```{r tabla-social}
+resumen %>%
+  filter(dimension == "Social") %>%
+  select(
+    Indicador = ind_label,
+    mig_ARG   = `Migrantes_Argentina`,
+    mig_CHL   = `Migrantes_Chile`,
+    mig_dif   = dif_mig,
+    rec_ARG   = `Migrantes recientes_Argentina`,
+    rec_CHL   = `Migrantes recientes_Chile`,
+    rec_dif   = dif_rec
+  ) %>%
+  gt() %>%
+  fmt_number(columns = where(is.numeric), decimals = 1) %>%
+  tab_spanner(
+    label   = "Brecha nativo \u2212 migrantes generales (pp)",
+    columns = c(mig_ARG, mig_CHL, mig_dif)
+  ) %>%
+  tab_spanner(
+    label   = "Brecha nativo \u2212 migrantes recientes (pp)",
+    columns = c(rec_ARG, rec_CHL, rec_dif)
+  ) %>%
+  cols_label(
+    mig_ARG = "ARG", mig_CHL = "CHL", mig_dif = "CHL\u2212ARG",
+    rec_ARG = "ARG", rec_CHL = "CHL", rec_dif = "CHL\u2212ARG"
+  ) %>%
+  tab_style(
+    style     = cell_text(weight = "bold"),
+    locations = cells_column_spanners()
+  )
+```
+
+---
+
+# ISDM Integrado
+
+> Z-scores calculados **por separado** para migrantes generales y migrantes recientes (consistente con los reportes individuales). Se excluye 2020 en ambos grupos. Fuentes: `brecha_nat_mig` del CSV con ENE; `brecha_nat_rec` del CSV solo CASEN.
+
+## Cálculo
+
+```{r isdm-prep}
+# Estandarización por indicador × tipo_migrante (separada, igual que reportes individuales)
+datos_isdm <- datos_largo %>%
+  filter(anio != 2020, !is.na(brecha_normalizada)) %>%
+  group_by(indicador, tipo_migrante) %>%
+  mutate(
+    media_ind    = mean(brecha_normalizada, na.rm = TRUE),
+    sd_ind       = sd(brecha_normalizada,   na.rm = TRUE),
+    brecha_z_ind = (brecha_normalizada - media_ind) / sd_ind
+  ) %>%
+  ungroup()
+
+# Sub-índices por dimensión
+subindices_integrado <- datos_isdm %>%
+  group_by(pais, anio, dimension, tipo_migrante) %>%
+  summarise(
+    sub_abs_norm = mean(abs(brecha_normalizada), na.rm = TRUE),
+    sub_abs_std  = mean(abs(brecha_z_ind),       na.rm = TRUE),
+    sub_dir_norm = mean(brecha_normalizada,       na.rm = TRUE),
+    sub_dir_std  = mean(brecha_z_ind,             na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# ISDM final: promedio jerárquico sobre dimensiones
+isdm_integrado <- subindices_integrado %>%
+  group_by(pais, anio, tipo_migrante) %>%
+  summarise(
+    isdm_abs_norm = mean(sub_abs_norm, na.rm = TRUE),
+    isdm_abs_std  = mean(sub_abs_std,  na.rm = TRUE),
+    isdm_dir_norm = mean(sub_dir_norm, na.rm = TRUE),
+    isdm_dir_std  = mean(sub_dir_std,  na.rm = TRUE),
+    .groups = "drop"
+  )
+
+cat("✓ ISDM integrado calculado\n")
+cat("  Años:", paste(sort(unique(isdm_integrado$anio)), collapse = ", "), "\n")
+cat("  Grupos:", paste(unique(isdm_integrado$tipo_migrante), collapse = ", "), "\n")
+```
+
+## Evolución comparada — ISDM Absoluto (estandarizado)
+
+```{r isdm-evolucion-std, fig.height=6}
+anios_breaks_isdm <- sort(unique(isdm_integrado$anio))
+
+p_isdm_std <- ggplot(isdm_integrado,
+       aes(x = anio, y = isdm_abs_std,
+           color = pais, linetype = tipo_migrante)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_x_continuous(breaks = anios_breaks_isdm) +
+  scale_color_manual(values = colores_pais, name = "País") +
+  scale_linetype_manual(
+    values = c("Migrantes" = "solid", "Migrantes recientes" = "dashed"),
+    name = "Grupo"
+  ) +
+  labs(
+    x = "Año",
+    y = "Magnitud de la desigualdad (SD)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position  = "bottom",
+    panel.grid.minor = element_blank()
+  )
+
+print(p_isdm_std)
+ggsave("output_integrados/isdm_evolucion_std.png",
+       plot = p_isdm_std, width = 12, height = 6, dpi = 300)
+```
+
+## Evolución comparada — ISDM Absoluto (normalizado, pp)
+
+```{r isdm-evolucion-pp, fig.height=6}
+p_isdm_pp <- ggplot(isdm_integrado,
+       aes(x = anio, y = isdm_abs_norm,
+           color = pais, linetype = tipo_migrante)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_x_continuous(breaks = anios_breaks_isdm) +
+  scale_color_manual(values = colores_pais, name = "País") +
+  scale_linetype_manual(
+    values = c("Migrantes" = "solid", "Migrantes recientes" = "dashed"),
+    name = "Grupo"
+  ) +
+  labs(
+    x = "Año",
+    y = "Magnitud de la desigualdad (pp)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position  = "bottom",
+    panel.grid.minor = element_blank()
+  )
+
+print(p_isdm_pp)
+ggsave("output_integrados/isdm_evolucion_pp.png",
+       plot = p_isdm_pp, width = 12, height = 6, dpi = 300)
+```
+
+## Evolución por país — ISDM Absoluto (estandarizado)
+
+```{r isdm-evolucion-facet, fig.height=5}
+p_isdm_facet <- ggplot(isdm_integrado,
+       aes(x = anio, y = isdm_abs_std,
+           color = tipo_migrante, linetype = tipo_migrante)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_x_continuous(breaks = anios_breaks_isdm) +
+  scale_color_manual(
+    values = c("Migrantes" = "#D95F02", "Migrantes recientes" = "#7570B3"),
+    name = "Grupo"
+  ) +
+  scale_linetype_manual(
+    values = c("Migrantes" = "solid", "Migrantes recientes" = "dashed"),
+    name = "Grupo"
+  ) +
+  facet_wrap(~pais, ncol = 2) +
+  labs(
+    x = "Año",
+    y = "Magnitud de la desigualdad (SD)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+print(p_isdm_facet)
+ggsave("output_integrados/isdm_evolucion_facet.png",
+       plot = p_isdm_facet, width = 12, height = 5, dpi = 300)
+```
+
+## Dirección de la desigualdad por dimensión (pp)
+
+```{r isdm-direccional, fig.height=5}
+resumen_dim_integrado <- subindices_integrado %>%
+  group_by(pais, dimension, tipo_migrante) %>%
+  summarise(
+    subindice_dir_promedio = mean(sub_dir_norm, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(dimension = factor(dimension, levels = c("Laboral", "Pobreza", "Social")))
+
+p_dir_integrado <- ggplot(resumen_dim_integrado,
+       aes(x = dimension, y = subindice_dir_promedio, fill = pais)) +
+  geom_hline(yintercept = 0, linewidth = 1, color = "black") +
+  geom_col(position = "dodge", width = 0.7, alpha = 0.9) +
+  geom_text(
+    aes(
+      label = sprintf("%+.2f", subindice_dir_promedio),
+      hjust = ifelse(subindice_dir_promedio > 0, -0.2, 1.2)
+    ),
+    position  = position_dodge(width = 0.7),
+    size      = 3.5,
+    fontface  = "bold"
+  ) +
+  scale_fill_manual(values = colores_pais, name = "País") +
+  coord_flip() +
+  facet_wrap(~tipo_migrante, ncol = 2) +
+  labs(
+    x = "",
+    y = "Sub-índice direccional (pp)\nNegativo = Migrantes mejor | Positivo = Nativos mejor"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position  = "bottom",
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+print(p_dir_integrado)
+ggsave("output_integrados/isdm_direccional_dimensiones.png",
+       plot = p_dir_integrado, width = 12, height = 5, dpi = 300)
+```

@@ -1119,11 +1119,14 @@ cat("✓ Gráfico guardado: output_graficos_recientes/fig3_evolucion_dimensiones
 ## Serie temporal
 
 ```{r evolucion_isdm, fig.height=7}
-p_evolucion <- ggplot(isdm_jerarquico, 
-                       aes(x = anio, y = isdm_absoluto_estandarizado, 
+anios_breaks <- unique(isdm_jerarquico$anio)
+
+p_evolucion <- ggplot(isdm_jerarquico,
+                       aes(x = anio, y = isdm_absoluto_estandarizado,
                            color = pais, linetype = pais)) +
   geom_line(linewidth = 1.3) +
   geom_point(size = 3.5, alpha = 0.8) +
+  scale_x_continuous(breaks = anios_breaks) +
   scale_color_manual(
     values = c("Argentina" = "#2E86AB", "Chile" = "#A23B72"),
     name = "País"
@@ -1149,11 +1152,12 @@ p_evolucion <- ggplot(isdm_jerarquico,
 
 print(p_evolucion)
 
-p_evolucion_pp <- ggplot(isdm_jerarquico, 
-                       aes(x = anio, y = isdm_absoluto_estandarizado, 
+p_evolucion_pp <- ggplot(isdm_jerarquico,
+                       aes(x = anio, y = isdm_absoluto_normalizado,
                            color = pais, linetype = pais)) +
   geom_line(linewidth = 1.3) +
   geom_point(size = 3.5, alpha = 0.8) +
+  scale_x_continuous(breaks = anios_breaks) +
   scale_color_manual(
     values = c("Argentina" = "#2E86AB", "Chile" = "#A23B72"),
     name = "País"
@@ -1163,10 +1167,12 @@ p_evolucion_pp <- ggplot(isdm_jerarquico,
     name = "País"
   ) +
   labs(
-    subtitle = "ISDM Absoluto (estandarizado) - Agregación jerárquica por dimensiones",
+    title = "Figura 4b: Evolución del Índice de Desigualdad Migratoria",
+    subtitle = "ISDM Absoluto (normalizado, sin estandarizar) - Agregación jerárquica por dimensiones",
     x = "Año",
-    y = "Magnitud de la desigualdad (SD)",
-   ) +
+    y = "Magnitud de la desigualdad (pp)",
+    caption = "Fuente: Elaboración propia. Valores más altos indican mayor desigualdad."
+  ) +
   theme_minimal(base_size = 13) +
   theme(
     plot.title = element_text(face = "bold", size = 15),
@@ -1175,7 +1181,9 @@ p_evolucion_pp <- ggplot(isdm_jerarquico,
     panel.grid.minor = element_blank()
   )
 
-ggsave("output_graficos_recientes/fig4_evolucion_isdm.png", 
+print(p_evolucion_pp)
+
+ggsave("output_graficos_recientes/fig4_evolucion_isdm.png",
        plot = p_evolucion_pp, width = 12, height = 7, dpi = 300)
 cat("✓ Gráfico guardado: output_graficos_recientes/fig4_evolucion_isdm.png\n\n")
 ```
