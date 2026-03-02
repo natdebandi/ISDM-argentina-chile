@@ -72,6 +72,7 @@ Migmobs_nat/
 | `2_1_ISDM_jerarquico_migrantes.Rmd` | ISDM con agregación jerárquica por dimensiones. Compara **todos los migrantes** vs. nativos. **Excluye 2020** en ambos países. Usa `indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv`. Incluye pruebas de robustez (Shapiro-Wilk, Cohen's d, permutation test). | `.html` |
 | `2_2_ISDM_jerarquico_migrantes_con2020.Rmd` | Versión del ISDM jerárquico (todos los migrantes) **incluyendo el año 2020**. Permite evaluar la robustez de los resultados ante la inclusión del año pandémico. | `.html` |
 | `2_3_ISDM_jerarquico_migrantes_recientes.Rmd` | ISDM con agregación jerárquica. Compara **migrantes recientes** (llegados en los últimos 5 años) vs. nativos. Usa `indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv` (fuente única CASEN para Chile). Incluye los mismos tests de robustez. | `.html` |
+| `2_4_ISDM_analisis_integrado.Rmd` | **Análisis integrado** que combina migrantes totales y recientes en un único reporte. Incluye: (1) brechas por dimensión sin estandarizar y con Z-scores conjuntos (boxplot + jitter); (2) tablas resumen de brechas promedio por indicador, país y grupo (excluye 2020); (3) ISDM calculado para ambos grupos con z-scores separados, sub-índices por dimensión y ISDM jerárquico final; (4) gráficos conjuntos de evolución (SD y pp), evolución facetada por país y dirección de la desigualdad por dimensión. Usa `brecha_nat_mig` del CSV con ENE y `brecha_nat_rec` del CSV solo CASEN. Guarda salidas en `output_integrados/`. | `.html` |
 
 ### Otros archivos
 
@@ -114,7 +115,9 @@ Microdatos crudos (CASEN 2015/2017/2020/2022/2024 · EPH 2016–2024)
         ↓
 1_6_construccion_brechas.Rmd  ← Interpolación lineal + brechas + CSVs de salida
         ↓
-2_*_ISDM_jerarquico_*.Rmd     ← Construcción y análisis del ISDM
+2_1_ / 2_2_ / 2_3_*.Rmd      ← ISDM por grupo (migrantes, con 2020, recientes)
+        ↓
+2_4_ISDM_analisis_integrado.Rmd ← Análisis integrado: brechas + ISDM ambos grupos
 ```
 
 ---
