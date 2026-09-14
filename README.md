@@ -16,7 +16,7 @@ Este repositorio contiene los scripts, reportes y datos procesados para la const
 ## Estructura del repositorio
 
 ```
-Migmobs_nat/
+ISDM/
 ├── 0_*.Rmd              ← Reportes de contexto
 ├── 1_1_*.R              ← Procesamiento de microdatos
 ├── 1_2_*.R              ← Construcción de indicadores
@@ -24,8 +24,9 @@ Migmobs_nat/
 ├── 1_5_*.Rmd            ← EDA de indicadores
 ├── 1_6_*.Rmd            ← Construcción de brechas e interpolación
 ├── 2_*.Rmd              ← Análisis ISDM
+├── 3_run_pipeline.R     ← Runner de la cadena completa
 ├── README.md
-└── Migmobs_nat.Rproj
+└── ISDM.Rproj
 ```
 
 > **Nota:** Los datos, gráficos y carpetas de salida no se incluyen en este repositorio (ver sección [Datos](#datos)).
@@ -78,7 +79,7 @@ Migmobs_nat/
 
 | Archivo | Descripción |
 |---|---|
-| `Migmobs_nat.Rproj` | Archivo de proyecto de RStudio. |
+| `ISDM.Rproj` | Archivo de proyecto de RStudio. |
 
 ---
 

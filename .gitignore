@@ -5,12 +5,15 @@
 .Rproj.user/
 
 # Carpetas del proyecto (datos, outputs, versiones anteriores)
+ES/
 Data/
 graficos/
 output/
 output_context/
 output_graficos/
 output_graficos_recientes/
+output_integrados/
+logs/
 1_contexto_normativo_files/
 v1_nat/
 V2_nat/
@@ -19,5 +22,13 @@ _OLD JOACO/
 Documentacion/
 FMR_Latam/
 
+# Renderizados de R Markdown
+*.html
+*_files/
+
 # Windows
 desktop.ini
+.positai
+
+# Artefactos de R sueltos
+Rplots.pdf

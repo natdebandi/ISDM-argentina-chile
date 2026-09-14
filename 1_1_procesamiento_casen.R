@@ -23,6 +23,35 @@ library(dplyr)
 `%nin%` <- Negate(`%in%`)
 
 # =============================================================================
+# CONFIGURACIÓN DE RUTAS
+# =============================================================================
+# Ruta a los microdatos de CASEN. Se puede sobreescribir con la variable de
+# entorno ISDM_CASEN_DIR, para correr el pipeline en otra máquina o desde otra
+# ruta sin editar el script.
+carpeta_casen <- Sys.getenv("ISDM_CASEN_DIR", unset = "c:/Data/Casen")
+if (!dir.exists(carpeta_casen)) {
+  alternativa <- path.expand("~/investigacion/datos/Casen")
+  if (dir.exists(alternativa)) {
+    message("carpeta_casen no existe; se usa ", alternativa)
+    carpeta_casen <- alternativa
+  }
+}
+
+# Los nombres de archivo no siguen un patrón uniforme aguas arriba: 2024 viene
+# en minúscula (casen_2024.dta) mientras el resto usa mayúscula. Esta función
+# resuelve el nombre real sin distinguir mayúsculas, y avisa si no lo encuentra.
+ruta_casen <- function(archivo) {
+  directo <- file.path(carpeta_casen, archivo)
+  if (file.exists(directo)) return(directo)
+  disponibles <- list.files(carpeta_casen, pattern = "\\.dta$", ignore.case = TRUE)
+  coincide <- disponibles[tolower(disponibles) == tolower(archivo)]
+  if (length(coincide) == 1) return(file.path(carpeta_casen, coincide))
+  stop("No se encontró el microdato de CASEN: ", archivo,
+       "\n  Buscado en: ", carpeta_casen,
+       "\n  Archivos .dta presentes: ", paste(disponibles, collapse = ", "))
+}
+
+# =============================================================================
 # PARTE 1: SELECCIÓN DE VARIABLES Y PREPARACIÓN INICIAL
 # =============================================================================
 
@@ -30,13 +59,13 @@ library(dplyr)
 # 1.1 Carga y selección de variables por año
 # -----------------------------------------------------------------------------
 
-Casen_2015 <- read_dta("c:/Data/Casen/Casen_2015.dta") %>%
+Casen_2015 <- read_dta(ruta_casen("Casen_2015.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o16, 
          formalidad_contrato=o17, descuento_jubilatorio=o29, acceso_salud=s12, 
          seguro_comple=s14, asiste, nivel_asiste=e6a, educ, activ,
          residencia_5anios_atras=r1b)  
 
-Casen_2017 <- read_dta("c:/Data/Casen/Casen_2017.dta") %>%
+Casen_2017 <- read_dta(ruta_casen("Casen_2017.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o16, 
          formalidad_contrato=o17, descuento_jubilatorio=o29, acceso_salud=s12, 
          seguro_comple=s14, asiste, nivel_asiste=e6a, educ, activ,
@@ -48,19 +77,19 @@ Casen_2017 <- read_dta("c:/Data/Casen/Casen_2017.dta") %>%
 # - descuento jubilatorio: o32, igual que 2022/2024
 # - salud: s13 (1=FONASA, 2=FF.AA., 3=ISAPRE, 4=Ninguno, 5=Otro) — sin subgrupos FONASA
 # - sin variables de tipo/temporalidad de contrato (o16/o17 en 2020 son para cuentapropistas)
-Casen_2020 <- read_dta("c:/Data/Casen/Casen_2020.dta") %>%
+Casen_2020 <- read_dta(ruta_casen("Casen_2020.dta")) %>%
   select(expr, nacionalidad=lugar_nac, edad, pobreza, condicion_ocupacional=o15,
          descuento_jubilatorio=o32, acceso_salud=s13,
          seguro_comple=s15, asiste, nivel_asiste=e6a, educ=educc, activ,
          residencia_5anios_atras=r2)
 
-Casen_2022 <- read_dta("c:/Data/Casen/Casen_2022.dta") %>%
+Casen_2022 <- read_dta(ruta_casen("Casen_2022.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o18, 
          formalidad_contrato=o19, descuento_jubilatorio=o32, acceso_salud=s13, acceso_salud_fonasa=s13_fonasa,
          seguro_comple=s15, asiste, nivel_asiste=e6a_asiste, educ, activ,
          residencia_5anios_atras=r1b)  
 
-Casen_2024 <- read_dta("c:/Data/Casen/Casen_2024.dta") %>%
+Casen_2024 <- read_dta(ruta_casen("casen_2024.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o18, 
          formalidad_contrato=o19, descuento_jubilatorio=o32, acceso_salud=s13, acceso_salud_fonasa=s13_fonasa, 
          seguro_comple=s15a, asiste, nivel_asiste=e6a_asiste, educ=educc, activ,

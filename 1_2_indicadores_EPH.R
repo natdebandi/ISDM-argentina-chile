@@ -18,8 +18,7 @@ library(eph)  # Librería para calcular pobreza
 # Operador auxiliar "not in"
 `%nin%` <- Negate(`%in%`)
 
-
-#leer Data/EPH_indiv_2016_2024_proc.csv
+# lee Data/EPH_indiv_2016_2024_proc.csv
 EPH_indiv_unificado <- read_csv("Data/EPH_indiv_2016_2024_proc.csv", show_col_types = FALSE)
 
 
@@ -29,6 +28,24 @@ EPH_indiv_unificado <- read_csv("Data/EPH_indiv_2016_2024_proc.csv", show_col_ty
 
 #borrar todo menos EPH_indiv_unificado
 rm(list = setdiff(ls(), "EPH_indiv_unificado"))
+
+# -----------------------------------------------------------------------------
+# Población en edad de trabajar (PET)
+# -----------------------------------------------------------------------------
+# Edad mínima para entrar al denominador de los indicadores del mercado laboral.
+#
+# Se define DESPUÉS del rm() de arriba a propósito: si se la declara antes, esa
+# limpieza la borra y el script falla con "object 'PET_MIN_EDAD' not found".
+#
+# La definición oficial del INDEC (ver Documentacion/EPH_Conceptos.pdf) es de 10
+# años y más: la PEA se define como las personas de 10 años y más que trabajaron
+# o buscaron trabajo. Se adopta ese umbral por defecto.
+#
+# Para comparar de manera estricta con Chile, donde los indicadores laborales se
+# calculan en CASEN sobre la población de 15 años y más, alcanza con poner 15.
+# El signo de la brecha de tasa de actividad cambia según el umbral elegido, así
+# que la decisión tiene que quedar declarada en el artículo.
+PET_MIN_EDAD <- 10
 
 message("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 message("CALCULANDO INDICADORES EPH")
@@ -46,7 +63,13 @@ message("   → I1. Tasa de actividad...")
 
 
 base_i1 <- EPH_indiv_unificado %>%
-  filter(!is.na(estado_actividad) & !is.na(migrante)) %>%  # PET
+  # El filtro de edad es imprescindible: "Menor de 10 años" es un valor NO nulo
+  # de estado_actividad, así que sin esta condición los menores de 10 años entran
+  # al denominador y diluyen la tasa (numerador no se altera, porque nunca están
+  # ocupados ni desocupados). Consecuencia de omitirlo: la tasa se calcula sobre
+  # población total y deja de ser comparable con la de Chile, que filtra 15+.
+  # Ver diagnosticos/etiquetas_no_contempladas.py y el informe de auditoría.
+  filter(edad >= PET_MIN_EDAD & !is.na(estado_actividad) & !is.na(migrante)) %>%  # PET
   mutate(
     activo = ifelse(estado_actividad %in% c("Ocupado", "Desocupado"), 1, 0)
   )

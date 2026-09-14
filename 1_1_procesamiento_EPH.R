@@ -19,12 +19,48 @@ library(eph)  # Librería para calcular pobreza
 # Operador auxiliar "not in"
 `%nin%` <- Negate(`%in%`)
 
+# -----------------------------------------------------------------------------
+# Normalización de etiquetas de texto
+# -----------------------------------------------------------------------------
+# Los microdatos de la EPH cambian la redacción de las etiquetas de texto entre
+# años (acentos, ñ o i, punto final, mayúsculas). Comparar contra literales
+# exactos tiene un modo de falla silencioso: si la etiqueta cambia, ninguna
+# comparación coincide, el valor cae al TRUE final del case_when y se convierte
+# en NA. El dato no se pierde con un error, se pierde sin aviso, y el indicador
+# pasa a calcularse sobre otra población.
+#
+# Caso que motivó esta función (2026-09-13): en 2024 la etiqueta de ESTADO es
+# "Menor de 10 anios." mientras el script contemplaba "Menor de 10 años" y
+# "Menor de 10 anos". Los menores de 10 años quedaron NA, el filtro que arma el
+# denominador de la tasa de actividad los descartó, y ese año el indicador pasó
+# a medirse sobre una población distinta que el resto de la serie.
+#
+# Reduce la etiqueta a una forma canónica (minúsculas, sin acentos, sin
+# puntuación, espacios colapsados) antes de compararla.
+normalizar_etiqueta <- function(x) {
+  x <- as.character(x)
+  x <- iconv(x, from = "UTF-8", to = "ASCII//TRANSLIT")
+  x <- tolower(x)
+  x <- gsub("[[:punct:]]", " ", x)
+  x <- gsub("[[:space:]]+", " ", x)
+  trimws(x)
+}
+
 # =============================================================================
 # CONFIGURACIÓN INICIAL
 # =============================================================================
 
-# Carpeta donde están los archivos CSV de EPH
-carpeta_eph <- "c:/Data/EPH"
+# Carpeta donde están los archivos CSV de EPH.
+# Se puede sobreescribir con la variable de entorno ISDM_EPH_DIR para correr el
+# pipeline en otra máquina o desde otra ruta sin editar el script.
+carpeta_eph <- Sys.getenv("ISDM_EPH_DIR", unset = "c:/Data/EPH")
+if (!dir.exists(carpeta_eph)) {
+  alternativa <- path.expand("~/investigacion/datos/EPH")
+  if (dir.exists(alternativa)) {
+    message("carpeta_eph no existe; se usa ", alternativa)
+    carpeta_eph <- alternativa
+  }
+}
 
 # Años a procesar
 anios_a_procesar <- 2016:2024
@@ -190,59 +226,47 @@ for (anio in anios_a_procesar) {
       ),
       
       # Estado ocupacional - manejar etiquetas de texto
+      # Se comparan etiquetas normalizadas para que un cambio de redacción entre
+      # años no convierta el valor en NA. "Menor de 10 anios." es la variante que
+      # trae 2024 y que antes quedaba sin contemplar.
       ESTADO = case_when(
-        ESTADO == "Entrevista individual no realizada (no respuesta al cuestionario individual)" ~ 0,
-        ESTADO == "Ocupado" ~ 1,
-        ESTADO == "Desocupado" ~ 2,
-        ESTADO == "Inactivo" ~ 3,
-        ESTADO == "Menor de 10 años" ~ 4,
-        ESTADO == "Menor de 10 anos" ~ 4,
+        normalizar_etiqueta(ESTADO) == "entrevista individual no realizada no respuesta al cuestionario individual" ~ 0,
+        normalizar_etiqueta(ESTADO) == "ocupado" ~ 1,
+        normalizar_etiqueta(ESTADO) == "desocupado" ~ 2,
+        normalizar_etiqueta(ESTADO) == "inactivo" ~ 3,
+        normalizar_etiqueta(ESTADO) %in% c("menor de 10 anos", "menor de 10 anios") ~ 4,
         TRUE ~ as.numeric(as.character(ESTADO))
       ),
       
       # Descuento jubilatorio (PP07H)
       PP07H = case_when(
-        PP07H == "Si" ~ 1,
-        PP07H == "Sí" ~ 1,
-        PP07H == "No" ~ 2,
-        PP07H == "Ns./Nr." ~ 9,
-        PP07H == "Ns./Nr.." ~ 9,
-        PP07H == "NS./NR." ~ 9,
+        normalizar_etiqueta(PP07H) == "si" ~ 1,
+        normalizar_etiqueta(PP07H) == "no" ~ 2,
+        normalizar_etiqueta(PP07H) %in% c("ns nr", "nsnr") ~ 9,
         TRUE ~ as.numeric(as.character(PP07H))
       ),
       
       # Nivel educativo - códigos oficiales
       NIVEL_ED = case_when(
-        NIVEL_ED == "Primario incompleto (incluye educacion especial)" ~ 1,
-        NIVEL_ED == "Primaria incompleta (incluye educacion especial)" ~ 1,
-        NIVEL_ED == "Primario completo" ~ 2,
-        NIVEL_ED == "Primaria completa" ~ 2,
-        NIVEL_ED == "Secundario incompleto" ~ 3,
-        NIVEL_ED == "Secundaria incompleta" ~ 3,
-        NIVEL_ED == "Secundario completo" ~ 4,
-        NIVEL_ED == "Secundaria completa" ~ 4,
-        NIVEL_ED == "Superior y universitario incompleto" ~ 5,
-        NIVEL_ED == "Superior universitaria incompleta" ~ 5,
-        NIVEL_ED == "Superior y universitario completo" ~ 6,
-        NIVEL_ED == "Superior universitaria completa" ~ 6,
-        NIVEL_ED == "Sin instruccion" ~ 7,
-        NIVEL_ED == "Sin instrucción" ~ 7,
-        NIVEL_ED == "Ns/Nr" ~ 9,
+        normalizar_etiqueta(NIVEL_ED) %in% c("primario incompleto incluye educacion especial", "primaria incompleta incluye educacion especial") ~ 1,
+        normalizar_etiqueta(NIVEL_ED) %in% c("primario completo", "primaria completa") ~ 2,
+        normalizar_etiqueta(NIVEL_ED) %in% c("secundario incompleto", "secundaria incompleta") ~ 3,
+        normalizar_etiqueta(NIVEL_ED) %in% c("secundario completo", "secundaria completa") ~ 4,
+        normalizar_etiqueta(NIVEL_ED) %in% c("superior y universitario incompleto", "superior universitaria incompleta") ~ 5,
+        normalizar_etiqueta(NIVEL_ED) %in% c("superior y universitario completo", "superior universitaria completa") ~ 6,
+        normalizar_etiqueta(NIVEL_ED) == "sin instruccion" ~ 7,
+        normalizar_etiqueta(NIVEL_ED) %in% c("ns nr", "nsnr") ~ 9,
         TRUE ~ as.numeric(as.character(NIVEL_ED))
       ),
       
       # Categoría ocupacional - códigos oficiales
       CAT_OCUP = case_when(
-        CAT_OCUP == "Patron" ~ 1,
-        CAT_OCUP == "Patrón" ~ 1,
-        CAT_OCUP == "Cuenta propia" ~ 2,
-        CAT_OCUP == "Obrero o empleado" ~ 3,
-        CAT_OCUP == "Trabajador familiar sin remuneracion" ~ 4,
-        CAT_OCUP == "Trabajador familiar sin remuneración" ~ 4,
-        CAT_OCUP == "Ns/Nr" ~ 9,
-        CAT_OCUP == "Ns./Nr." ~ 9,
-        CAT_OCUP == "Ns./Nr.." ~ 9,
-        CAT_OCUP == "0" ~ 0,
+        normalizar_etiqueta(CAT_OCUP) %in% c("patron") ~ 1,
+        normalizar_etiqueta(CAT_OCUP) == "cuenta propia" ~ 2,
+        normalizar_etiqueta(CAT_OCUP) == "obrero o empleado" ~ 3,
+        normalizar_etiqueta(CAT_OCUP) == "trabajador familiar sin remuneracion" ~ 4,
+        normalizar_etiqueta(CAT_OCUP) %in% c("ns nr", "nsnr") ~ 9,
+        normalizar_etiqueta(CAT_OCUP) == "0" ~ 0,
         TRUE ~ as.numeric(as.character(CAT_OCUP))
       ),
       # SISTEMA DE SALUD
@@ -252,16 +276,17 @@ for (anio in anios_a_procesar) {
       # 3 = Tiene obra social y plan privado
       # 4 = No tiene obra social ni plan privado
       
+      # En 2024 algunas etiquetas vienen sin tilde ("Planes y seguros Publicos"),
+      # de modo que se comparan normalizadas.
       CH08 = case_when(
-        # Para 2024 que viene como texto
-        CH08 == "Obra social (incluye PAMI)" ~ 1,
-        CH08 == "Mutual / Prepaga / Servicio de emergencia" ~ 2,
-        CH08 == "Planes y seguros públicos" ~ 3,
-        CH08 == "No paga ni le descuentan" ~ 4,
-        CH08 == "Obra social y Mutual / Prepaga / Servicio de Emergencia" ~ 12,
-        CH08 == "Obra social y Planes y Seguros Públicos" ~ 13,
-        CH08 == "Mutual / Prepaga / Servicio de Emergencia / Planes y Seguros Publicos" ~ 23,
-        CH08 == "Obra social, mutual / prepaga / servicio de emergencia y planes y seguros pubilcos" ~ 123,
+        normalizar_etiqueta(CH08) == "obra social incluye pami" ~ 1,
+        normalizar_etiqueta(CH08) == "mutual prepaga servicio de emergencia" ~ 2,
+        normalizar_etiqueta(CH08) == "planes y seguros publicos" ~ 3,
+        normalizar_etiqueta(CH08) == "no paga ni le descuentan" ~ 4,
+        normalizar_etiqueta(CH08) == "obra social y mutual prepaga servicio de emergencia" ~ 12,
+        normalizar_etiqueta(CH08) == "obra social y planes y seguros publicos" ~ 13,
+        normalizar_etiqueta(CH08) == "mutual prepaga servicio de emergencia planes y seguros publicos" ~ 23,
+        normalizar_etiqueta(CH08) == "obra social mutual prepaga servicio de emergencia y planes y seguros pubilcos" ~ 123,
         # Para años anteriores que ya vienen como números
         TRUE ~ as.numeric(as.character(CH08))
       )
