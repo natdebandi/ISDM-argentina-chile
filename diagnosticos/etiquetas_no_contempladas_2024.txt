@@ -1,0 +1,71 @@
+Etiquetas no contempladas por el pipeline
+  script : /home/natdebandi/investigacion/Workspace_R/Migmobs_nat/1_1_procesamiento_EPH.R
+  datos  : /home/natdebandi/investigacion/datos/EPH
+  año    : 2024
+
+--- ESTADO ---
+  VALORES DEL DATO NO CONTEMPLADOS (caen a NA):
+       22171  'Menor de 10 anios.'
+  etiquetas esperadas por el script que el dato no trae:
+              'Menor de 10 anos'
+              'Menor de 10 años'
+
+--- CAT_OCUP ---
+  etiquetas esperadas por el script que el dato no trae:
+              'Ns./Nr.'
+              'Ns/Nr'
+              'Patrón'
+              'Trabajador familiar sin remuneración'
+
+--- PP07H ---
+  VALORES DEL DATO NO CONTEMPLADOS (caen a NA):
+      104402  'NA'
+  etiquetas esperadas por el script que el dato no trae:
+              'NS./NR.'
+              'Ns./Nr.'
+              'Ns./Nr..'
+              'Sí'
+
+--- CH08 ---
+  VALORES DEL DATO NO CONTEMPLADOS (caen a NA):
+         264  'Ns./Nr.'
+          40  'Obra social y Planes y Seguros Publicos'
+        3956  'Planes y seguros Publicos'
+  etiquetas esperadas por el script que el dato no trae:
+              'Obra social y Planes y Seguros Públicos'
+              'Planes y seguros públicos'
+
+--- NIVEL_ED ---
+  etiquetas esperadas por el script que el dato no trae:
+              'Ns/Nr'
+              'Primario completo'
+              'Primario incompleto (incluye educacion especial)'
+              'Secundario completo'
+              'Secundario incompleto'
+              'Sin instrucción'
+              'Superior y universitario completo'
+              'Superior y universitario incompleto'
+
+--- CH04 ---
+  etiquetas esperadas por el script que el dato no trae:
+              'Varón'
+
+--- CH15 ---
+  VALORES DEL DATO NO CONTEMPLADOS (caen a NA):
+          76  'Ns./Nr..'
+  etiquetas esperadas por el script que el dato no trae:
+              'En otro país (especificar)'
+              'En un país limítrofe (especificar Brasil, Bolivia, Chile, Paraguay, Uruguay)'
+
+--- CH16 ---
+  VALORES DEL DATO NO CONTEMPLADOS (caen a NA):
+          48  'Ns./Nr..'
+  etiquetas esperadas por el script que el dato no trae:
+              'En otro país (especificar)'
+              'En un país limítrofe (especificar Brasil, Bolivia, Chile, Paraguay, Uruguay)'
+              'No había nacido'
+
+====================================================================
+RESULTADO: 7 valores del dato quedarían como NA.
+Hay que agregarlos al case_when correspondiente.
+====================================================================
