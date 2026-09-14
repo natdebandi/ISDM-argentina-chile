@@ -1,17 +1,17 @@
 ---
-title: "Migración Argentina y Chile"
+title: "Migration Argentina and Chile"
 output: html_document
 date: "2025-04-22"
 ---
 
-## Migración Argentina y Chile
+## Migration Argentina and Chile
 
 
 
 ```{r echo=FALSE, warning=FALSE}
 
 #install.packages("factoextra")
-
+#install.packages("WDI")
 
 # Cargar librerías
 library(tibble)
@@ -24,7 +24,7 @@ library(tidyr)
 library(kableExtra)
 library(migest)
 library(countrycode)
-
+library(WDI)
 
 # Cargar las librerías necesarias
 library(sf)
@@ -61,7 +61,7 @@ countries_arg_chl <- c('ARG', 'CHL')
 
 ```
 
-**Construiyo migrantes agrupados por pais de destino y corrigo daros arg y chl**
+**Build migrant dataset grouped by destination country and correct ARG and CHL data**
 
 
 ```{r}
@@ -102,12 +102,12 @@ colores_pais <- c(
 colores_completos <- c(
   "ARG" = "#D73027",
   "CHL" = "#1BA3A3",
-  "Media Regional (América Latina)" = "#FFA726"
+  "Regional Average (Latin America)" = "#FFA726"
 )
 
 ```
 
-## Stock migratorio de Argentina y Chile
+## Migration Stock in Argentina and Chile
 
 
 ```{r}
@@ -145,11 +145,11 @@ ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = iso_d
     breaks = seq(min(unu_arg_chl$year), 2024, by = 4)
   ) +
   labs(
-    title = "Stock migratorio de Argentina y Chile",
-    subtitle = "Líneas punteadas: datos ajustados (2020-2024)",
-    x = "Año",
-    y = "Stock (x 1.000)",
-    color = "País"
+    title = "Migration Stock in Argentina and Chile",
+    subtitle = "Dotted lines: adjusted data (2020-2024)",
+    x = "Year",
+    y = "Stock (x 1,000)",
+    color = "Country"
   ) +
   theme_minimal(base_size = 13) +
     scale_color_manual(values = colores_completos)+
@@ -190,9 +190,9 @@ pp<-ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = i
     breaks = seq(min(unu_arg_chl$year), 2024, by = 4)
   ) +
   labs(
-    x = "Año",
-    y = "Stock (x 1.000)",
-    color = "País"
+    x = "Year",
+    y = "Stock (x 1,000)",
+    color = "Country"
   ) +
   theme_minimal(base_size = 13) +
    scale_color_manual(values = colores_completos)+
@@ -216,9 +216,9 @@ ggsave("output_context/stock_migratorio_arg_chl.png", plot = pp, width = 10, hei
 
 
 
-### % de migrantes sobr total población
+### % Migrants over Total Population
 
-**Variable construida**
+**Constructed variable**
 
 ```{r}
 #base agrupada por pais de destino y año
@@ -249,7 +249,7 @@ indicadores <- c(
 # Función para obtener datos del Banco Mundial
 obtener_datos_bm <- function(indicadores, start_year = 1960, end_year = 2023) {
   
-  cat("Conectando a la API del Banco Mundial...\n")
+  cat("Connecting to World Bank API...\n")
   
   # Obtener datos para todos los países y años disponibles
   datos <- WDI(
@@ -260,7 +260,7 @@ obtener_datos_bm <- function(indicadores, start_year = 1960, end_year = 2023) {
     extra = TRUE  # Incluye información adicional sobre países
   )
   
-  cat("Datos obtenidos exitosamente!\n")
+  cat("Data retrieved successfully!\n")
   cat("Dimensiones del dataset:", dim(datos), "\n")
   
   return(datos)
