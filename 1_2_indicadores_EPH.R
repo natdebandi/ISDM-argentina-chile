@@ -39,12 +39,17 @@ rm(list = setdiff(ls(), "EPH_indiv_unificado"))
 #
 # La definición oficial del INDEC (ver Documentacion/EPH_Conceptos.pdf) es de 10
 # años y más: la PEA se define como las personas de 10 años y más que trabajaron
-# o buscaron trabajo. Se adopta ese umbral por defecto.
+# o buscaron trabajo.
 #
-# Para comparar de manera estricta con Chile, donde los indicadores laborales se
-# calculan en CASEN sobre la población de 15 años y más, alcanza con poner 15.
-# El signo de la brecha de tasa de actividad cambia según el umbral elegido, así
-# que la decisión tiene que quedar declarada en el artículo.
+# Decisión (2026-09-15): 10 años y más en Argentina; Chile mantiene 15 años y más
+# (1_2_indicadores_casen.R). Cada país conserva la convención de su fuente
+# oficial. Las brechas se calculan entre nativos y migrantes dentro de cada país,
+# pero su magnitud depende del umbral. Brecha de tasa de actividad de Argentina,
+# nativo - migrante, promedio 2016-2024 sin 2020 (diagnosticos/i1_escenarios.csv):
+#   sin filtro de edad   -9,50 pp
+#   10 años y más        -3,11 pp   <- umbral adoptado
+#   15 años y más        +1,27 pp   (el signo se invierte)
+# El artículo declara el umbral de cada país y esta sensibilidad.
 PET_MIN_EDAD <- 10
 
 message("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

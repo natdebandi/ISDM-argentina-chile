@@ -125,6 +125,18 @@ Microdatos crudos (CASEN 2015/2017/2020/2022/2024 · EPH 2016–2024)
 
 ## Decisiones metodológicas clave
 
+### Población en edad de trabajar (PET)
+
+Los indicadores laborales usan la población en edad de trabajar según la convención de la fuente oficial de cada país: **10 años y más en Argentina** (INDEC; parámetro `PET_MIN_EDAD` en `1_2_indicadores_EPH.R`) y **15 años y más en Chile** (`1_2_indicadores_casen.R`). Las brechas se calculan entre nativos y migrantes dentro de cada país, pero la magnitud de la brecha de tasa de actividad argentina es sensible al umbral:
+
+| Umbral en Argentina | Brecha nativo − migrante (pp, promedio 2016–2024 sin 2020) |
+|---|---:|
+| Sin filtro de edad | −9,50 |
+| 10 años y más (adoptado) | −3,11 |
+| 15 años y más | +1,27 |
+
+Las versiones publicadas hasta `v1.1.0` no aplicaban el filtro de edad en el denominador de la tasa de actividad argentina, y en 2024 los menores de 10 años quedaban como `NA` por un cambio en la etiqueta del microdato. Los diagnósticos que lo documentan están en `diagnosticos/`.
+
 ### Incorporación de CASEN 2020
 
 La encuesta CASEN 2020 ("en pandemia") utiliza una nomenclatura de variables diferente a otros años. Las equivalencias clave son:
