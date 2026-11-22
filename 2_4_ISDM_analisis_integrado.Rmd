@@ -133,7 +133,7 @@ cat("  Migrant types:", paste(unique(datos_largo$tipo_migrante), collapse = ", "
 
 # Labor Dimension
 
-> **Interpretation note:** normalized gap = Natives − Migrants (sign-adjusted). Positive values indicate natives are better off; negative values indicate migrants are better off. Each point represents a year.
+> **Interpretation note:** normalized gap = Non-migrants − Migrants (sign-adjusted). Positive values indicate non-migrants are better off; negative values indicate migrants are better off. Each point represents a year.
 
 ## Without Standardization (percentage points)
 
@@ -155,7 +155,7 @@ p <- datos_largo %>%
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Normalized gap (pp)\nLeft (negative) = Migrants better | Right (positive) = Natives better",
+    y = "Normalized gap (pp)\nLeft (negative) = Migrants better | Right (positive) = Non-migrants better",
     color = "Country"
   ) +
   theme_minimal(base_size = 13) +
@@ -196,7 +196,7 @@ p <- datos_largo %>%
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Standardized gap (SD)\nLeft (negative) = Migrants better | Right (positive) = Natives better",
+    y = "Standardized gap (SD)\nLeft (negative) = Migrants better | Right (positive) = Non-migrants better",
     color = "Country"
   ) +
   theme_minimal(base_size = 13) +
@@ -235,7 +235,7 @@ p <- datos_largo %>%
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Normalized gap (pp)\nLeft (negative) = Migrants better | Right (positive) = Natives better",
+    y = "Normalized gap (pp)\nLeft (negative) = Migrants better | Right (positive) = Non-migrants better",
     color = "Country"
   ) +
   theme_minimal(base_size = 13) +
@@ -270,7 +270,7 @@ p <- datos_largo %>%
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Standardized gap (SD)\nLeft (negative) = Migrants better | Right (positive) = Natives better",
+    y = "Standardized gap (SD)\nLeft (negative) = Migrants better | Right (positive) = Non-migrants better",
     color = "Country"
   ) +
   theme_minimal(base_size = 13) +
@@ -309,7 +309,7 @@ p <- datos_largo %>%
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Normalized gap (pp)\nLeft (negative) = Migrants better | Right (positive) = Natives better",
+    y = "Normalized gap (pp)\nLeft (negative) = Migrants better | Right (positive) = Non-migrants better",
     color = "Country"
   ) +
   theme_minimal(base_size = 13) +
@@ -344,7 +344,7 @@ p <- datos_largo %>%
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Standardized gap (SD)\nLeft (negative) = Migrants better | Right (positive) = Natives better",
+    y = "Standardized gap (SD)\nLeft (negative) = Migrants better | Right (positive) = Non-migrants better",
     color = "Country"
   ) +
   theme_minimal(base_size = 13) +
@@ -363,7 +363,7 @@ ggsave("output_integrados/social_z.png", plot = p, width = 14, height = 6, dpi =
 
 # Summary Tables
 
-> **Note:** values expressed in percentage points (pp). Positive = natives better off; negative = migrants better off. Mean calculated over all available years.
+> **Note:** values expressed in percentage points (pp). Positive = non-migrants better off; negative = migrants better off. Mean calculated over all available years.
 
 ```{r tablas-prep}
 resumen <- datos_largo %>%
@@ -399,11 +399,11 @@ resumen %>%
   gt() %>%
   fmt_number(columns = where(is.numeric), decimals = 1) %>%
   tab_spanner(
-    label   = "Gap: Native \u2212 General Migrants (pp)",
+    label   = "Gap: Non-migrant \u2212 General Migrants (pp)",
     columns = c(mig_ARG, mig_CHL, mig_dif)
   ) %>%
   tab_spanner(
-    label   = "Gap: Native \u2212 Recent Migrants (pp)",
+    label   = "Gap: Non-migrant \u2212 Recent Migrants (pp)",
     columns = c(rec_ARG, rec_CHL, rec_dif)
   ) %>%
   cols_label(
@@ -433,11 +433,11 @@ resumen %>%
   gt() %>%
   fmt_number(columns = where(is.numeric), decimals = 1) %>%
   tab_spanner(
-    label   = "Gap: Native \u2212 General Migrants (pp)",
+    label   = "Gap: Non-migrant \u2212 General Migrants (pp)",
     columns = c(mig_ARG, mig_CHL, mig_dif)
   ) %>%
   tab_spanner(
-    label   = "Gap: Native \u2212 Recent Migrants (pp)",
+    label   = "Gap: Non-migrant \u2212 Recent Migrants (pp)",
     columns = c(rec_ARG, rec_CHL, rec_dif)
   ) %>%
   cols_label(
@@ -467,11 +467,11 @@ resumen %>%
   gt() %>%
   fmt_number(columns = where(is.numeric), decimals = 1) %>%
   tab_spanner(
-    label   = "Gap: Native \u2212 General Migrants (pp)",
+    label   = "Gap: Non-migrant \u2212 General Migrants (pp)",
     columns = c(mig_ARG, mig_CHL, mig_dif)
   ) %>%
   tab_spanner(
-    label   = "Gap: Native \u2212 Recent Migrants (pp)",
+    label   = "Gap: Non-migrant \u2212 Recent Migrants (pp)",
     columns = c(rec_ARG, rec_CHL, rec_dif)
   ) %>%
   cols_label(
@@ -545,7 +545,7 @@ p_isdm_std <- ggplot(isdm_integrado,
   scale_color_manual(values = colores_pais, name = "Country") +
   scale_linetype_manual(
     values = c("Migrants" = "solid", "Recent migrants" = "dashed"),
-    name = "Grupo"
+    name = "Group"
   ) +
   labs(
     x = "Year",
@@ -574,7 +574,7 @@ p_isdm_pp <- ggplot(isdm_integrado,
   scale_color_manual(values = colores_pais, name = "Country") +
   scale_linetype_manual(
     values = c("Migrants" = "solid", "Recent migrants" = "dashed"),
-    name = "Grupo"
+    name = "Group"
   ) +
   labs(
     x = "Year",
@@ -602,11 +602,11 @@ p_isdm_facet <- ggplot(isdm_integrado,
   scale_x_continuous(breaks = anios_breaks_isdm) +
   scale_color_manual(
     values = c("Migrants" = "#D95F02", "Recent migrants" = "#7570B3"),
-    name = "Grupo"
+    name = "Group"
   ) +
   scale_linetype_manual(
     values = c("Migrants" = "solid", "Recent migrants" = "dashed"),
-    name = "Grupo"
+    name = "Group"
   ) +
   facet_wrap(~pais, ncol = 2) +
   labs(
@@ -650,11 +650,12 @@ p_dir_integrado <- ggplot(resumen_dim_integrado,
     fontface  = "bold"
   ) +
   scale_fill_manual(values = colores_pais, name = "Country") +
+  scale_y_continuous(expand = expansion(mult = c(0.16, 0.16))) +
   coord_flip() +
   facet_wrap(~tipo_migrante, ncol = 2) +
   labs(
     x = "",
-    y = "Directional sub-index (pp)\nNegative = Migrants better | Positive = Natives better"
+    y = "Directional sub-index (pp)\nNegative = Migrants better | Positive = Non-migrants better"
   ) +
   theme_minimal(base_size = 12) +
   theme(
