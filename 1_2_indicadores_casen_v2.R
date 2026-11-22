@@ -2,6 +2,7 @@
 # VERSIÓN v2 (22/11/2026). Correcciones respecto de la versión original:
 #  - Nuevo indicador I11_cobertura_salud: afiliación a algún sistema de salud.
 #    Reemplaza a I10 (FONASA A/B) en el índice principal; I10 se conserva.
+#  - Lee Data/Casen_unificado_2015_2024_proc_v2.csv (migrante reciente corregido).
 #  - Salida: Data/Indicadores_Casen_2015_2024_v2.csv
 # Ver PLAN_revision_R_ISDM_2026-11-22.md en la carpeta del artículo.
 # =============================================================================
@@ -28,7 +29,7 @@ library(dplyr)
 # Operador auxiliar "not in"
 `%nin%` <- Negate(`%in%`)
 
-casen <- read_csv("Data/Casen_unificado_2015_2024_proc.csv", show_col_types = FALSE)
+casen <- read_csv("Data/Casen_unificado_2015_2024_proc_v2.csv", show_col_types = FALSE)
 
 indicadores_csv <- data.frame()
 
