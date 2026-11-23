@@ -1,7 +1,7 @@
 cff-version: 1.2.0
-message: "Si usás este código, citalo con estos metadatos."
+message: "If you use this code, please cite it using these metadata."
 type: software
-title: "ISDM: Índice Sintético de Desigualdad Migratoria (Argentina y Chile, 2015-2024)"
+title: "ISDM: Synthetic Index of Migrant Inequality (Argentina and Chile, 2015-2024)"
 version: "v2.0.0"
 date-released: "2026-11-23"
 authors:
@@ -12,17 +12,21 @@ authors:
 repository-code: "https://github.com/natdebandi/ISDM-argentina-chile"
 license: CC-BY-4.0
 abstract: >-
-  Código en R que construye el Índice Sintético de Desigualdad Migratoria (ISDM)
-  a partir de los microdatos de la EPH (Argentina) y la CASEN (Chile) y de los
-  indicadores publicados de la ENE (Chile), 2015-2024. Reproduce todas las cifras,
-  cuadros y gráficos del artículo «Brechas de acceso a derechos entre población
-  migrante y no migrante en Argentina y Chile (2015-2024)». La versión 2.0.0
-  corresponde a la versión revisada del artículo (noviembre de 2026).
+  R code that builds the Synthetic Index of Migrant Inequality (Índice Sintético
+  de Desigualdad Migratoria, ISDM) from the microdata of Argentina's Permanent
+  Household Survey (EPH) and Chile's CASEN survey, and the published indicators
+  of Chile's National Employment Survey (ENE), 2015-2024. It reproduces every
+  figure, table and number in the article "Gaps in access to rights between
+  migrant and non-migrant populations in Argentina and Chile (2015-2024)".
+  Version 2.0.0 corresponds to the revised version of the article (November
+  2026) and includes a final notebook, in Spanish and English, with the full
+  methodology, all results and 30 robustness checks.
 keywords:
-  - migración internacional
-  - desigualdad
-  - enfoque de derechos
-  - indicadores sociales
+  - international migration
+  - inequality
+  - human rights approach
+  - social indicators
+  - composite index
   - Argentina
   - Chile
   - EPH
