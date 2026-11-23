@@ -69,20 +69,14 @@ Los datos procesados pueden solicitarse a la autora (nataliadebandi@gmail.com).
 
 - `v1.0.0` y `v1.1.0`: versiones publicadas en Zenodo (cálculo original del índice).
 - `v1.2.0-pre-orden`: estado del repositorio antes de ordenarlo (23/11/2026), con los scripts originales y las versiones intermedias de la revisión de noviembre de 2026.
-- Versión actual: cadena final numerada 00 a 10, la que produce las cifras de la versión final del artículo.
+- `v2.0.0`: cadena final numerada 00 a 10, la que produce las cifras de la versión revisada del artículo (noviembre de 2026). Corrige la estandarización del índice, la población en edad de trabajar, el ponderador de pobreza, el indicador de salud, la interpolación, la informalidad y el cuentapropismo en Chile y el corte de pobreza de la CASEN 2024.
+
+## Licencia
+
+CC BY 4.0 (ver `LICENSE`).
 
 ## Cómo citar
 
-Debandi, N. (2025). *Índice Sintético de Desigualdad Migratoria (ISDM): Argentina y Chile* (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18734971
+Debandi, N. (2026). *ISDM: Índice Sintético de Desigualdad Migratoria (Argentina y Chile, 2015-2024)* (v2.0.0) [Software]. Zenodo. https://doi.org/10.5281/zenodo.18734971
 
-```bibtex
-@software{debandi_2025_ISDM,
-  author    = {Debandi, Natalia},
-  title     = {ISDM-argentina-chile},
-  year      = {2025},
-  publisher = {Zenodo},
-  version   = {v1.0.0},
-  doi       = {10.5281/zenodo.18734971},
-  url       = {https://doi.org/10.5281/zenodo.18734971}
-}
-```
+El DOI de arriba remite al registro en Zenodo, donde figuran todas las versiones. Los metadatos de cita están en `CITATION.cff` (botón «Cite this repository» de GitHub).

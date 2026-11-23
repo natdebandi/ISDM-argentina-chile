@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "Si usás este código, citalo con estos metadatos."
+type: software
+title: "ISDM: Índice Sintético de Desigualdad Migratoria (Argentina y Chile, 2015-2024)"
+version: "v2.0.0"
+date-released: "2026-11-23"
+authors:
+  - family-names: Debandi
+    given-names: Natalia
+    affiliation: "CONICET – CIAI-UNSAM"
+    email: ndebandi@unsam.edu.ar
+repository-code: "https://github.com/natdebandi/ISDM-argentina-chile"
+license: CC-BY-4.0
+abstract: >-
+  Código en R que construye el Índice Sintético de Desigualdad Migratoria (ISDM)
+  a partir de los microdatos de la EPH (Argentina) y la CASEN (Chile) y de los
+  indicadores publicados de la ENE (Chile), 2015-2024. Reproduce todas las cifras,
+  cuadros y gráficos del artículo «Brechas de acceso a derechos entre población
+  migrante y no migrante en Argentina y Chile (2015-2024)». La versión 2.0.0
+  corresponde a la versión revisada del artículo (noviembre de 2026).
+keywords:
+  - migración internacional
+  - desigualdad
+  - enfoque de derechos
+  - indicadores sociales
+  - Argentina
+  - Chile
+  - EPH
+  - CASEN
