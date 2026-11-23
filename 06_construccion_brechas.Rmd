@@ -1,5 +1,5 @@
 ---
-title: "Construcción de brechas — Argentina y Chile (v3)"
+title: "6. Construcción de brechas — Argentina y Chile"
 subtitle: "Generación de indicadores_con_brechas_arg_chile_2015_2024.csv"
 author: "Natalia Debandi"
 date: "`r Sys.Date()`"
@@ -26,7 +26,7 @@ library(zoo)
 
 ```{r carga}
 indicadores_long <- read_csv(
-  "Data/indicadores_unificados_arg_chile_2015_2024_v3.csv",
+  "Data/indicadores_unificados_arg_chile_2015_2024.csv",
   show_col_types = FALSE
 )
 
@@ -114,7 +114,7 @@ chile_interpolado <- indicadores %>%
   group_by(indicador, grupo) %>%
   arrange(anio) %>%
   fill(indicador_clean, .direction = "downup") %>%
-  # v2: CASEN 2020 no se usa como ancla (pandemia y migrante por lugar de nacimiento)
+  # CASEN 2020 no se usa como ancla (pandemia y migrante por lugar de nacimiento)
   mutate(valor = if_else(anio == 2020, NA_real_, valor)) %>%
   mutate(
     imputado = is.na(valor),
@@ -340,7 +340,7 @@ resumen_cob %>%
 # Guardar CSV
 
 ```{r guardar}
-write_csv(indicadores_brechas, "Data/indicadores_con_brechas_arg_chile_2015_2024_v3.csv")
+write_csv(indicadores_brechas, "Data/indicadores_con_brechas_arg_chile_2015_2024.csv")
 cat("✓ Archivo guardado: Data/indicadores_con_brechas_arg_chile_2015_2024.csv\n")
 cat("  Filas:", nrow(indicadores_brechas), "\n")
 cat("  Indicadores:", n_distinct(indicadores_brechas$indicador), "\n")
@@ -371,7 +371,7 @@ chile_interpolado_sc <- indicadores_sc %>%
   group_by(indicador, grupo) %>%
   arrange(anio) %>%
   fill(indicador_clean, .direction = "downup") %>%
-  # v2: CASEN 2020 no se usa como ancla (pandemia y migrante por lugar de nacimiento)
+  # CASEN 2020 no se usa como ancla (pandemia y migrante por lugar de nacimiento)
   mutate(valor = if_else(anio == 2020, NA_real_, valor)) %>%
   mutate(
     imputado = is.na(valor),
@@ -437,7 +437,7 @@ indicadores_brechas_sc <- indicadores_sc %>%
          brecha_nat_mig, brecha_nat_rec) %>%
   arrange(pais, indicador, anio)
 
-write_csv(indicadores_brechas_sc, "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024_v3.csv")
+write_csv(indicadores_brechas_sc, "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv")
 cat("✓ Archivo guardado: Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv\n")
 cat("  Filas:", nrow(indicadores_brechas_sc), "\n")
 cat("  Indicadores:", n_distinct(indicadores_brechas_sc$indicador), "\n")

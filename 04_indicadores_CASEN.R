@@ -1,21 +1,15 @@
 # =============================================================================
-# VERSIÓN v2 (22/11/2026). Correcciones respecto de la versión original:
-#  - Nuevo indicador I11_cobertura_salud: afiliación a algún sistema de salud.
-#    Reemplaza a I10 (FONASA A/B) en el índice principal; I10 se conserva.
-#  - Lee Data/Casen_unificado_2015_2024_proc_v2.csv (migrante reciente corregido).
-#  - Salida: Data/Indicadores_Casen_2015_2024_v2.csv
-# Ver PLAN_revision_R_ISDM_2026-11-22.md en la carpeta del artículo.
+# 4. Indicadores de Chile (CASEN)
 # =============================================================================
-
-# =============================================================================
-# SCRIPT DE PROCESAMIENTO DE DATOS CASEN 
-# =============================================================================
-# Descripción: Procesamiento y homogeneización de datos de la Encuesta CASEN
-#              (Caracterización Socioeconómica Nacional) de Chile
-#              para los años 2015, 2017, 2022 y 2024
-# Autor: Natalia Debandi - con el apoyo inicial de Joaquín Zajac
-# Fecha: Enero 2026
-# Mejoras: Variables de formalidad comparables con EPH Argentina
+# Lee:      Data/Casen_unificado_2015_2024_proc.csv
+# Hace:     tasas por año (ponderador expr) para no migrantes, migrantes y
+#           migrantes recientes. Cuentapropismo sobre todos los ocupados (o15 1 a 9)
+#           (P21). Cobertura de salud: afiliación a algún sistema (I11, pasa a ser I9
+#           en el paso 5) (P2). Se conserva el uso del sistema público (I10) para el
+#           análisis de sensibilidad.
+# Escribe:  Data/indicadores_casen_2015_2024.csv
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
 
 rm(list = ls())
@@ -29,7 +23,7 @@ library(dplyr)
 # Operador auxiliar "not in"
 `%nin%` <- Negate(`%in%`)
 
-casen <- read_csv("Data/Casen_unificado_2015_2024_proc_v2.csv", show_col_types = FALSE)
+casen <- read_csv("Data/Casen_unificado_2015_2024_proc.csv", show_col_types = FALSE)
 
 indicadores_csv <- data.frame()
 
@@ -226,8 +220,8 @@ message("      ✓ Informalidad total calculada\n")
 message("   → I5. Cuentapropismo...")
 
 base_i5 <- casen %>%
-  filter(!is.na(categoria_informalidad) & !is.na(migrante)) %>%
-  mutate(cuentapropia = ifelse(categoria_informalidad == "Cuentapropista", 1, 0))
+  filter(condicion_ocupacional %in% 1:9 & !is.na(migrante)) %>%   # todos los ocupados
+  mutate(cuentapropia = ifelse(condicion_ocupacional == 2, 1, 0))
 
 i5_nat <- base_i5 %>%
   filter(migrante == "Nativos") %>%
@@ -498,7 +492,7 @@ message("      ✓ Dependencia del sistema público de salud calculada\n")
 
 
 # -----------------------------------------------------------------------------
-# I11. COBERTURA DE SALUD: afiliación a algún sistema previsional (v2)
+# I11. COBERTURA DE SALUD: afiliación a algún sistema previsional
 # -----------------------------------------------------------------------------
 # Mide la cobertura horizontal: la persona está afiliada a algún sistema de
 # salud (FONASA de cualquier tramo, ISAPRE, FF.AA. u otro) frente a ninguno
@@ -559,6 +553,6 @@ message("━━━━━━━━━━━━━━━━━━━━━━━�
 message("INDICADORES CASEN COMPLETADOS (migrantes=total)")
 message("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-write_csv(indicadores_csv, "Data/Indicadores_Casen_2015_2024_v2.csv")
+write_csv(indicadores_csv, "Data/indicadores_casen_2015_2024.csv")
 
 

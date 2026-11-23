@@ -189,7 +189,8 @@ pp<-ggplot(gni_combined, aes(x = year, y = gni_ppp, color = country_label, group
 
 
 #save plot
-ggsave("output_context/gni_per_capita_arg_chl_media.png", plot = pp, width = 8, height = 6)
+dir.create("output/contexto", showWarnings = FALSE, recursive = TRUE)
+ggsave("output/contexto/gni_per_capita_arg_chl_media.png", plot = pp, width = 8, height = 6)
 
 ```
 
@@ -387,7 +388,7 @@ pp <- ggplot(gdp_combined, aes(x = year, y = gdp_ppp, color = country_label, gro
   guides(color = guide_legend(nrow = 1))
 
 # Save plot
-ggsave("output_context/gdp_per_capita_arg_chl_media.png", plot = pp, width = 8, height = 6)
+ggsave("output/contexto/gdp_per_capita_arg_chl_media.png", plot = pp, width = 8, height = 6)
 
 ```
 
@@ -582,7 +583,7 @@ pp <- ggplot(gini_combined, aes(x = year, y = gini, color = country_label, group
   guides(color = guide_legend(nrow = 1))
 
 # Save plot
-ggsave("output_context/gini_arg_chl_media.png", plot = pp, width = 8, height = 6)
+ggsave("output/contexto/gini_arg_chl_media.png", plot = pp, width = 8, height = 6)
 
 
 ```
@@ -594,7 +595,9 @@ ggsave("output_context/gini_arg_chl_media.png", plot = pp, width = 8, height = 6
 
 
 
-```{r}
+```{r eval=FALSE}
+# No se evalúa: indicadores de educación del Banco Mundial que ya no están disponibles
+# (p. ej. SE.SEC.CUAT.UP.ZS) y que el artículo no usa.
 
 
 # Define education indicators
@@ -722,7 +725,9 @@ print(table_output)
 ```
 
 
-```{r}
+```{r eval=FALSE}
+# No se evalúa: indicadores de educación del Banco Mundial que ya no están disponibles
+# (p. ej. SE.SEC.CUAT.UP.ZS) y que el artículo no usa.
 
 # Datos manuales de alfabetización para Argentina y Chile (desde 1995)
 manual_data <- data.frame(
@@ -844,7 +849,7 @@ pp2 <- ggplot(illiteracy_combined, aes(x = year, y = illiteracy_rate, color = co
 
 
 # Save plot
-ggsave("output_context/tasa_analfabetismo_arg_chl_media.png", plot = pp2, width = 10, height = 6, dpi = 300)
+ggsave("output/contexto/tasa_analfabetismo_arg_chl_media.png", plot = pp2, width = 10, height = 6, dpi = 300)
 
 
 ```
@@ -898,7 +903,7 @@ unu_country_dest <- unu %>%
   ungroup()
 
 # Cargar datos ajustados
-df_unu_adjust <- read_csv("data/UNU_CRIS_adjusted.csv")
+df_unu_adjust <- read_csv("Data/UNU_CRIS_adjusted.csv")
 df_unu_adjust <- df_unu_adjust %>%
   filter(iso_des == "ARG" | iso_des == "CHL") 
 
@@ -1031,7 +1036,7 @@ pp<-ggplot(unu_arg_chl, aes(x = year, y = stock/1000, color = iso_des, group = i
   guides(color = guide_legend(nrow = 1, override.aes = list(linewidth = 3)))
 
 #save plot pp
-ggsave("output_context/stock_migratorio_arg_chl.png", plot = pp, width = 10, height = 6, dpi = 300)
+ggsave("output/contexto/stock_migratorio_arg_chl.png", plot = pp, width = 10, height = 6, dpi = 300)
 
 ```
 

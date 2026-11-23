@@ -1,11 +1,16 @@
 # =============================================================================
-# SCRIPT DE PROCESAMIENTO DE DATOS EPH - VERSIÓN SIMPLIFICADA
+# 1. Procesamiento de la EPH (INDEC), Argentina 2016-2024
 # =============================================================================
-# Descripción: Procesamiento y homogeneización de datos de la Encuesta 
-#              Permanente de Hogares (EPH) del INDEC
-# Autor: Natalia Debandi
-# Fecha: Enero 2026
-# Versión: Simplificada - sin funciones, procesamiento lineal
+# Autora: Natalia Debandi
+# Lee:      microdatos EPH_indiv_AAAA.csv y EPH_hogar_AAAA.csv (carpeta c:/Data/EPH o
+#           variable de entorno ISDM_EPH_DIR). Se apilan los trimestres de cada año.
+# Hace:     homogeneiza etiquetas entre años, define población migrante (CH15: nacido
+#           en país limítrofe u otro país) y migrante reciente (CH16: vivía en otro
+#           país hace 5 años), categorías laborales, formalidad (PP07H), salud (CH08)
+#           y calcula la pobreza con la librería eph (canastas regionales).
+# Escribe:  Data/EPH_indiv_2016_2024_proc.csv y Data/EPH_hogar_2016_2024_proc.csv
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
 
 rm(list = ls())

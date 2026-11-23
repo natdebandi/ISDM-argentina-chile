@@ -1,25 +1,22 @@
 # =============================================================================
-# VERSIÓN v2 (22/11/2026). Corrección respecto de la versión original:
-#  - Migrante reciente en 2015, 2017 y 2022: se usa r2 («¿dónde vivía hace 5
-#    años?»), igual que 2020 y que la EPH (CH16). La versión original usaba r1b
-#    («cuando usted nació, ¿dónde vivía su madre?»), que identifica a quienes
-#    nacieron en el exterior, no a la migración reciente: 95-99% de los migrantes
-#    quedaban como «recientes» en esos años.
-#  - Se agrega sexo (para la tabla de composición).
-#  - Salida: Data/Casen_unificado_2015_2024_proc_v2.csv
-#  - Nota: «aún no nacía» (2017, 2020) se mantiene como no reciente, igual que
-#    «no había nacido» en la EPH. Afecta solo a migrantes menores de 5 años.
+# 2. Procesamiento de la CASEN, Chile 2015, 2017, 2020, 2022 y 2024
 # =============================================================================
-
-# =============================================================================
-# SCRIPT DE PROCESAMIENTO DE DATOS CASEN 
-# =============================================================================
-# Descripción: Procesamiento y homogeneización de datos de la Encuesta CASEN
-#              (Caracterización Socioeconómica Nacional) de Chile
-#              para los años 2015, 2017, 2020, 2022 y 2024
-# Autor: Natalia Debandi - con el apoyo inicial de Joaquín Zajac
-# Fecha: Enero 2026
-# Mejoras: Variables de formalidad comparables con EPH Argentina
+# Autora: Natalia Debandi (con el apoyo inicial de Joaquín Zajac)
+# Lee:      Casen_AAAA.dta (carpeta c:/Data/Casen o variable ISDM_CASEN_DIR).
+# Hace:
+#  - Migrante: nacionalidad extranjera (r1a = 3). En 2020, lugar de nacimiento
+#    (2020 no se usa en el análisis).
+#  - Migrante reciente: vivía en otro país hace 5 años (r2; 2015 y 2022 código 3,
+#    2017 y 2020 código 4). En 2024, llegó entre 2020 y 2024 (r1cp 1 a 3). (P16)
+#  - Informalidad asalariada: asalariado (o15 3 a 8) que no cotiza (o29/o32).
+#    Quien no está afiliado a un sistema previsional (o28/o31 = 2) no recibe la
+#    pregunta de cotización y se clasifica como "no cotiza". (P22)
+#  - Pobreza 2024 con la metodología anterior (pobreza_2013), comparable con
+#    2015-2022; la oficial nueva queda en pobreza_nueva. (P18)
+#  - Sistema de salud (s12/s13) para los indicadores de salud.
+# Escribe:  Data/Casen_unificado_2015_2024_proc.csv
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
 
 rm(list = ls())
@@ -76,13 +73,15 @@ Casen_2015 <- read_dta(ruta_casen("Casen_2015.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o16, 
          formalidad_contrato=o17, descuento_jubilatorio=o29, acceso_salud=s12, 
          seguro_comple=s14, asiste, nivel_asiste=e6a, educ, activ, sexo,
-         residencia_5anios_atras=r2)   # v2: r2 (hace 5 años); antes r1b (residencia de la madre al nacer)
+         residencia_5anios_atras=r2,   # r2 (hace 5 años); antes r1b (residencia de la madre al nacer)
+         afiliado=o28)                 # afiliación previsional
 
 Casen_2017 <- read_dta(ruta_casen("Casen_2017.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o16, 
          formalidad_contrato=o17, descuento_jubilatorio=o29, acceso_salud=s12, 
          seguro_comple=s14, asiste, nivel_asiste=e6a, educ, activ, sexo,
-         residencia_5anios_atras=r2)   # v2: r2 (hace 5 años); antes r1b (residencia de la madre al nacer)
+         residencia_5anios_atras=r2,   # r2 (hace 5 años); antes r1b (residencia de la madre al nacer)
+         afiliado=o28)                 # afiliación previsional
 
 # CASEN 2020 ("en pandemia"): nomenclatura distinta a otros años
 # - nacionalidad: lugar_nac (0=Chile, 1=extranjero) en vez de r1a (1/2/3)
@@ -100,13 +99,17 @@ Casen_2022 <- read_dta(ruta_casen("Casen_2022.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o18, 
          formalidad_contrato=o19, descuento_jubilatorio=o32, acceso_salud=s13, acceso_salud_fonasa=s13_fonasa,
          seguro_comple=s15, asiste, nivel_asiste=e6a_asiste, educ, activ, sexo,
-         residencia_5anios_atras=r2)   # v2: r2 (hace 5 años); antes r1b
+         residencia_5anios_atras=r2,   # r2 (hace 5 años); antes r1b
+         afiliado=o31)                 # afiliación previsional
 
 Casen_2024 <- read_dta(ruta_casen("casen_2024.dta")) %>%
   select(expr, nacionalidad=r1a, edad, pobreza, condicion_ocupacional=o15, temporalidad_contrato=o18, 
          formalidad_contrato=o19, descuento_jubilatorio=o32, acceso_salud=s13, acceso_salud_fonasa=s13_fonasa, 
          seguro_comple=s15a, asiste, nivel_asiste=e6a_asiste, educ=educc, activ, sexo,
-         periodo_llegada=r1cp)  
+         periodo_llegada=r1cp, afiliado=o31, pobreza_2013) %>%
+  # pobreza con la metodología 2013 (igual que 2015-2022); la oficial nueva queda en pobreza_nueva
+  mutate(pobreza_nueva = pobreza, pobreza = pobreza_2013) %>%
+  select(-pobreza_2013)
 
 # -----------------------------------------------------------------------------
 # 1.2 Agregar variable de año
@@ -182,10 +185,10 @@ Casen_unificado_proc <- Casen_unificado %>%
       # Solo aplica a migrantes (nativos no pueden ser migrantes recientes)
       migrante == "Nativos" ~ "No",
 
-      # v2: 2015 y 2022 usan r2 (1=esta comuna, 2=otra comuna, 3=otro país)
+      # 2015 y 2022 usan r2 (1=esta comuna, 2=otra comuna, 3=otro país)
       anio %in% c(2015, 2022) & residencia_5anios_atras == 3 ~ "Si",
       anio %in% c(2015, 2022) & residencia_5anios_atras %in% c(1, 2) ~ "No",
-      # v2: 2017 usa r2 (1=aún no nacía, 2=esta comuna, 3=otra comuna, 4=otro país)
+      # 2017 usa r2 (1=aún no nacía, 2=esta comuna, 3=otra comuna, 4=otro país)
       anio == 2017 & residencia_5anios_atras == 4 ~ "Si",
       anio == 2017 & residencia_5anios_atras %in% c(1, 2, 3) ~ "No",
 
@@ -227,6 +230,9 @@ Casen_unificado_proc <- Casen_unificado %>%
     
     # Estandarizar descuento_jubilatorio
     descuento_jubilatorio_std = case_when(
+      # asalariado no afiliado a ningún sistema previsional -> no cotiza (6).
+      # La CASEN no le hace la pregunta de cotización (o29/o32 = NA).
+      is.na(descuento_jubilatorio) & afiliado == 2 ~ 6,
       anio %in% c(2015, 2017) & descuento_jubilatorio == 6 ~ 5, ##le asigno cualquier cotizacion
      
       # Para 2015-2017: mantener códigos 1-6 (sí cotiza)
@@ -318,11 +324,11 @@ Casen_unificado_proc <- Casen_unificado %>%
     categoria_informalidad = case_when(
       # Asalariados formales (incluye servicio doméstico)
       condicion_ocupacional %in% c(3, 4, 5, 6, 7, 8) &
-        descuento_jubilatorio %in% c(1, 2, 3, 4, 5) ~ "Asalariado formal",
+        descuento_jubilatorio_std %in% c(1, 2, 3, 4, 5) ~ "Asalariado formal",   # _std
       
       # Asalariados informales
       condicion_ocupacional %in% c(3, 4, 5, 6, 7, 8) &
-        descuento_jubilatorio == 6 ~ "Asalariado informal",
+        descuento_jubilatorio_std == 6 ~ "Asalariado informal",   # _std
       
       # Patrones
       condicion_ocupacional == 1 ~ "Patrón",
@@ -413,7 +419,7 @@ Casen_unificado_proc <- Casen_unificado %>%
 # PARTE 3: GUARDADO DE RESULTADOS
 # =============================================================================
 
-write_csv(Casen_unificado_proc, "Data/Casen_unificado_2015_2024_proc_v2.csv")
+write_csv(Casen_unificado_proc, "Data/Casen_unificado_2015_2024_proc.csv")
 
 
 

@@ -1,20 +1,14 @@
 # =============================================================================
-# VERSIÓN v2 (22/11/2026). Correcciones respecto de la versión original:
-#  - Población en edad de trabajar: 15 años y más (antes 10+), igual que Chile.
-#  - Pobreza e indigencia: ponderador PONDIH (antes PONDERA), como el INDEC.
-#    Con PONDIH se replican las cifras oficiales (p. ej. 1.er sem. 2024: 52,9%).
-#  - Salida: Data/indicadores_eph_2016_2024_v2.csv
-# Ver PLAN_revision_R_ISDM_2026-11-22.md en la carpeta del artículo.
+# 3. Indicadores de Argentina (EPH)
 # =============================================================================
-
-# =============================================================================
-# SCRIPT DE PROCESAMIENTO DE DATOS EPH - VERSIÓN SIMPLIFICADA
-# =============================================================================
-# Descripción: Procesamiento y homogeneización de datos de la Encuesta 
-#              Permanente de Hogares (EPH) del INDEC
-# Autor: Natalia Debandi
-# Fecha: Enero 2026
-# Versión: Simplificada - sin funciones, procesamiento lineal
+# Lee:      Data/EPH_indiv_2016_2024_proc.csv
+# Hace:     tasas por año para no migrantes, migrantes y migrantes recientes.
+#           Indicadores laborales sobre la población de 15 años y más (P11, P20).
+#           Pobreza e indigencia con el ponderador PONDIH, que replica al INDEC
+#           (P13). El resto con PONDERA.
+# Escribe:  Data/indicadores_eph_2016_2024.csv
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
 
 rm(list = ls())
@@ -46,20 +40,12 @@ rm(list = setdiff(ls(), "EPH_indiv_unificado"))
 # Se define DESPUÉS del rm() de arriba a propósito: si se la declara antes, esa
 # limpieza la borra y el script falla con "object 'PET_MIN_EDAD' not found".
 #
-# La definición oficial del INDEC (ver Documentacion/EPH_Conceptos.pdf) es de 10
-# años y más: la PEA se define como las personas de 10 años y más que trabajaron
-# o buscaron trabajo.
-#
-# Decisión (2026-09-15): 10 años y más en Argentina; Chile mantiene 15 años y más
-# (1_2_indicadores_casen.R). Cada país conserva la convención de su fuente
-# oficial. Las brechas se calculan entre nativos y migrantes dentro de cada país,
-# pero su magnitud depende del umbral. Brecha de tasa de actividad de Argentina,
-# nativo - migrante, promedio 2016-2024 sin 2020 (diagnosticos/i1_escenarios.csv):
-#   sin filtro de edad   -9,50 pp
-#   10 años y más        -3,11 pp   <- umbral adoptado
-#   15 años y más        +1,27 pp   (el signo se invierte)
-# El artículo declara el umbral de cada país y esta sensibilidad.
-PET_MIN_EDAD <- 15   # v2: armonizado con Chile (15 años y más)
+# La definición oficial del INDEC es de 10 años y más. Como el índice compara
+# brechas entre países y Chile (CASEN y ENE) usa 15 años y más, se armoniza en
+# 15 años y más en los dos países (decisión del 22/11/2026, P11). La brecha de
+# actividad de Argentina (totales) depende mucho del umbral: -9,5 pp sin filtro,
+# -3,1 pp con 10+ y +1,3 pp con 15+.
+PET_MIN_EDAD <- 15
 
 message("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 message("CALCULANDO INDICADORES EPH")
@@ -147,7 +133,7 @@ message("      ✓ Tasa de actividad calculada\n")
 message("   → I2. Tasa de desempleo...")
 
 base_i2 <- EPH_indiv_unificado %>%
-  filter(estado_actividad %in% c("Ocupado", "Desocupado") & !is.na(migrante)) %>%
+  filter(edad >= PET_MIN_EDAD & estado_actividad %in% c("Ocupado", "Desocupado") & !is.na(migrante)) %>%
   mutate(
     desocupado = ifelse(estado_actividad == "Desocupado", 1, 0)
   )
@@ -211,7 +197,7 @@ message("      ✓ Tasa de desempleo calculada\n")
 message("   → I3. Informalidad asalariada...")
 
 base_i3 <- EPH_indiv_unificado %>%
-  filter(!is.na(formalidad_empleo_asalariada) & !is.na(migrante)) %>%
+  filter(edad >= PET_MIN_EDAD & !is.na(formalidad_empleo_asalariada) & !is.na(migrante)) %>%
   mutate(informal = ifelse(formalidad_empleo_asalariada == "Asalariado informal", 1, 0))
 
 i3_nat <- base_i3 %>%
@@ -264,7 +250,7 @@ message("      ✓ Informalidad asalariada calculada\n")
 message("   → I4. Informalidad total...")
 
 base_i4 <- EPH_indiv_unificado %>%
-  filter(!is.na(formalidad_empleo_total) & !is.na(migrante)) %>%
+  filter(edad >= PET_MIN_EDAD & !is.na(formalidad_empleo_total) & !is.na(migrante)) %>%
   mutate(informal = ifelse(formalidad_empleo_total == "Informal", 1, 0))
 
 i4_nat <- base_i4 %>%
@@ -316,7 +302,7 @@ message("      ✓ Informalidad total calculada\n")
 message("   → I5. Cuentapropismo...")
 
 base_i5 <- EPH_indiv_unificado %>%
-  filter(!is.na(categoria_informalidad) & !is.na(migrante)) %>%
+  filter(edad >= PET_MIN_EDAD & !is.na(categoria_informalidad) & !is.na(migrante)) %>%
   mutate(cuentapropia = ifelse(categoria_informalidad == "Cuentapropista", 1, 0))
 
 i5_nat <- base_i5 %>%
@@ -642,5 +628,5 @@ message("━━━━━━━━━━━━━━━━━━━━━━━�
 # =============================================================================
 
 # Guardar indicadores
-write_csv(indicadores_eph, "Data/indicadores_eph_2016_2024_v2.csv")
+write_csv(indicadores_eph, "Data/indicadores_eph_2016_2024.csv")
 

@@ -1,19 +1,19 @@
 # =============================================================================
-# VERSIÓN v3 (23/11/2026). Ver VERSION_FINAL/ISDM_metodologia_trazabilidad.docx
-# (carpeta del artículo), problemas P12 y P18 a P22.
+# 9. Gráficos 2 a 6 del artículo
 # =============================================================================
-# Igual que 2_8_graficos_articulo_v2.R, con los datos v3. Salidas en output_isdm_v3/articulo/.
+# Lee:      los dos CSV de brechas del paso 6.
+# Escribe:  output/articulo/grafico2_laboral.png ... grafico6_subindices.png
+#           (etiquetas en inglés).
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
-# 2_8_graficos_articulo_v2.R — Gráficos 2 a 6 del artículo con los datos v2
-# (22/11/2026). Mismo diseño y proporciones que los de 2_4, para reemplazarlos
-# en el manuscrito. Salidas en output_isdm_v3/articulo/.
-# =============================================================================
+
 rm(list = ls())
 suppressPackageStartupMessages({ library(tidyverse) })
 source("R/isdm_funciones.R")
-dir.create("output_isdm_v3/articulo", showWarnings = FALSE, recursive = TRUE)
+dir.create("output/articulo", showWarnings = FALSE, recursive = TRUE)
 
-prep <- preparar_isdm(cargar_brechas_v2("Data/indicadores_con_brechas_arg_chile_2015_2024_v3.csv", "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024_v3.csv"), salud = "cobertura", escala = "dispersion")
+prep <- preparar_isdm(cargar_brechas(), salud = "cobertura", escala = "dispersion")
 res  <- calcular_isdm(prep)
 colores_pais <- c("Argentina" = "#2E86AB", "Chile" = "#A23B72")
 etiquetas_ind <- c(
@@ -44,9 +44,9 @@ grafico_dimension <- function(dim, archivo, alto) {
           axis.text = element_text(size = 11, color = "black"), panel.grid.minor = element_blank())
   ggsave(archivo, p, width = 14, height = alto, dpi = 300)
 }
-grafico_dimension("Labor",   "output_isdm_v3/articulo/grafico2_laboral.png", 6)
-grafico_dimension("Poverty", "output_isdm_v3/articulo/grafico3_pobreza.png", 5)
-grafico_dimension("Social",  "output_isdm_v3/articulo/grafico4_social.png", 6)
+grafico_dimension("Labor",   "output/articulo/grafico2_laboral.png", 6)
+grafico_dimension("Poverty", "output/articulo/grafico3_pobreza.png", 5)
+grafico_dimension("Social",  "output/articulo/grafico4_social.png", 6)
 
 g5 <- ggplot(res$anual, aes(anio, isdm_abs_de, colour = pais, linetype = grupo)) +
   geom_line(linewidth = 1.2) + geom_point(size = 2.5) +
@@ -56,7 +56,7 @@ g5 <- ggplot(res$anual, aes(anio, isdm_abs_de, colour = pais, linetype = grupo))
   labs(x = "Year", y = "Inequality magnitude (standardized gap, d)\n0 = parity",
        colour = "Country", linetype = "Group") +
   theme_minimal(base_size = 13) + theme(legend.position = "bottom", panel.grid.minor = element_blank())
-ggsave("output_isdm_v3/articulo/grafico5_isdm_absoluto.png", g5, width = 12, height = 6, dpi = 300)
+ggsave("output/articulo/grafico5_isdm_absoluto.png", g5, width = 12, height = 6, dpi = 300)
 
 g6 <- res$subindices_resumen %>%
   mutate(dimension = factor(dimension, levels = c("Labor", "Poverty", "Social"))) %>%
@@ -72,5 +72,5 @@ g6 <- res$subindices_resumen %>%
        y = NULL, fill = "Country") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "bottom", strip.text = element_text(face = "bold", size = 13))
-ggsave("output_isdm_v3/articulo/grafico6_subindices.png", g6, width = 12, height = 5, dpi = 300)
+ggsave("output/articulo/grafico6_subindices.png", g6, width = 12, height = 5, dpi = 300)
 cat("Gráficos generados\n")

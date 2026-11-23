@@ -1,16 +1,18 @@
 # =============================================================================
-# Funciones comunes del ISDM (v2, 22/11/2026)
+# Funciones comunes del ISDM (las usan 07_ISDM.R y 09_graficos_articulo.R)
 # =============================================================================
-# Centraliza el cálculo del índice, que antes estaba copiado en 2_1, 2_3 y 2_4.
+# - clasificacion_isdm(): indicadores, dimensión y valencia, según la
+#   especificación de salud (cobertura, publico, publico_invertido, sin_salud).
+# - cargar_brechas(): brechas de migrantes totales (CSV con ENE) y recientes (CSV
+#   solo CASEN), apiladas sin perder filas (P6).
+# - preparar_isdm(): aplica la valencia y estandariza. Por defecto, d = brecha /
+#   sqrt(p(1-p)), con p el promedio de las tasas de los dos grupos (P1, P15).
+#   escala = "de_brechas" y centrar = TRUE reproducen las escalas anteriores, solo
+#   para documentar el cambio.
+# - calcular_isdm(): subíndices por dimensión, ISDM anual y promedio del período.
 #
-# Cambio principal respecto de la versión original: la estandarización ya no
-# resta la media conjunta de los dos países. Con Z = (brecha - media) / DE, el
-# cero dejaba de ser la paridad entre población migrante y no migrante y los dos
-# países quedaban en espejo. Ahora, por defecto, Z = brecha / DE: el cero es la
-# paridad, el ISDM absoluto mide la distancia a la igualdad y el direccional
-# indica qué grupo está mejor. El argumento `centrar = TRUE` reproduce el
-# cálculo anterior, solo para documentar la diferencia.
-# Ver NOTA_estandarizacion_ISDM_2026-11-22.md en la carpeta del artículo.
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -55,9 +57,9 @@ clasificacion_isdm <- function(salud = "cobertura") {
 # Totales: brecha_nat_mig del CSV con ENE. Recientes: brecha_nat_rec del CSV
 # solo CASEN. Se apilan por separado (no con left_join), para no perder las
 # filas de recientes que no existen en el CSV con ENE (problema P6).
-cargar_brechas_v2 <- function(
-    archivo_ene = "Data/indicadores_con_brechas_arg_chile_2015_2024_v2.csv",
-    archivo_sc  = "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024_v2.csv") {
+cargar_brechas <- function(
+    archivo_ene = "Data/indicadores_con_brechas_arg_chile_2015_2024.csv",
+    archivo_sc  = "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv") {
   tot <- read_csv(archivo_ene, show_col_types = FALSE) %>%
     transmute(pais, fuente, anio, indicador, grupo = "Migrants",
               tasa_no_migrante = nativos, tasa_grupo = migrantes, brecha = brecha_nat_mig)

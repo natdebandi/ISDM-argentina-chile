@@ -34,3 +34,6 @@ desktop.ini
 Rplots.pdf
 output_isdm_v2/
 output_isdm_v3/
+
+# Versiones anteriores del proyecto (solo local; en git quedan en el tag v1.2.0-pre-orden)
+_version_inicial/

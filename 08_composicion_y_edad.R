@@ -1,26 +1,18 @@
 # =============================================================================
-# VERSIÓN v3 (23/11/2026). Ver VERSION_FINAL/ISDM_metodologia_trazabilidad.docx
-# (carpeta del artículo), problemas P12 y P18 a P22.
+# 8. Composición de las poblaciones y tasa de actividad estandarizada por edad
 # =============================================================================
-# Igual que 2_7_composicion_v2.R, con la CASEN procesada v3. Salidas en output_isdm_v3/.
-# =============================================================================
-# 2_7_composicion_v2.R — Composición de las poblaciones y control por edad
-# (22/11/2026)
-# =============================================================================
-# Responde a Adrian Favell (selección, edad, nivel socioeconómico) y a A3/A4:
-#  1. Tabla de composición por país y grupo: edad, sexo, nivel educativo
-#     (25 años y más), proporción de recientes y, en Argentina, de limítrofes.
-#  2. Tasa de actividad estandarizada por edad (método directo): la tasa
-#     migrante se recalcula con la estructura etaria de la población no
-#     migrante del mismo país y año, en grupos quinquenales de 15 años y más.
-# Fuentes: EPH (procesada) y CASEN (procesada v2). En Chile se usa la CASEN
-# también para actividad, porque la ENE no tiene microdatos en el proyecto.
-# Promedios sin 2020. Salidas en output_isdm_v3/.
+# Lee:      Data/EPH_indiv_2016_2024_proc.csv y Data/Casen_unificado_2015_2024_proc.csv
+# Hace:     composición por edad, sexo y nivel educativo (Tabla A3) y tasa de
+#           actividad estandarizada por edad con el método directo, con la
+#           estructura etaria de la población no migrante (Tabla A4).
+# Escribe:  output/isdm/composicion_poblaciones*.csv y actividad_estandarizada_edad*.csv
+# Detalle de cada decisión: ISDM_metodologia_trazabilidad.docx (carpeta del artículo,
+# VERSION_FINAL), códigos de problema P1 a P22.
 # =============================================================================
 
 rm(list = ls())
 suppressPackageStartupMessages({ library(tidyverse) })
-dir.create("output_isdm_v3", showWarnings = FALSE)
+dir.create("output/isdm", showWarnings = FALSE, recursive = TRUE)
 
 # -----------------------------------------------------------------------------
 # Datos armonizados (una fila por persona)
@@ -44,7 +36,7 @@ eph <- read_csv("Data/EPH_indiv_2016_2024_proc.csv", show_col_types = FALSE,
     limitrofe = migrante == 1 & pais_nacimiento == "En un pais limitrofe"
   )
 
-casen <- read_csv("Data/Casen_unificado_2015_2024_proc_v3.csv", show_col_types = FALSE,
+casen <- read_csv("Data/Casen_unificado_2015_2024_proc.csv", show_col_types = FALSE,
                   col_select = c(anio, expr, edad, sexo, educ, estado_actividad,
                                  migrante, migrante_reciente)) %>%
   filter(!is.na(migrante), !is.na(edad)) %>%
@@ -118,9 +110,9 @@ comp <- comp_anual %>%
 comp <- comp %>%
   mutate(pct_reciente  = if_else(grupo == "Migrante", pct_reciente, NA_real_),
          pct_limitrofe = if_else(grupo == "Migrante" & pais == "Argentina", pct_limitrofe, NA_real_))
-write_csv(comp, "output_isdm_v3/composicion_poblaciones.csv")
+write_csv(comp, "output/isdm/composicion_poblaciones.csv")
 write_csv(comp_anual %>% left_join(educ_anual, by = c("pais", "anio", "grupo")),
-          "output_isdm_v3/composicion_poblaciones_anual.csv")
+          "output/isdm/composicion_poblaciones_anual.csv")
 
 # -----------------------------------------------------------------------------
 # 2. Tasa de actividad estandarizada por edad (método directo)
@@ -158,12 +150,12 @@ brechas_act <- act_std %>%
   mutate(brecha_bruta        = tasa_no_migrante - tasa_bruta,
          brecha_estandarizada = tasa_no_migrante - tasa_estandarizada)
 
-write_csv(brechas_act, "output_isdm_v3/actividad_estandarizada_edad_anual.csv")
+write_csv(brechas_act, "output/isdm/actividad_estandarizada_edad_anual.csv")
 resumen_act <- brechas_act %>%
   group_by(pais, grupo) %>%
   summarise(across(c(tasa_no_migrante, tasa_bruta, tasa_estandarizada,
                      brecha_bruta, brecha_estandarizada), mean), .groups = "drop")
-write_csv(resumen_act, "output_isdm_v3/actividad_estandarizada_edad.csv")
+write_csv(resumen_act, "output/isdm/actividad_estandarizada_edad.csv")
 
 cat("\nComposición (promedio sin 2020):\n")
 print(comp %>% mutate(across(where(is.numeric), ~ round(.x, 1))), width = Inf)

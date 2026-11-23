@@ -1,200 +1,80 @@
-# Migmobs Nat — Índice Sintético de Desigualdad Migratoria (ISDM)
+# ISDM — Índice Sintético de Desigualdad Migratoria (Argentina y Chile, 2015–2024)
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18734971.svg)](https://doi.org/10.5281/zenodo.18734971)
-**Autora:** Natalia Debandi
-**Proyecto:** MIGMOBS Latam
-**Período de análisis:** 2015–2024
-**Países:** Argentina y Chile
 
----
+**Autora:** Natalia Debandi · **Proyecto:** MIGMOBS Latam
 
-## Descripción general
+Código del artículo «Brechas de acceso a derechos entre población migrante y no migrante en Argentina y Chile (2015-2024)», número especial de *Comparative Migration Studies*. El ISDM resume las brechas entre población migrante y no migrante en tres dimensiones (laboral, pobreza y acceso a derechos sociales), dentro de cada país y año, y compara esas brechas entre Argentina y Chile.
 
-Este repositorio contiene los scripts, reportes y datos procesados para la construcción del **Índice Sintético de Desigualdad Migratoria (ISDM)**: un índice comparativo que cuantifica las brechas socioeconómicas entre personas migrantes y nativas en Argentina y Chile a lo largo del tiempo. El ISDM agrega indicadores de mercado laboral, pobreza, educación y salud en un único valor que permite comparar la integración migratoria entre países y períodos.
+## Cómo correrlo
 
----
+Los scripts se corren **en orden, del 00 al 10**. Cada uno lee lo que produjo el anterior. Todos empiezan con `rm(list = ls())`, así que se pueden correr uno por uno a mano en RStudio. `correr_todo.R` corre del 01 al 10 seguidos, cada uno en un proceso aparte, con logs en `logs/`.
 
-## Estructura del repositorio
+| Paso | Script | Lee | Escribe |
+|---|---|---|---|
+| 00 | `00_contexto_ARG_CHL.Rmd` | Banco Mundial (WDI, por internet), `Data/UNU_CRIS_adjusted.csv`, `Data/migration_imputed_RIKS_dec2021.csv` | `output/contexto/` (Gráficos 1, A1 y A2) |
+| 01 | `01_procesamiento_EPH.R` | microdatos EPH 2016–2024 | `Data/EPH_indiv_2016_2024_proc.csv`, `Data/EPH_hogar_2016_2024_proc.csv` |
+| 02 | `02_procesamiento_CASEN.R` | microdatos CASEN 2015, 2017, 2020, 2022, 2024 | `Data/Casen_unificado_2015_2024_proc.csv` |
+| 03 | `03_indicadores_EPH.R` | paso 01 | `Data/indicadores_eph_2016_2024.csv` |
+| 04 | `04_indicadores_CASEN.R` | paso 02 | `Data/indicadores_casen_2015_2024.csv` |
+| 05 | `05_indicadores_unificados.R` | pasos 03 y 04, `Data/indicadores_ENE_CH.xlsx` | `Data/indicadores_unificados_arg_chile_2015_2024.csv` |
+| 06 | `06_construccion_brechas.Rmd` | paso 05 | `Data/indicadores_con_brechas_arg_chile_2015_2024.csv` (migrantes totales) y `..._solocasen_...` (migrantes recientes) |
+| 07 | `07_ISDM.R` (usa `R/isdm_funciones.R`) | paso 06 | `output/isdm/` |
+| 08 | `08_composicion_y_edad.R` | pasos 01 y 02 | `output/isdm/composicion_*`, `actividad_estandarizada_edad*` |
+| 09 | `09_graficos_articulo.R` | paso 06 | `output/articulo/` (Gráficos 2 a 6) |
+| 10 | `10_calidad_muestral.R` | pasos 01 y 02 | `output/calidad/calidad_muestral.csv` |
 
-```
-ISDM/
-├── 0_*.Rmd              ← Reportes de contexto
-├── 1_1_*.R              ← Procesamiento de microdatos
-├── 1_2_*.R              ← Construcción de indicadores
-├── 1_3_*.R / 1_4_*.R    ← Calidad e integración
-├── 1_5_*.Rmd            ← EDA de indicadores
-├── 1_6_*.Rmd            ← Construcción de brechas e interpolación
-├── 2_*.Rmd              ← Análisis ISDM
-├── 3_run_pipeline.R     ← Runner de la cadena completa
-├── README.md
-└── ISDM.Rproj
-```
+Rutas de los microdatos: `c:/Data/EPH` y `c:/Data/Casen`, o las variables de entorno `ISDM_EPH_DIR` e `ISDM_CASEN_DIR`.
 
-> **Nota:** Los datos, gráficos y carpetas de salida no se incluyen en este repositorio (ver sección [Datos](#datos)).
+## Qué sale y dónde está en el artículo
 
----
-
-## Archivos en la raíz
-
-### Scripts de procesamiento (prefijo `1_1_`)
-
-| Archivo | Descripción |
+| Artículo | Archivo |
 |---|---|
-| `1_1_procesamiento_casen.R` | Procesa y homogeneiza los datos de la Encuesta CASEN (Chile, ondas 2015, 2017, **2020**, 2022 y 2024). Incorpora el año 2020 con mapeo específico de variables (`lugar_nac`, `r2`, `o32`, etc.). Genera variables comparables con la EPH argentina. |
-| `1_1_procesamiento_EPH.R` | Procesa y homogeneiza los datos de la Encuesta Permanente de Hogares —EPH— (Argentina, trimestres 2016–2024). |
+| Tablas 1, 2 y 3 (brechas por indicador, pp) | `output/isdm/brechas_por_indicador.csv` |
+| Tabla 4 (ISDM) | `output/isdm/isdm_resumen_pais.csv` |
+| Gráfico 5 y nota 6 (serie anual) | `output/isdm/isdm_anual.csv` |
+| Gráfico 6 (subíndices) | `output/isdm/subindices_resumen.csv` |
+| Tabla A2 (sensibilidad del indicador de salud) | `output/isdm/sensibilidad_salud.csv` |
+| Tabla A3 (composición) | `output/isdm/composicion_poblaciones.csv` |
+| Tabla A4 (actividad estandarizada por edad) | `output/isdm/actividad_estandarizada_edad.csv` |
+| Gráficos 2 a 6 | `output/articulo/` |
+| Gráficos 1, A1 y A2 | `output/contexto/` |
 
-### Scripts de indicadores y calidad (prefijos `1_2_` a `1_4_`)
+## Decisiones metodológicas principales
 
-| Archivo | Descripción |
-|---|---|
-| `1_2_indicadores_casen.R` | Calcula indicadores socioeconómicos a partir de los datos procesados de CASEN. |
-| `1_2_indicadores_EPH.R` | Calcula indicadores socioeconómicos a partir de los datos procesados de EPH. |
-| `1_3_calidad_indicadores.R` | Evalúa la calidad estadística de los indicadores calculados (tamaños muestrales, coeficientes de variación, tamaño muestral efectivo Kish). |
-| `1_4_indicadores_unificados.R` | Unifica los indicadores de Argentina y Chile en una sola base comparativa (`indicadores_unificados_arg_chile_2015_2024.csv`). |
+- **Grupos.** Argentina: migrante = nacido en otro país (CH15); Chile: nacionalidad extranjera (r1a). Migrante reciente: vivía en otro país cinco años antes (CH16 en la EPH, r2 en la CASEN; en la CASEN 2024, llegada entre 2020 y 2024).
+- **Indicadores.** Laboral: tasa de actividad, desempleo, informalidad asalariada y cuentapropismo (15 años y más en los dos países). Pobreza: pobreza e indigencia (EPH con PONDIH, como el INDEC). Social: asistencia escolar 6–17, asistencia a educación superior 18–29 y cobertura de salud (afiliación a algún sistema; solo Chile, porque en Argentina la cobertura pública es universal).
+- **Fuentes en Chile.** Actividad y desempleo de los migrantes totales, de la ENE (indicadores publicados por el INE, 2017–2024). Todo lo demás, de la CASEN. La informalidad asalariada se calcula con la CASEN: un asalariado no afiliado a un sistema previsional cuenta como «no cotiza». La pobreza 2024 se toma con la metodología anterior (`pobreza_2013`), comparable con 2015–2022.
+- **Años.** 2020 se excluye en los dos países. En Chile, las tasas de cada grupo se interpolan linealmente entre ondas de la CASEN, sin usar 2020 como punto de apoyo.
+- **Brecha.** Δ = s × (tasa no migrante − tasa migrante), con s = +1 si un valor alto es bueno y −1 si es malo. Positivo: mejor la población no migrante.
+- **Estandarización.** d = Δ / √(p̄(1−p̄)), con p̄ el promedio de las tasas de los dos grupos (diferencia de proporciones estandarizada). El cero es la paridad.
+- **Agregación.** Subíndice = promedio de las d de la dimensión; ISDM = promedio de los tres subíndices. Absoluto (con |d|) y direccional (con signo), en d y en pp. El valor del período es el promedio de los años.
 
-### Reportes de contexto (prefijo `0_`)
-
-| Archivo | Descripción | Salida |
-|---|---|---|
-| `0_1_contexto_ARG_CHL.Rmd` | Análisis de contexto: migración en Argentina y Chile. Incluye series de tiempo de stocks migratorios, indicadores macroeconómicos (PIB, Gini) y comparaciones estructurales. | `.html` |
-| `0_2_contexto_normativo.Rmd` | Análisis del marco normativo migratorio en Argentina y Chile. Incluye timeline de eventos legislativos clave. | `.html` |
-| `0_2_migracion_ARG_CHL.Rmd` | Reporte sobre flujos y stocks de migración en ambos países. | `.html` |
-
-### Reportes de análisis de indicadores (prefijos `1_5_` y `1_6_`)
-
-| Archivo | Descripción | Salida |
-|---|---|---|
-| `1_5_EDA_indicadores.Rmd` | Análisis exploratorio de los indicadores. Incluye diagnóstico de calidad muestral (semáforo OK / CUIDADO / NO USAR), visualización de cobertura y análisis de brechas por indicador. | `.html` |
-| `1_6_construccion_brechas.Rmd` | **Paso central de preparación de datos.** A partir de `indicadores_unificados_arg_chile_2015_2024.csv`: (1) unifica fuentes de Chile priorizando ENE cuando está disponible; (2) aplica **interpolación lineal sobre los valores originales** por indicador × grupo para los años inter-CASEN; (3) calcula brechas (nativos − migrantes); (4) genera **dos CSVs**: uno con ENE para indicadores laborales (`indicadores_con_brechas_arg_chile_2015_2024.csv`) y uno usando exclusivamente CASEN para todos los indicadores (`indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv`). | `.html` |
-
-### Reportes ISDM (prefijo `2_`)
-
-| Archivo | Descripción | Salida |
-|---|---|---|
-| `2_1_ISDM_jerarquico_migrantes.Rmd` | ISDM con agregación jerárquica por dimensiones. Compara **todos los migrantes** vs. nativos. **Excluye 2020** en ambos países. Usa `indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv`. Incluye pruebas de robustez (Shapiro-Wilk, Cohen's d, permutation test). | `.html` |
-| `2_2_ISDM_jerarquico_migrantes_con2020.Rmd` | Versión del ISDM jerárquico (todos los migrantes) **incluyendo el año 2020**. Permite evaluar la robustez de los resultados ante la inclusión del año pandémico. | `.html` |
-| `2_3_ISDM_jerarquico_migrantes_recientes.Rmd` | ISDM con agregación jerárquica. Compara **migrantes recientes** (llegados en los últimos 5 años) vs. nativos. Usa `indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv` (fuente única CASEN para Chile). Incluye los mismos tests de robustez. | `.html` |
-| `2_4_ISDM_analisis_integrado.Rmd` | **Análisis integrado** que combina migrantes totales y recientes en un único reporte. Incluye: (1) brechas por dimensión sin estandarizar y con Z-scores conjuntos (boxplot + jitter); (2) tablas resumen de brechas promedio por indicador, país y grupo (excluye 2020); (3) ISDM calculado para ambos grupos con z-scores separados, sub-índices por dimensión y ISDM jerárquico final; (4) gráficos conjuntos de evolución (SD y pp), evolución facetada por país y dirección de la desigualdad por dimensión. Usa `brecha_nat_mig` del CSV con ENE y `brecha_nat_rec` del CSV solo CASEN. Guarda salidas en `output_integrados/`. | `.html` |
-
-### Otros archivos
-
-| Archivo | Descripción |
-|---|---|
-| `ISDM.Rproj` | Archivo de proyecto de RStudio. |
-
----
+La documentación completa (ejemplos numéricos, problemas detectados y su corrección) está en `ISDM_metodologia_trazabilidad.docx`, en la carpeta del artículo.
 
 ## Datos
 
-> ⚠️ **Los datasets no están disponibles en este repositorio** por su tamaño y por las condiciones de uso de las fuentes originales.
+Los microdatos no están en el repositorio. Se descargan de:
 
-Los datos pueden **reconstruirse íntegramente** ejecutando los scripts de procesamiento sobre los microdatos originales. A continuación se indican las fuentes y dónde descargarlos:
+| Datos | Fuente |
+|---|---|
+| EPH 2016–2024 | INDEC, [indec.gob.ar](https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos) |
+| CASEN 2015, 2017, 2020, 2022, 2024 | Ministerio de Desarrollo Social y Familia de Chile, [observatorio.ministeriodesarrollosocial.gob.cl](https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen) |
+| ENE (indicadores publicados) | INE Chile; cargados en `Data/indicadores_ENE_CH.xlsx` |
+| Stock migratorio | UNU-CRIS / RIKS |
 
-| Dataset | Fuente | Descarga |
-|---|---|---|
-| EPH — Encuesta Permanente de Hogares (Argentina, 2016–2024) | INDEC | [indec.gob.ar](https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos) |
-| CASEN — Encuesta de Caracterización Socioeconómica Nacional (Chile, 2015–2024, incluye 2020) | Ministerio de Desarrollo Social de Chile | [observatorio.ministeriodesarrollosocial.gob.cl](https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen) |
-| Estimaciones de stock migratorio bilateral | UNU-CRIS / RIKS | [UNU-CRIS](https://cris.unu.edu) |
+Los datos procesados pueden solicitarse a la autora (nataliadebandi@gmail.com).
 
-Los datos procesados (bases homogeneizadas e indicadores construidos) pueden **solicitarse directamente** a la autora escribiendo a: **nataliadebandi@gmail.com**
+## Versiones
 
----
+- `v1.0.0` y `v1.1.0`: versiones publicadas en Zenodo (cálculo original del índice).
+- `v1.2.0-pre-orden`: estado del repositorio antes de ordenarlo (23/11/2026), con los scripts originales y las versiones intermedias de la revisión de noviembre de 2026.
+- Versión actual: cadena final numerada 00 a 10, la que produce las cifras de la versión final del artículo.
 
-## Flujo de trabajo
+## Cómo citar
 
-```
-Microdatos crudos (CASEN 2015/2017/2020/2022/2024 · EPH 2016–2024)
-        ↓
-1_1_procesamiento_*.R         ← Limpieza, homogeneización y comparabilidad
-        ↓
-1_2_indicadores_*.R           ← Cálculo de indicadores por país
-        ↓
-1_3_calidad_indicadores.R     ← Evaluación de calidad muestral
-        ↓
-1_4_indicadores_unificados.R  ← Unificación Argentina–Chile
-        ↓
-1_5_EDA_indicadores.Rmd       ← Análisis exploratorio
-        ↓
-1_6_construccion_brechas.Rmd  ← Interpolación lineal + brechas + CSVs de salida
-        ↓
-2_1_ / 2_2_ / 2_3_*.Rmd      ← ISDM por grupo (migrantes, con 2020, recientes)
-        ↓
-2_4_ISDM_analisis_integrado.Rmd ← Análisis integrado: brechas + ISDM ambos grupos
-```
+Debandi, N. (2025). *Índice Sintético de Desigualdad Migratoria (ISDM): Argentina y Chile* (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18734971
 
----
-
-## Decisiones metodológicas clave
-
-### Población en edad de trabajar (PET)
-
-Los indicadores laborales usan la población en edad de trabajar según la convención de la fuente oficial de cada país: **10 años y más en Argentina** (INDEC; parámetro `PET_MIN_EDAD` en `1_2_indicadores_EPH.R`) y **15 años y más en Chile** (`1_2_indicadores_casen.R`). Las brechas se calculan entre nativos y migrantes dentro de cada país, pero la magnitud de la brecha de tasa de actividad argentina es sensible al umbral:
-
-| Umbral en Argentina | Brecha nativo − migrante (pp, promedio 2016–2024 sin 2020) |
-|---|---:|
-| Sin filtro de edad | −9,50 |
-| 10 años y más (adoptado) | −3,11 |
-| 15 años y más | +1,27 |
-
-Las versiones publicadas hasta `v1.1.0` no aplicaban el filtro de edad en el denominador de la tasa de actividad argentina, y en 2024 los menores de 10 años quedaban como `NA` por un cambio en la etiqueta del microdato. Los diagnósticos que lo documentan están en `diagnosticos/`.
-
-### Incorporación de CASEN 2020
-
-La encuesta CASEN 2020 ("en pandemia") utiliza una nomenclatura de variables diferente a otros años. Las equivalencias clave son:
-
-| Variable estándar | CASEN 2020 | Nota |
-|---|---|---|
-| `r1a` (nacionalidad) | `lugar_nac` | Binaria: 0 = Chile, 1 = extranjero |
-| `r1b` (residencia hace 5 años) | `r2` | Valor 4 = otro país (en otros años es 3) |
-| `o29` (cotización previsional) | `o32` | Igual que 2022/2024 |
-| `s12` (sistema de salud) | `s13` | Codificación propia: 1=FONASA, 2=FF.AA., 3=ISAPRE |
-| `educ` | `educc` | Igual que 2024 |
-
-**Decisión sobre FONASA 2020:** la encuesta no desglosa los grupos A/B/C/D de FONASA, por lo que todos los afiliados a FONASA en 2020 se clasifican como "salud pública gratuita".
-
-### Tratamiento del año 2020 en el ISDM
-
-El año 2020 se **excluye** del análisis principal (`2_1_ISDM_jerarquico_migrantes.Rmd`) por las siguientes razones:
-
-- **Argentina (EPH):** la encuesta fue suspendida en el primer semestre y migró a modalidad telefónica en el segundo, generando una discontinuidad metodológica.
-- **Chile (CASEN):** la encuesta de 2020 coincide con el período de pandemia, lo que distorsiona los indicadores laborales y de pobreza.
-
-El archivo `2_2_ISDM_jerarquico_migrantes_con2020.Rmd` conserva 2020 como análisis de robustez.
-
-### Interpolación lineal para años inter-CASEN
-
-La CASEN se aplica cada dos o tres años (2015, 2017, 2020, 2022, 2024), generando años sin datos para Chile. Para mantener series temporales comparables con Argentina (EPH anual), se aplica **interpolación lineal** (`zoo::na.approx`) **sobre los valores originales del indicador por grupo migratorio**, antes de calcular brechas. Esto ocurre en `1_6_construccion_brechas.Rmd`.
-
-Las filas interpoladas quedan identificadas con `fuente = "CASEN_interpolado"` en los datasets.
-
-### Dos versiones del dataset de brechas
-
-`1_6_construccion_brechas.Rmd` genera dos CSVs con diferente tratamiento de fuentes para Chile:
-
-| CSV | Fuente laboral Chile | Uso |
-|---|---|---|
-| `indicadores_con_brechas_arg_chile_2015_2024.csv` | ENE (anual) | Serie laboral más densa |
-| `indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv` | CASEN (interpolado) | Fuente única, mayor consistencia interna |
-
-Los reportes ISDM (`2_*`) utilizan la versión solo CASEN para garantizar comparabilidad metodológica entre dimensiones.
-
----
-
-## Fuentes de datos principales
-
-- **CASEN** — Encuesta de Caracterización Socioeconómica Nacional (Chile)
-- **EPH** — Encuesta Permanente de Hogares, INDEC (Argentina)
-- **ENE** — Encuesta Nacional de Empleo (Chile)
-- **UNU-RIKS / UNU-CRIS** — Estimaciones de stock migratorio bilateral internacional
-
----
-
-## Cómo citar / How to cite
-
-**APA:**
-Debandi, N. (2025). Índice Sintético de Desigualdad Migratoria (ISDM):
-Argentina y Chile (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18734971
-
-**BibTeX:**
 ```bibtex
 @software{debandi_2025_ISDM,
   author    = {Debandi, Natalia},
