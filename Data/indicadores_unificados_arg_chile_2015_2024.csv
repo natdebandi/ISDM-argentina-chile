@@ -1,0 +1,442 @@
+indicador,anio,pais,grupo,valor,fuente,indicador_clean
+I1_tasa_actividad,2016,Argentina,Nativos,58.93375592726779,EPH,Tasa Actividad
+I1_tasa_actividad,2016,Argentina,Migrantes,55.03803375893674,EPH,Tasa Actividad
+I1_tasa_actividad,2016,Argentina,Migrantes recientes,68.0847828731298,EPH,Tasa Actividad
+I1_tasa_actividad,2017,Argentina,Nativos,58.98779704764107,EPH,Tasa Actividad
+I1_tasa_actividad,2017,Argentina,Migrantes,57.80462949426277,EPH,Tasa Actividad
+I1_tasa_actividad,2017,Argentina,Migrantes recientes,71.62379533660638,EPH,Tasa Actividad
+I1_tasa_actividad,2018,Argentina,Nativos,59.81387398671016,EPH,Tasa Actividad
+I1_tasa_actividad,2018,Argentina,Migrantes,58.33147583739612,EPH,Tasa Actividad
+I1_tasa_actividad,2018,Argentina,Migrantes recientes,67.74736066074195,EPH,Tasa Actividad
+I1_tasa_actividad,2019,Argentina,Nativos,60.54050547913109,EPH,Tasa Actividad
+I1_tasa_actividad,2019,Argentina,Migrantes,58.782221303139835,EPH,Tasa Actividad
+I1_tasa_actividad,2019,Argentina,Migrantes recientes,72.50912027223832,EPH,Tasa Actividad
+I1_tasa_actividad,2020,Argentina,Nativos,56.32039854702969,EPH,Tasa Actividad
+I1_tasa_actividad,2020,Argentina,Migrantes,53.86759010408232,EPH,Tasa Actividad
+I1_tasa_actividad,2020,Argentina,Migrantes recientes,64.57771675222989,EPH,Tasa Actividad
+I1_tasa_actividad,2021,Argentina,Nativos,60.71664212725248,EPH,Tasa Actividad
+I1_tasa_actividad,2021,Argentina,Migrantes,59.34955652791312,EPH,Tasa Actividad
+I1_tasa_actividad,2021,Argentina,Migrantes recientes,71.79633131578892,EPH,Tasa Actividad
+I1_tasa_actividad,2022,Argentina,Nativos,61.69782473344988,EPH,Tasa Actividad
+I1_tasa_actividad,2022,Argentina,Migrantes,60.96697627239713,EPH,Tasa Actividad
+I1_tasa_actividad,2022,Argentina,Migrantes recientes,68.7806565992164,EPH,Tasa Actividad
+I1_tasa_actividad,2023,Argentina,Nativos,62.5054097330296,EPH,Tasa Actividad
+I1_tasa_actividad,2023,Argentina,Migrantes,61.83218181656288,EPH,Tasa Actividad
+I1_tasa_actividad,2023,Argentina,Migrantes recientes,56.64639349911504,EPH,Tasa Actividad
+I1_tasa_actividad,2024,Argentina,Nativos,62.577567707276295,EPH,Tasa Actividad
+I1_tasa_actividad,2024,Argentina,Migrantes,63.515132200397595,EPH,Tasa Actividad
+I1_tasa_actividad,2024,Argentina,Migrantes recientes,63.469549419875904,EPH,Tasa Actividad
+I2_tasa_desempleo,2016,Argentina,Nativos,8.53659219499773,EPH,Tasa Desempleo
+I2_tasa_desempleo,2016,Argentina,Migrantes,7.304921998059095,EPH,Tasa Desempleo
+I2_tasa_desempleo,2016,Argentina,Migrantes recientes,18.13033185939524,EPH,Tasa Desempleo
+I2_tasa_desempleo,2017,Argentina,Nativos,8.36833792789786,EPH,Tasa Desempleo
+I2_tasa_desempleo,2017,Argentina,Migrantes,8.010825275069712,EPH,Tasa Desempleo
+I2_tasa_desempleo,2017,Argentina,Migrantes recientes,12.148966917939305,EPH,Tasa Desempleo
+I2_tasa_desempleo,2018,Argentina,Nativos,9.271155256623333,EPH,Tasa Desempleo
+I2_tasa_desempleo,2018,Argentina,Migrantes,8.486240934241778,EPH,Tasa Desempleo
+I2_tasa_desempleo,2018,Argentina,Migrantes recientes,11.279631597591216,EPH,Tasa Desempleo
+I2_tasa_desempleo,2019,Argentina,Nativos,9.93113929258087,EPH,Tasa Desempleo
+I2_tasa_desempleo,2019,Argentina,Migrantes,8.520751338422729,EPH,Tasa Desempleo
+I2_tasa_desempleo,2019,Argentina,Migrantes recientes,9.70671640900612,EPH,Tasa Desempleo
+I2_tasa_desempleo,2020,Argentina,Nativos,11.371805275271784,EPH,Tasa Desempleo
+I2_tasa_desempleo,2020,Argentina,Migrantes,12.914728059623842,EPH,Tasa Desempleo
+I2_tasa_desempleo,2020,Argentina,Migrantes recientes,15.474336661475984,EPH,Tasa Desempleo
+I2_tasa_desempleo,2021,Argentina,Nativos,8.69034487619386,EPH,Tasa Desempleo
+I2_tasa_desempleo,2021,Argentina,Migrantes,9.614585404430066,EPH,Tasa Desempleo
+I2_tasa_desempleo,2021,Argentina,Migrantes recientes,11.37133762824541,EPH,Tasa Desempleo
+I2_tasa_desempleo,2022,Argentina,Nativos,6.884492825858213,EPH,Tasa Desempleo
+I2_tasa_desempleo,2022,Argentina,Migrantes,5.574466747858631,EPH,Tasa Desempleo
+I2_tasa_desempleo,2022,Argentina,Migrantes recientes,7.68865362374904,EPH,Tasa Desempleo
+I2_tasa_desempleo,2023,Argentina,Nativos,6.252619535747282,EPH,Tasa Desempleo
+I2_tasa_desempleo,2023,Argentina,Migrantes,4.441684815556175,EPH,Tasa Desempleo
+I2_tasa_desempleo,2023,Argentina,Migrantes recientes,6.640443354460618,EPH,Tasa Desempleo
+I2_tasa_desempleo,2024,Argentina,Nativos,7.235580128770069,EPH,Tasa Desempleo
+I2_tasa_desempleo,2024,Argentina,Migrantes,5.777524890280757,EPH,Tasa Desempleo
+I2_tasa_desempleo,2024,Argentina,Migrantes recientes,14.71565585775706,EPH,Tasa Desempleo
+I3_informalidad_asalariada,2016,Argentina,Nativos,32.81969778022923,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2016,Argentina,Migrantes,47.52403796112755,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2016,Argentina,Migrantes recientes,55.06349461501367,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2017,Argentina,Nativos,33.10495838749486,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2017,Argentina,Migrantes,48.460427900410274,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2017,Argentina,Migrantes recientes,53.72378043001188,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2018,Argentina,Nativos,33.436736148793415,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2018,Argentina,Migrantes,49.60257807508738,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2018,Argentina,Migrantes recientes,54.855327687009925,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2019,Argentina,Nativos,34.277953703658355,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2019,Argentina,Migrantes,47.501137704544625,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2019,Argentina,Migrantes recientes,50.02181402813878,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2020,Argentina,Nativos,29.62841510610253,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2020,Argentina,Migrantes,46.757588409571255,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2020,Argentina,Migrantes recientes,59.985670168662885,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2021,Argentina,Nativos,32.15575428703496,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2021,Argentina,Migrantes,41.3106742975785,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2021,Argentina,Migrantes recientes,37.19903706978977,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2022,Argentina,Nativos,36.02312230787909,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2022,Argentina,Migrantes,47.00238208035017,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2022,Argentina,Migrantes recientes,35.29388659324084,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2023,Argentina,Nativos,35.44719874529332,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2023,Argentina,Migrantes,48.91981332579633,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2023,Argentina,Migrantes recientes,44.022708218962386,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2024,Argentina,Nativos,35.63915292724838,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2024,Argentina,Migrantes,45.28975744359719,EPH,Informalidad Asalariada
+I3_informalidad_asalariada,2024,Argentina,Migrantes recientes,46.4779696088688,EPH,Informalidad Asalariada
+I4_cuentapropismo,2016,Argentina,Nativos,21.164836808759933,EPH,Cuentapropismo
+I4_cuentapropismo,2016,Argentina,Migrantes,28.421280469891112,EPH,Cuentapropismo
+I4_cuentapropismo,2016,Argentina,Migrantes recientes,18.494665415277733,EPH,Cuentapropismo
+I4_cuentapropismo,2017,Argentina,Nativos,21.62335922111018,EPH,Cuentapropismo
+I4_cuentapropismo,2017,Argentina,Migrantes,28.16650826921335,EPH,Cuentapropismo
+I4_cuentapropismo,2017,Argentina,Migrantes recientes,24.05250043713936,EPH,Cuentapropismo
+I4_cuentapropismo,2018,Argentina,Nativos,22.203808911979593,EPH,Cuentapropismo
+I4_cuentapropismo,2018,Argentina,Migrantes,26.474470493314744,EPH,Cuentapropismo
+I4_cuentapropismo,2018,Argentina,Migrantes recientes,15.98457973109638,EPH,Cuentapropismo
+I4_cuentapropismo,2019,Argentina,Nativos,23.396776354666116,EPH,Cuentapropismo
+I4_cuentapropismo,2019,Argentina,Migrantes,28.50348369827856,EPH,Cuentapropismo
+I4_cuentapropismo,2019,Argentina,Migrantes recientes,15.152534597446287,EPH,Cuentapropismo
+I4_cuentapropismo,2020,Argentina,Nativos,25.38949191825951,EPH,Cuentapropismo
+I4_cuentapropismo,2020,Argentina,Migrantes,32.01584644802629,EPH,Cuentapropismo
+I4_cuentapropismo,2020,Argentina,Migrantes recientes,16.274251093483812,EPH,Cuentapropismo
+I4_cuentapropismo,2021,Argentina,Nativos,24.64851435930858,EPH,Cuentapropismo
+I4_cuentapropismo,2021,Argentina,Migrantes,27.68745403009881,EPH,Cuentapropismo
+I4_cuentapropismo,2021,Argentina,Migrantes recientes,12.233955010171098,EPH,Cuentapropismo
+I4_cuentapropismo,2022,Argentina,Nativos,23.373878948806947,EPH,Cuentapropismo
+I4_cuentapropismo,2022,Argentina,Migrantes,29.61298087021848,EPH,Cuentapropismo
+I4_cuentapropismo,2022,Argentina,Migrantes recientes,18.51825893407074,EPH,Cuentapropismo
+I4_cuentapropismo,2023,Argentina,Nativos,22.534554081676575,EPH,Cuentapropismo
+I4_cuentapropismo,2023,Argentina,Migrantes,29.01356995574479,EPH,Cuentapropismo
+I4_cuentapropismo,2023,Argentina,Migrantes recientes,18.18805203311943,EPH,Cuentapropismo
+I4_cuentapropismo,2024,Argentina,Nativos,23.6728026648069,EPH,Cuentapropismo
+I4_cuentapropismo,2024,Argentina,Migrantes,29.42109760955497,EPH,Cuentapropismo
+I4_cuentapropismo,2024,Argentina,Migrantes recientes,22.26343629595768,EPH,Cuentapropismo
+I5_pobreza,2016,Argentina,Nativos,31.003047261838347,EPH,Pobreza
+I5_pobreza,2016,Argentina,Migrantes,30.367436499609095,EPH,Pobreza
+I5_pobreza,2016,Argentina,Migrantes recientes,32.82089302370076,EPH,Pobreza
+I5_pobreza,2017,Argentina,Nativos,27.027910198564314,EPH,Pobreza
+I5_pobreza,2017,Argentina,Migrantes,27.7115554684019,EPH,Pobreza
+I5_pobreza,2017,Argentina,Migrantes recientes,28.77047579522984,EPH,Pobreza
+I5_pobreza,2018,Argentina,Nativos,29.520420691483768,EPH,Pobreza
+I5_pobreza,2018,Argentina,Migrantes,30.484170258119853,EPH,Pobreza
+I5_pobreza,2018,Argentina,Migrantes recientes,31.77407355669115,EPH,Pobreza
+I5_pobreza,2019,Argentina,Nativos,35.562415753670514,EPH,Pobreza
+I5_pobreza,2019,Argentina,Migrantes,34.82362230630038,EPH,Pobreza
+I5_pobreza,2019,Argentina,Migrantes recientes,18.264889767891056,EPH,Pobreza
+I5_pobreza,2020,Argentina,Nativos,41.065846802922195,EPH,Pobreza
+I5_pobreza,2020,Argentina,Migrantes,49.00380610669647,EPH,Pobreza
+I5_pobreza,2020,Argentina,Migrantes recientes,50.690102868644296,EPH,Pobreza
+I5_pobreza,2021,Argentina,Nativos,38.801919469046425,EPH,Pobreza
+I5_pobreza,2021,Argentina,Migrantes,39.87356149411739,EPH,Pobreza
+I5_pobreza,2021,Argentina,Migrantes recientes,23.646808644863498,EPH,Pobreza
+I5_pobreza,2022,Argentina,Nativos,37.865572841408074,EPH,Pobreza
+I5_pobreza,2022,Argentina,Migrantes,37.04860947290401,EPH,Pobreza
+I5_pobreza,2022,Argentina,Migrantes recientes,27.09199067540912,EPH,Pobreza
+I5_pobreza,2023,Argentina,Nativos,40.969255783132674,EPH,Pobreza
+I5_pobreza,2023,Argentina,Migrantes,40.586275774865435,EPH,Pobreza
+I5_pobreza,2023,Argentina,Migrantes recientes,33.83342583115569,EPH,Pobreza
+I5_pobreza,2024,Argentina,Nativos,45.49436874921156,EPH,Pobreza
+I5_pobreza,2024,Argentina,Migrantes,44.86713291904048,EPH,Pobreza
+I5_pobreza,2024,Argentina,Migrantes recientes,38.79595001992158,EPH,Pobreza
+I6_pobreza_extrema,2016,Argentina,Nativos,6.078182181588184,EPH,Pobreza Extrema
+I6_pobreza_extrema,2016,Argentina,Migrantes,7.910484918522616,EPH,Pobreza Extrema
+I6_pobreza_extrema,2016,Argentina,Migrantes recientes,8.187405830722502,EPH,Pobreza Extrema
+I6_pobreza_extrema,2017,Argentina,Nativos,5.404047419070646,EPH,Pobreza Extrema
+I6_pobreza_extrema,2017,Argentina,Migrantes,6.411780125504937,EPH,Pobreza Extrema
+I6_pobreza_extrema,2017,Argentina,Migrantes recientes,4.955386568366574,EPH,Pobreza Extrema
+I6_pobreza_extrema,2018,Argentina,Nativos,5.667551478508033,EPH,Pobreza Extrema
+I6_pobreza_extrema,2018,Argentina,Migrantes,7.653789187875412,EPH,Pobreza Extrema
+I6_pobreza_extrema,2018,Argentina,Migrantes recientes,8.779079777919998,EPH,Pobreza Extrema
+I6_pobreza_extrema,2019,Argentina,Nativos,7.803966515474027,EPH,Pobreza Extrema
+I6_pobreza_extrema,2019,Argentina,Migrantes,9.12738937325218,EPH,Pobreza Extrema
+I6_pobreza_extrema,2019,Argentina,Migrantes recientes,7.313303174111743,EPH,Pobreza Extrema
+I6_pobreza_extrema,2020,Argentina,Nativos,10.335704941315402,EPH,Pobreza Extrema
+I6_pobreza_extrema,2020,Argentina,Migrantes,14.857513577083692,EPH,Pobreza Extrema
+I6_pobreza_extrema,2020,Argentina,Migrantes recientes,20.519375097907975,EPH,Pobreza Extrema
+I6_pobreza_extrema,2021,Argentina,Nativos,9.498997133028965,EPH,Pobreza Extrema
+I6_pobreza_extrema,2021,Argentina,Migrantes,11.492500384770493,EPH,Pobreza Extrema
+I6_pobreza_extrema,2021,Argentina,Migrantes recientes,5.498325596555513,EPH,Pobreza Extrema
+I6_pobreza_extrema,2022,Argentina,Nativos,8.167045997161635,EPH,Pobreza Extrema
+I6_pobreza_extrema,2022,Argentina,Migrantes,9.063534025751686,EPH,Pobreza Extrema
+I6_pobreza_extrema,2022,Argentina,Migrantes recientes,3.892587885828337,EPH,Pobreza Extrema
+I6_pobreza_extrema,2023,Argentina,Nativos,10.80247643488224,EPH,Pobreza Extrema
+I6_pobreza_extrema,2023,Argentina,Migrantes,11.438891350576956,EPH,Pobreza Extrema
+I6_pobreza_extrema,2023,Argentina,Migrantes recientes,9.266608472056827,EPH,Pobreza Extrema
+I6_pobreza_extrema,2024,Argentina,Nativos,13.10072662938767,EPH,Pobreza Extrema
+I6_pobreza_extrema,2024,Argentina,Migrantes,13.098236733325,EPH,Pobreza Extrema
+I6_pobreza_extrema,2024,Argentina,Migrantes recientes,8.621854228761288,EPH,Pobreza Extrema
+I7_asistencia_escolar_6_17,2016,Argentina,Nativos,95.87779982120948,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2016,Argentina,Migrantes,97.398813586015,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2016,Argentina,Migrantes recientes,100,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2017,Argentina,Nativos,96.59873699211909,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2017,Argentina,Migrantes,94.79168136846712,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2017,Argentina,Migrantes recientes,90.56269009800609,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2018,Argentina,Nativos,96.93352659282483,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2018,Argentina,Migrantes,94.99178316822515,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2018,Argentina,Migrantes recientes,93.33740901802912,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2019,Argentina,Nativos,97.07781880033792,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2019,Argentina,Migrantes,95.02087967015676,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2019,Argentina,Migrantes recientes,91.10094643089568,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2020,Argentina,Nativos,97.63076621730204,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2020,Argentina,Migrantes,91.03150045051451,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2020,Argentina,Migrantes recientes,87.55003898003697,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2021,Argentina,Nativos,98.0205045835413,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2021,Argentina,Migrantes,93.05142719579514,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2021,Argentina,Migrantes recientes,80.79315348286984,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2022,Argentina,Nativos,98.14684266355552,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2022,Argentina,Migrantes,94.35044921819866,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2022,Argentina,Migrantes recientes,87.35351097278242,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2023,Argentina,Nativos,98.21788169697147,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2023,Argentina,Migrantes,94.8891738909272,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2023,Argentina,Migrantes recientes,97.56279354706965,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2024,Argentina,Nativos,97.87270765566494,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2024,Argentina,Migrantes,97.66574205197688,EPH,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2024,Argentina,Migrantes recientes,100,EPH,Asistencia Escolar 6 17
+I8_asistencia_superior_18_29,2016,Argentina,Nativos,27.503587559604064,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2016,Argentina,Migrantes,16.813280118612507,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2016,Argentina,Migrantes recientes,22.018004501125283,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2017,Argentina,Nativos,28.15900861317412,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2017,Argentina,Migrantes,23.49304971726687,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2017,Argentina,Migrantes recientes,29.98852223816356,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2018,Argentina,Nativos,29.25141184087266,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2018,Argentina,Migrantes,22.913884528578905,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2018,Argentina,Migrantes recientes,37.69846529543364,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2019,Argentina,Nativos,29.060372189551625,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2019,Argentina,Migrantes,23.988645151824223,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2019,Argentina,Migrantes recientes,29.255168677962025,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2020,Argentina,Nativos,29.27237424865811,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2020,Argentina,Migrantes,22.49421084092245,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2020,Argentina,Migrantes recientes,36.723000034399554,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2021,Argentina,Nativos,31.43511285613176,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2021,Argentina,Migrantes,32.3034798625977,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2021,Argentina,Migrantes recientes,29.421598385282653,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2022,Argentina,Nativos,29.86481682420236,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2022,Argentina,Migrantes,29.635406076604564,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2022,Argentina,Migrantes recientes,45.39640076861463,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2023,Argentina,Nativos,30.916732650789065,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2023,Argentina,Migrantes,34.38950559888083,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2023,Argentina,Migrantes recientes,51.76115412979351,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2024,Argentina,Nativos,30.234648942726732,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2024,Argentina,Migrantes,37.00398881428592,EPH,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2024,Argentina,Migrantes recientes,42.446715007690614,EPH,Asistencia Superior 18 29
+I9_sistema_salud_publico,2016,Argentina,Nativos,30.49043574115109,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2016,Argentina,Migrantes,38.8857514392388,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2016,Argentina,Migrantes recientes,53.30086410054988,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2017,Argentina,Nativos,30.537329470905267,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2017,Argentina,Migrantes,38.8041974441461,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2017,Argentina,Migrantes recientes,60.791310076340885,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2018,Argentina,Nativos,30.226561376291567,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2018,Argentina,Migrantes,39.80329736221045,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2018,Argentina,Migrantes recientes,57.91696059659377,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2019,Argentina,Nativos,31.51142824360568,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2019,Argentina,Migrantes,41.74898312034647,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2019,Argentina,Migrantes recientes,51.45822350662136,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2020,Argentina,Nativos,34.09407155706635,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2020,Argentina,Migrantes,45.132295538411995,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2020,Argentina,Migrantes recientes,61.630597817758535,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2021,Argentina,Nativos,31.52185865795392,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2021,Argentina,Migrantes,35.11259403627618,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2021,Argentina,Migrantes recientes,39.164241109663614,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2022,Argentina,Nativos,33.32977496152217,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2022,Argentina,Migrantes,39.17387895624611,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2022,Argentina,Migrantes recientes,37.36049872623946,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2023,Argentina,Nativos,32.42632048244711,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2023,Argentina,Migrantes,40.854639586217786,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2023,Argentina,Migrantes recientes,47.64054975548449,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2024,Argentina,Nativos,32.19265718216035,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2024,Argentina,Migrantes,37.77287711185363,EPH,Sistema Salud Publico
+I9_sistema_salud_publico,2024,Argentina,Migrantes recientes,52.23504406539497,EPH,Sistema Salud Publico
+I1_tasa_actividad,2015,Chile,Nativos,57.86273164709668,CASEN,Tasa Actividad
+I1_tasa_actividad,2015,Chile,Migrantes,77.98447310368233,CASEN,Tasa Actividad
+I1_tasa_actividad,2015,Chile,Migrantes recientes,82.2131589591479,CASEN,Tasa Actividad
+I1_tasa_actividad,2017,Chile,Nativos,58.43476788723818,CASEN,Tasa Actividad
+I1_tasa_actividad,2017,Chile,Migrantes,82.02972806223492,CASEN,Tasa Actividad
+I1_tasa_actividad,2017,Chile,Migrantes recientes,83.96317234536855,CASEN,Tasa Actividad
+I1_tasa_actividad,2020,Chile,Nativos,56.5710505727804,CASEN,Tasa Actividad
+I1_tasa_actividad,2020,Chile,Migrantes,77.67018172034109,CASEN,Tasa Actividad
+I1_tasa_actividad,2020,Chile,Migrantes recientes,80.8660582786197,CASEN,Tasa Actividad
+I1_tasa_actividad,2022,Chile,Nativos,60.46542627808338,CASEN,Tasa Actividad
+I1_tasa_actividad,2022,Chile,Migrantes,81.72372143814425,CASEN,Tasa Actividad
+I1_tasa_actividad,2022,Chile,Migrantes recientes,81.17886533817548,CASEN,Tasa Actividad
+I1_tasa_actividad,2024,Chile,Nativos,61.57894364375568,CASEN,Tasa Actividad
+I1_tasa_actividad,2024,Chile,Migrantes,80.41753341670224,CASEN,Tasa Actividad
+I1_tasa_actividad,2024,Chile,Migrantes recientes,75.81751212105922,CASEN,Tasa Actividad
+I2_tasa_desempleo,2015,Chile,Nativos,7.530574014997013,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2015,Chile,Migrantes,5.361077111383109,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2015,Chile,Migrantes recientes,5.893157312123324,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2017,Chile,Nativos,7.889290945130037,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2017,Chile,Migrantes,7.441976156775421,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2017,Chile,Migrantes recientes,7.040214336064207,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2020,Chile,Nativos,12.457521166620614,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2020,Chile,Migrantes,10.190295686120374,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2020,Chile,Migrantes recientes,10.027801418439717,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2022,Chile,Nativos,8.805267090624842,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2022,Chile,Migrantes,7.267004037713494,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2022,Chile,Migrantes recientes,7.957256592694474,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2024,Chile,Nativos,9.038052118533113,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2024,Chile,Migrantes,6.351135759325381,CASEN,Tasa Desempleo
+I2_tasa_desempleo,2024,Chile,Migrantes recientes,8.468803126644845,CASEN,Tasa Desempleo
+I3_informalidad_asalariada,2015,Chile,Nativos,17.33844507109987,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2015,Chile,Migrantes,21.633212100071304,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2015,Chile,Migrantes recientes,27.79455001085262,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2017,Chile,Nativos,15.94969305153664,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2017,Chile,Migrantes,15.47890989543497,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2017,Chile,Migrantes recientes,15.865962730267604,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2020,Chile,Nativos,6.8790622051139,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2020,Chile,Migrantes,4.741016453890841,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2020,Chile,Migrantes recientes,3.860024825827807,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2022,Chile,Nativos,13.560394375446036,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2022,Chile,Migrantes,23.76289595912102,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2022,Chile,Migrantes recientes,36.41989727360635,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2024,Chile,Nativos,11.416948261322949,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2024,Chile,Migrantes,21.136405323333403,CASEN,Informalidad Asalariada
+I3_informalidad_asalariada,2024,Chile,Migrantes recientes,47.69653888100975,CASEN,Informalidad Asalariada
+I4_cuentapropismo,2015,Chile,Nativos,19.40824522804582,CASEN,Cuentapropismo
+I4_cuentapropismo,2015,Chile,Migrantes,14.377273585757807,CASEN,Cuentapropismo
+I4_cuentapropismo,2015,Chile,Migrantes recientes,8.39432594451415,CASEN,Cuentapropismo
+I4_cuentapropismo,2017,Chile,Nativos,22.034854925037703,CASEN,Cuentapropismo
+I4_cuentapropismo,2017,Chile,Migrantes,13.361102757533684,CASEN,Cuentapropismo
+I4_cuentapropismo,2017,Chile,Migrantes recientes,9.31650635731209,CASEN,Cuentapropismo
+I4_cuentapropismo,2020,Chile,Nativos,24.171990601133142,CASEN,Cuentapropismo
+I4_cuentapropismo,2020,Chile,Migrantes,19.236789009880425,CASEN,Cuentapropismo
+I4_cuentapropismo,2020,Chile,Migrantes recientes,15.520423435240303,CASEN,Cuentapropismo
+I4_cuentapropismo,2022,Chile,Nativos,22.721450677405723,CASEN,Cuentapropismo
+I4_cuentapropismo,2022,Chile,Migrantes,19.341460659545525,CASEN,Cuentapropismo
+I4_cuentapropismo,2022,Chile,Migrantes recientes,19.682209437544422,CASEN,Cuentapropismo
+I4_cuentapropismo,2024,Chile,Nativos,20.114489764736415,CASEN,Cuentapropismo
+I4_cuentapropismo,2024,Chile,Migrantes,18.18701695665542,CASEN,Cuentapropismo
+I4_cuentapropismo,2024,Chile,Migrantes recientes,20.909703815825132,CASEN,Cuentapropismo
+I5_pobreza,2015,Chile,Nativos,11.719493299104814,CASEN,Pobreza
+I5_pobreza,2015,Chile,Migrantes,9.526182291404384,CASEN,Pobreza
+I5_pobreza,2015,Chile,Migrantes recientes,8.61977352430658,CASEN,Pobreza
+I5_pobreza,2017,Chile,Nativos,8.48425749003299,CASEN,Pobreza
+I5_pobreza,2017,Chile,Migrantes,11.195268449016265,CASEN,Pobreza
+I5_pobreza,2017,Chile,Migrantes recientes,11.0176842637514,CASEN,Pobreza
+I5_pobreza,2020,Chile,Nativos,27.830036085419646,CASEN,Pobreza
+I5_pobreza,2020,Chile,Migrantes,34.39694739251424,CASEN,Pobreza
+I5_pobreza,2020,Chile,Migrantes recientes,31.717913775852107,CASEN,Pobreza
+I5_pobreza,2022,Chile,Nativos,6.075869289931422,CASEN,Pobreza
+I5_pobreza,2022,Chile,Migrantes,11.306060423057536,CASEN,Pobreza
+I5_pobreza,2022,Chile,Migrantes recientes,12.221444150235977,CASEN,Pobreza
+I5_pobreza,2024,Chile,Nativos,4.438840008729697,CASEN,Pobreza
+I5_pobreza,2024,Chile,Migrantes,10.4503505086506,CASEN,Pobreza
+I5_pobreza,2024,Chile,Migrantes recientes,14.237992393589751,CASEN,Pobreza
+I6_pobreza_extrema,2015,Chile,Nativos,3.522462932644906,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2015,Chile,Migrantes,4.194308462563975,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2015,Chile,Migrantes recientes,3.446728618828892,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2017,Chile,Nativos,2.2361101036327824,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2017,Chile,Migrantes,4.371873872471683,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2017,Chile,Migrantes recientes,4.716384860491777,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2020,Chile,Nativos,14.051300025122371,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2020,Chile,Migrantes,17.31141053595307,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2020,Chile,Migrantes recientes,15.127226681717188,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2022,Chile,Nativos,1.8337124970534868,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2022,Chile,Migrantes,3.888688270216508,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2022,Chile,Migrantes recientes,4.128279755782655,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2024,Chile,Nativos,1.3779551061681072,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2024,Chile,Migrantes,2.756141441320944,CASEN,Pobreza Extrema
+I6_pobreza_extrema,2024,Chile,Migrantes recientes,4.118858645458752,CASEN,Pobreza Extrema
+I7_asistencia_escolar_6_17,2015,Chile,Nativos,98.43273529146006,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2015,Chile,Migrantes,93.80323935212958,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2015,Chile,Migrantes recientes,88.92189264945823,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2017,Chile,Nativos,98.6738042884814,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2017,Chile,Migrantes,81.38360630780356,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2017,Chile,Migrantes recientes,74.92752585805805,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2020,Chile,Nativos,92.0516829367944,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2020,Chile,Migrantes,90.68621612642372,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2020,Chile,Migrantes recientes,90.67852163716772,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2022,Chile,Nativos,99.18485423070884,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2022,Chile,Migrantes,94.44367212886856,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2022,Chile,Migrantes recientes,92.24049595245415,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2024,Chile,Nativos,98.81032190540846,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2024,Chile,Migrantes,95.61970260722391,CASEN,Asistencia Escolar 6 17
+I7_asistencia_escolar_6_17,2024,Chile,Migrantes recientes,92.86847095328392,CASEN,Asistencia Escolar 6 17
+I8_asistencia_superior_18_29,2015,Chile,Nativos,30.465593129041764,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2015,Chile,Migrantes,9.973525694835203,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2015,Chile,Migrantes recientes,5.1697689497572465,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2017,Chile,Nativos,29.989765542705243,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2017,Chile,Migrantes,7.05072500809351,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2017,Chile,Migrantes recientes,6.0496923703560785,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2020,Chile,Nativos,30.14697094558108,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2020,Chile,Migrantes,6.694093376569326,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2020,Chile,Migrantes recientes,2.8966042128354936,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2022,Chile,Nativos,32.5513371596163,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2022,Chile,Migrantes,7.721236549465578,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2022,Chile,Migrantes recientes,2.958045270192281,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2024,Chile,Nativos,33.005761148350835,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2024,Chile,Migrantes,9.1609104653653,CASEN,Asistencia Superior 18 29
+I8_asistencia_superior_18_29,2024,Chile,Migrantes recientes,3.653019981530802,CASEN,Asistencia Superior 18 29
+I9_sistema_salud_publico,2015,Chile,Nativos,53.98527678164148,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2015,Chile,Migrantes,37.34588456036924,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2015,Chile,Migrantes recientes,32.05732043752705,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2017,Chile,Nativos,55.09513761529771,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2017,Chile,Migrantes,40.20513802151875,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2017,Chile,Migrantes recientes,37.40646955140141,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2020,Chile,Nativos,76.54071233327653,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2020,Chile,Migrantes,75.42899377975145,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2020,Chile,Migrantes recientes,77.28114700858814,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2022,Chile,Nativos,54.7945319032507,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2022,Chile,Migrantes,46.50311223463528,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2022,Chile,Migrantes recientes,43.12891953233034,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2024,Chile,Nativos,57.73630334476331,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2024,Chile,Migrantes,58.436796117561286,CASEN,Sistema Salud Publico
+I9_sistema_salud_publico,2024,Chile,Migrantes recientes,64.10452186805041,CASEN,Sistema Salud Publico
+I9_cobertura_salud,2015,Chile,Nativos,97.2298539004972,CASEN,Cobertura Salud
+I9_cobertura_salud,2015,Chile,Migrantes,81.53004501545904,CASEN,Cobertura Salud
+I9_cobertura_salud,2015,Chile,Migrantes recientes,71.57074937197604,CASEN,Cobertura Salud
+I9_cobertura_salud,2017,Chile,Nativos,97.67142429902216,CASEN,Cobertura Salud
+I9_cobertura_salud,2017,Chile,Migrantes,83.2791747446396,CASEN,Cobertura Salud
+I9_cobertura_salud,2017,Chile,Migrantes recientes,78.16996684884867,CASEN,Cobertura Salud
+I9_cobertura_salud,2020,Chile,Nativos,96.14299723313682,CASEN,Cobertura Salud
+I9_cobertura_salud,2020,Chile,Migrantes,89.38920940867284,CASEN,Cobertura Salud
+I9_cobertura_salud,2020,Chile,Migrantes recientes,86.63913733220194,CASEN,Cobertura Salud
+I9_cobertura_salud,2022,Chile,Nativos,98.2964618283255,CASEN,Cobertura Salud
+I9_cobertura_salud,2022,Chile,Migrantes,82.42154664954403,CASEN,Cobertura Salud
+I9_cobertura_salud,2022,Chile,Migrantes recientes,71.74636398120427,CASEN,Cobertura Salud
+I9_cobertura_salud,2024,Chile,Nativos,98.63148282560364,CASEN,Cobertura Salud
+I9_cobertura_salud,2024,Chile,Migrantes,90.51069907654234,CASEN,Cobertura Salud
+I9_cobertura_salud,2024,Chile,Migrantes recientes,79.59209758837466,CASEN,Cobertura Salud
+I1_tasa_actividad,2017,Chile,Nativos,62.699837341304665,ENE,Tasa Actividad
+I1_tasa_actividad,2017,Chile,Migrantes,79.56796544974755,ENE,Tasa Actividad
+I1_tasa_actividad,2017,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2018,Chile,Nativos,62.355949305842564,ENE,Tasa Actividad
+I1_tasa_actividad,2018,Chile,Migrantes,81.20169236394494,ENE,Tasa Actividad
+I1_tasa_actividad,2018,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2019,Chile,Nativos,62.931173662597814,ENE,Tasa Actividad
+I1_tasa_actividad,2019,Chile,Migrantes,81.29927838062189,ENE,Tasa Actividad
+I1_tasa_actividad,2019,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2020,Chile,Nativos,53.360696264996285,ENE,Tasa Actividad
+I1_tasa_actividad,2020,Chile,Migrantes,72.31608540799778,ENE,Tasa Actividad
+I1_tasa_actividad,2020,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2021,Chile,Nativos,57.11430150117558,ENE,Tasa Actividad
+I1_tasa_actividad,2021,Chile,Migrantes,78.97621591086241,ENE,Tasa Actividad
+I1_tasa_actividad,2021,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2022,Chile,Nativos,59.702655419541394,ENE,Tasa Actividad
+I1_tasa_actividad,2022,Chile,Migrantes,78.27188565409956,ENE,Tasa Actividad
+I1_tasa_actividad,2022,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2023,Chile,Nativos,60.9369050027088,ENE,Tasa Actividad
+I1_tasa_actividad,2023,Chile,Migrantes,80.28641672466397,ENE,Tasa Actividad
+I1_tasa_actividad,2023,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I1_tasa_actividad,2024,Chile,Nativos,61.735364270841785,ENE,Tasa Actividad
+I1_tasa_actividad,2024,Chile,Migrantes,80.11124471350028,ENE,Tasa Actividad
+I1_tasa_actividad,2024,Chile,Migrantes recientes,NA,ENE,Tasa Actividad
+I2_tasa_desempleo,2017,Chile,Nativos,7,ENE,Tasa Desempleo
+I2_tasa_desempleo,2017,Chile,Migrantes,5.6,ENE,Tasa Desempleo
+I2_tasa_desempleo,2017,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2018,Chile,Nativos,7.5,ENE,Tasa Desempleo
+I2_tasa_desempleo,2018,Chile,Migrantes,10.8,ENE,Tasa Desempleo
+I2_tasa_desempleo,2018,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2019,Chile,Nativos,7.3,ENE,Tasa Desempleo
+I2_tasa_desempleo,2019,Chile,Migrantes,8.3,ENE,Tasa Desempleo
+I2_tasa_desempleo,2019,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2020,Chile,Nativos,12.3,ENE,Tasa Desempleo
+I2_tasa_desempleo,2020,Chile,Migrantes,15.8,ENE,Tasa Desempleo
+I2_tasa_desempleo,2020,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2021,Chile,Nativos,8.4,ENE,Tasa Desempleo
+I2_tasa_desempleo,2021,Chile,Migrantes,7.5,ENE,Tasa Desempleo
+I2_tasa_desempleo,2021,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2022,Chile,Nativos,8,ENE,Tasa Desempleo
+I2_tasa_desempleo,2022,Chile,Migrantes,7.8,ENE,Tasa Desempleo
+I2_tasa_desempleo,2022,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2023,Chile,Nativos,8.9,ENE,Tasa Desempleo
+I2_tasa_desempleo,2023,Chile,Migrantes,7.8,ENE,Tasa Desempleo
+I2_tasa_desempleo,2023,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo
+I2_tasa_desempleo,2024,Chile,Nativos,8.7,ENE,Tasa Desempleo
+I2_tasa_desempleo,2024,Chile,Migrantes,6.3,ENE,Tasa Desempleo
+I2_tasa_desempleo,2024,Chile,Migrantes recientes,NA,ENE,Tasa Desempleo

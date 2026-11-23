@@ -1,0 +1,265 @@
+indicador,pais,anio,grupo,n,n_efectivo,semaforo
+I1_tasa_actividad,Argentina,2016,Migrante,5598,2796.4587344602514,OK
+I1_tasa_actividad,Argentina,2016,Migrante reciente,235,116.743772985037,OK
+I1_tasa_actividad,Argentina,2016,No migrante,131200,57250.994791222765,OK
+I1_tasa_actividad,Argentina,2017,Migrante,7522,3718.6447397732527,OK
+I1_tasa_actividad,Argentina,2017,Migrante reciente,351,198.55212207342177,OK
+I1_tasa_actividad,Argentina,2017,No migrante,174817,75693.7678916136,OK
+I1_tasa_actividad,Argentina,2018,Migrante,7453,3797.5089171492014,OK
+I1_tasa_actividad,Argentina,2018,Migrante reciente,524,330.25686129621243,OK
+I1_tasa_actividad,Argentina,2018,No migrante,170909,72941.73746526198,OK
+I1_tasa_actividad,Argentina,2019,Migrante,7286,3610.2118923992894,OK
+I1_tasa_actividad,Argentina,2019,Migrante reciente,688,372.9312146242471,OK
+I1_tasa_actividad,Argentina,2019,No migrante,174711,71196.59750747935,OK
+I1_tasa_actividad,Argentina,2021,Migrante,5069,1320.747036387496,OK
+I1_tasa_actividad,Argentina,2021,Migrante reciente,342,146.61431405984086,OK
+I1_tasa_actividad,Argentina,2021,No migrante,147816,33823.1961897287,OK
+I1_tasa_actividad,Argentina,2022,Migrante,5899,2338.1976745607676,OK
+I1_tasa_actividad,Argentina,2022,Migrante reciente,537,308.6864722463522,OK
+I1_tasa_actividad,Argentina,2022,No migrante,151326,51450.35949355323,OK
+I1_tasa_actividad,Argentina,2023,Migrante,5637,2426.145679244412,OK
+I1_tasa_actividad,Argentina,2023,Migrante reciente,446,237.18851453476205,OK
+I1_tasa_actividad,Argentina,2023,No migrante,147740,54114.65518845437,OK
+I1_tasa_actividad,Argentina,2024,Migrante,5309,2292.226235797008,OK
+I1_tasa_actividad,Argentina,2024,Migrante reciente,291,159.12977328975083,OK
+I1_tasa_actividad,Argentina,2024,No migrante,145245,54272.670766149684,OK
+I2_tasa_desempleo,Argentina,2016,Migrante,2883,1533.483315023398,OK
+I2_tasa_desempleo,Argentina,2016,Migrante reciente,159,83.8657632871253,OK
+I2_tasa_desempleo,Argentina,2016,No migrante,74402,32777.80296709519,OK
+I2_tasa_desempleo,Argentina,2017,Migrante,3902,2056.8342879701477,OK
+I2_tasa_desempleo,Argentina,2017,Migrante reciente,232,135.61519361880144,OK
+I2_tasa_desempleo,Argentina,2017,No migrante,99400,43631.45045037256,OK
+I2_tasa_desempleo,Argentina,2018,Migrante,3993,2163.4528555697925,OK
+I2_tasa_desempleo,Argentina,2018,Migrante reciente,351,226.97073327360522,OK
+I2_tasa_desempleo,Argentina,2018,No migrante,98506,42708.607629440216,OK
+I2_tasa_desempleo,Argentina,2019,Migrante,3961,2057.881064903245,OK
+I2_tasa_desempleo,Argentina,2019,Migrante reciente,491,262.18354255009535,OK
+I2_tasa_desempleo,Argentina,2019,No migrante,101770,42078.31554176566,OK
+I2_tasa_desempleo,Argentina,2021,Migrante,2545,734.5322570731036,OK
+I2_tasa_desempleo,Argentina,2021,Migrante reciente,245,111.01380076603171,OK
+I2_tasa_desempleo,Argentina,2021,No migrante,84227,19517.264623492392,OK
+I2_tasa_desempleo,Argentina,2022,Migrante,3142,1357.7418729420285,OK
+I2_tasa_desempleo,Argentina,2022,Migrante reciente,369,214.3143317297963,OK
+I2_tasa_desempleo,Argentina,2022,No migrante,88069,30366.053420769727,OK
+I2_tasa_desempleo,Argentina,2023,Migrante,3087,1420.397802843388,OK
+I2_tasa_desempleo,Argentina,2023,Migrante reciente,241,124.24863289985646,OK
+I2_tasa_desempleo,Argentina,2023,No migrante,87965,32612.712582836655,OK
+I2_tasa_desempleo,Argentina,2024,Migrante,2873,1356.9372727677833,OK
+I2_tasa_desempleo,Argentina,2024,Migrante reciente,173,95.80411018094371,OK
+I2_tasa_desempleo,Argentina,2024,No migrante,85755,32685.765210456306,OK
+I3_informalidad_asalariada,Argentina,2016,Migrante,1750,957.4300389423048,OK
+I3_informalidad_asalariada,Argentina,2016,Migrante reciente,94,49.993271077777244,CUIDADO
+I3_informalidad_asalariada,Argentina,2016,No migrante,52593,22845.41691537374,OK
+I3_informalidad_asalariada,Argentina,2017,Migrante,2399,1267.4905700167417,OK
+I3_informalidad_asalariada,Argentina,2017,Migrante reciente,148,91.64794283799513,OK
+I3_informalidad_asalariada,Argentina,2017,No migrante,69389,30270.954870048165,OK
+I3_informalidad_asalariada,Argentina,2018,Migrante,2478,1398.2999986709597,OK
+I3_informalidad_asalariada,Argentina,2018,Migrante reciente,251,168.8424185693121,OK
+I3_informalidad_asalariada,Argentina,2018,No migrante,68079,29279.78646260648,OK
+I3_informalidad_asalariada,Argentina,2019,Migrante,2434,1282.9512694431235,OK
+I3_informalidad_asalariada,Argentina,2019,Migrante reciente,367,188.40899160002485,OK
+I3_informalidad_asalariada,Argentina,2019,No migrante,68860,28083.9563147129,OK
+I3_informalidad_asalariada,Argentina,2021,Migrante,1486,441.68405763981343,OK
+I3_informalidad_asalariada,Argentina,2021,Migrante reciente,182,90.65573845610679,OK
+I3_informalidad_asalariada,Argentina,2021,No migrante,56552,12937.71022291844,OK
+I3_informalidad_asalariada,Argentina,2022,Migrante,1953,893.3204645330269,OK
+I3_informalidad_asalariada,Argentina,2022,Migrante reciente,280,164.8701730710436,OK
+I3_informalidad_asalariada,Argentina,2022,No migrante,61662,21036.647325122853,OK
+I3_informalidad_asalariada,Argentina,2023,Migrante,1950,913.3754125523753,OK
+I3_informalidad_asalariada,Argentina,2023,Migrante reciente,185,99.25135044244851,OK
+I3_informalidad_asalariada,Argentina,2023,No migrante,62629,23071.43510383006,OK
+I3_informalidad_asalariada,Argentina,2024,Migrante,1732,842.696905585705,OK
+I3_informalidad_asalariada,Argentina,2024,Migrante reciente,115,68.67919035022881,OK
+I3_informalidad_asalariada,Argentina,2024,No migrante,59292,22132.29298781494,OK
+I4_cuentapropismo,Argentina,2016,Migrante,2742,1443.0292582029317,OK
+I4_cuentapropismo,Argentina,2016,Migrante reciente,135,68.98599202982786,OK
+I4_cuentapropismo,Argentina,2016,No migrante,70152,30811.504924857378,OK
+I4_cuentapropismo,Argentina,2017,Migrante,3729,1933.4328486748939,OK
+I4_cuentapropismo,Argentina,2017,Migrante reciente,210,119.92403757673748,OK
+I4_cuentapropismo,Argentina,2017,No migrante,93745,40913.877737208495,OK
+I4_cuentapropismo,Argentina,2018,Migrante,3794,2045.7954310873217,OK
+I4_cuentapropismo,Argentina,2018,Migrante reciente,316,203.62917547731402,OK
+I4_cuentapropismo,Argentina,2018,No migrante,92370,39930.08900244684,OK
+I4_cuentapropismo,Argentina,2019,Migrante,3756,1933.9904417730015,OK
+I4_cuentapropismo,Argentina,2019,Migrante reciente,449,238.4622264335909,OK
+I4_cuentapropismo,Argentina,2019,No migrante,94795,38975.336712507364,OK
+I4_cuentapropismo,Argentina,2021,Migrante,2429,693.0632965339762,OK
+I4_cuentapropismo,Argentina,2021,Migrante reciente,224,103.62266882114662,OK
+I4_cuentapropismo,Argentina,2021,No migrante,79315,18346.983978734195,OK
+I4_cuentapropismo,Argentina,2022,Migrante,3017,1298.977658190922,OK
+I4_cuentapropismo,Argentina,2022,Migrante reciente,345,201.5922606855407,OK
+I4_cuentapropismo,Argentina,2022,No migrante,83912,28853.146311558852,OK
+I4_cuentapropismo,Argentina,2023,Migrante,2993,1369.2190513153366,OK
+I4_cuentapropismo,Argentina,2023,Migrante reciente,222,115.00549709383102,OK
+I4_cuentapropismo,Argentina,2023,No migrante,84121,31074.629754797264,OK
+I4_cuentapropismo,Argentina,2024,Migrante,2764,1303.654166632509,OK
+I4_cuentapropismo,Argentina,2024,Migrante reciente,156,86.91158188168362,OK
+I4_cuentapropismo,Argentina,2024,No migrante,81425,30889.501593871017,OK
+I5_I6_pobreza,Argentina,2016,Migrante,4221,1895.2537950392093,OK
+I5_I6_pobreza,Argentina,2016,Migrante reciente,199,89.58064202301715,OK
+I5_I6_pobreza,Argentina,2016,No migrante,129857,46229.74047370594,OK
+I5_I6_pobreza,Argentina,2017,Migrante,5946,2559.747029487123,OK
+I5_I6_pobreza,Argentina,2017,Migrante reciente,320,161.6238868038402,OK
+I5_I6_pobreza,Argentina,2017,No migrante,177958,61662.391402631896,OK
+I5_I6_pobreza,Argentina,2018,Migrante,5962,2527.236354418651,OK
+I5_I6_pobreza,Argentina,2018,Migrante reciente,456,245.15760754300263,OK
+I5_I6_pobreza,Argentina,2018,No migrante,180036,60273.65169216168,OK
+I5_I6_pobreza,Argentina,2019,Migrante,5978,2371.096880583472,OK
+I5_I6_pobreza,Argentina,2019,Migrante reciente,649,287.2801486451197,OK
+I5_I6_pobreza,Argentina,2019,No migrante,189283,59216.00823664092,OK
+I5_I6_pobreza,Argentina,2021,Migrante,4027,821.34681834203,OK
+I5_I6_pobreza,Argentina,2021,Migrante reciente,338,133.14592719418465,OK
+I5_I6_pobreza,Argentina,2021,No migrante,150979,24337.460790958714,OK
+I5_I6_pobreza,Argentina,2022,Migrante,4393,1414.2642132599558,OK
+I5_I6_pobreza,Argentina,2022,Migrante reciente,436,207.99745798119912,OK
+I5_I6_pobreza,Argentina,2022,No migrante,149789,35314.04732555225,OK
+I5_I6_pobreza,Argentina,2023,Migrante,4159,1508.2794401928509,OK
+I5_I6_pobreza,Argentina,2023,Migrante reciente,373,183.49902714695423,OK
+I5_I6_pobreza,Argentina,2023,No migrante,143210,37703.569185537686,OK
+I5_I6_pobreza,Argentina,2024,Migrante,3944,1378.306879375199,OK
+I5_I6_pobreza,Argentina,2024,Migrante reciente,261,126.58557210621062,OK
+I5_I6_pobreza,Argentina,2024,No migrante,135689,37093.56063985102,OK
+I7_asistencia_escolar_6_17,Argentina,2016,Migrante,328,172.9286056434116,OK
+I7_asistencia_escolar_6_17,Argentina,2016,Migrante reciente,41,17.105186933108296,NO USAR
+I7_asistencia_escolar_6_17,Argentina,2016,No migrante,33806,14345.43898606858,OK
+I7_asistencia_escolar_6_17,Argentina,2017,Migrante,400,209.60129011228517,OK
+I7_asistencia_escolar_6_17,Argentina,2017,Migrante reciente,83,37.24436053429143,CUIDADO
+I7_asistencia_escolar_6_17,Argentina,2017,No migrante,44232,18853.520145198097,OK
+I7_asistencia_escolar_6_17,Argentina,2018,Migrante,441,235.98529029807742,OK
+I7_asistencia_escolar_6_17,Argentina,2018,Migrante reciente,102,50.91191667975027,OK
+I7_asistencia_escolar_6_17,Argentina,2018,No migrante,42527,17923.60898778891,OK
+I7_asistencia_escolar_6_17,Argentina,2019,Migrante,479,265.4009408620162,OK
+I7_asistencia_escolar_6_17,Argentina,2019,Migrante reciente,130,70.7705354915196,OK
+I7_asistencia_escolar_6_17,Argentina,2019,No migrante,43755,17648.82035138212,OK
+I7_asistencia_escolar_6_17,Argentina,2021,Migrante,219,65.06085080248363,OK
+I7_asistencia_escolar_6_17,Argentina,2021,Migrante reciente,83,26.045860781395685,NO USAR
+I7_asistencia_escolar_6_17,Argentina,2021,No migrante,35038,7186.50217587453,OK
+I7_asistencia_escolar_6_17,Argentina,2022,Migrante,294,139.38809894118373,OK
+I7_asistencia_escolar_6_17,Argentina,2022,Migrante reciente,81,44.64739627742421,CUIDADO
+I7_asistencia_escolar_6_17,Argentina,2022,No migrante,36223,11301.716497902518,OK
+I7_asistencia_escolar_6_17,Argentina,2023,Migrante,274,133.41206819128698,OK
+I7_asistencia_escolar_6_17,Argentina,2023,Migrante reciente,74,39.108384741355856,CUIDADO
+I7_asistencia_escolar_6_17,Argentina,2023,No migrante,35797,11998.115529737292,OK
+I7_asistencia_escolar_6_17,Argentina,2024,Migrante,270,117.73593772897685,OK
+I7_asistencia_escolar_6_17,Argentina,2024,Migrante reciente,57,26.813687493690576,NO USAR
+I7_asistencia_escolar_6_17,Argentina,2024,No migrante,34285,11935.08998566868,OK
+I8_asistencia_superior_18_29,Argentina,2016,Migrante,586,346.9824197657821,OK
+I8_asistencia_superior_18_29,Argentina,2016,Migrante reciente,107,64.75559558678842,OK
+I8_asistencia_superior_18_29,Argentina,2016,No migrante,34123,14491.016579956073,OK
+I8_asistencia_superior_18_29,Argentina,2017,Migrante,815,484.2484592805206,OK
+I8_asistencia_superior_18_29,Argentina,2017,Migrante reciente,171,108.18027590558691,OK
+I8_asistencia_superior_18_29,Argentina,2017,No migrante,45180,19201.418153193008,OK
+I8_asistencia_superior_18_29,Argentina,2018,Migrante,967,608.8222699124332,OK
+I8_asistencia_superior_18_29,Argentina,2018,Migrante reciente,248,166.08433728005815,OK
+I8_asistencia_superior_18_29,Argentina,2018,No migrante,43920,18439.606220510796,OK
+I8_asistencia_superior_18_29,Argentina,2019,Migrante,1034,588.7400579882732,OK
+I8_asistencia_superior_18_29,Argentina,2019,Migrante reciente,316,177.64226804504526,OK
+I8_asistencia_superior_18_29,Argentina,2019,No migrante,44513,17457.467576651045,OK
+I8_asistencia_superior_18_29,Argentina,2021,Migrante,452,153.48343563423387,OK
+I8_asistencia_superior_18_29,Argentina,2021,Migrante reciente,102,36.53356907855659,CUIDADO
+I8_asistencia_superior_18_29,Argentina,2021,No migrante,36266,7696.106699992677,OK
+I8_asistencia_superior_18_29,Argentina,2022,Migrante,697,348.2614790971021,OK
+I8_asistencia_superior_18_29,Argentina,2022,Migrante reciente,191,111.31180024126002,OK
+I8_asistencia_superior_18_29,Argentina,2022,No migrante,36725,11887.099778184207,OK
+I8_asistencia_superior_18_29,Argentina,2023,Migrante,714,350.24675247560265,OK
+I8_asistencia_superior_18_29,Argentina,2023,Migrante reciente,183,94.14682839296997,OK
+I8_asistencia_superior_18_29,Argentina,2023,No migrante,35949,12559.427082334689,OK
+I8_asistencia_superior_18_29,Argentina,2024,Migrante,583,297.8137218383029,OK
+I8_asistencia_superior_18_29,Argentina,2024,Migrante reciente,119,64.00056098354129,OK
+I8_asistencia_superior_18_29,Argentina,2024,No migrante,34848,12954.665936512794,OK
+I1_tasa_actividad,Chile,2015,Migrante,3273,911.0708926192965,OK
+I1_tasa_actividad,Chile,2015,Migrante reciente,1352,319.49769206997485,OK
+I1_tasa_actividad,Chile,2015,No migrante,209430,94029.72830282863,OK
+I1_tasa_actividad,Chile,2017,Migrante,5134,1110.0574781094097,OK
+I1_tasa_actividad,Chile,2017,Migrante reciente,2768,593.2583886295184,OK
+I1_tasa_actividad,Chile,2017,No migrante,169942,88136.40351235154,OK
+I1_tasa_actividad,Chile,2022,Migrante,9196,3507.4064720455453,OK
+I1_tasa_actividad,Chile,2022,Migrante reciente,4367,1574.918573399627,OK
+I1_tasa_actividad,Chile,2022,No migrante,157197,85285.27513756473,OK
+I1_tasa_actividad,Chile,2024,Migrante,10866,5851.005126678238,OK
+I1_tasa_actividad,Chile,2024,Migrante reciente,3598,1947.0048696296722,OK
+I1_tasa_actividad,Chile,2024,No migrante,170625,98939.5593220516,OK
+I2_tasa_desempleo,Chile,2015,Migrante,2464,674.2450886786024,OK
+I2_tasa_desempleo,Chile,2015,Migrante reciente,1080,260.8274403774835,OK
+I2_tasa_desempleo,Chile,2015,No migrante,116972,50978.504288824646,OK
+I2_tasa_desempleo,Chile,2017,Migrante,3971,801.8657302438238,OK
+I2_tasa_desempleo,Chile,2017,Migrante reciente,2207,443.42024452673184,OK
+I2_tasa_desempleo,Chile,2017,No migrante,96249,47789.98468514166,OK
+I2_tasa_desempleo,Chile,2022,Migrante,7138,2692.5852349699926,OK
+I2_tasa_desempleo,Chile,2022,Migrante reciente,3392,1186.7422313113634,OK
+I2_tasa_desempleo,Chile,2022,No migrante,87041,45447.92926070112,OK
+I2_tasa_desempleo,Chile,2024,Migrante,8382,4537.524815417262,OK
+I2_tasa_desempleo,Chile,2024,Migrante reciente,2665,1439.7390427243374,OK
+I2_tasa_desempleo,Chile,2024,No migrante,96708,55638.11514329675,OK
+I3_informalidad_asalariada,Chile,2015,Migrante,1776,463.7082745730865,OK
+I3_informalidad_asalariada,Chile,2015,Migrante reciente,865,197.73905024764528,OK
+I3_informalidad_asalariada,Chile,2015,No migrante,80961,34834.90269102034,OK
+I3_informalidad_asalariada,Chile,2017,Migrante,2731,560.3055298944138,OK
+I3_informalidad_asalariada,Chile,2017,Migrante reciente,1638,319.0505166061024,OK
+I3_informalidad_asalariada,Chile,2017,No migrante,64526,30639.047418159196,OK
+I3_informalidad_asalariada,Chile,2022,Migrante,4721,1763.2479921869365,OK
+I3_informalidad_asalariada,Chile,2022,Migrante reciente,2290,776.0113325517092,OK
+I3_informalidad_asalariada,Chile,2022,No migrante,55987,29250.639196429205,OK
+I3_informalidad_asalariada,Chile,2024,Migrante,5878,3350.458185247928,OK
+I3_informalidad_asalariada,Chile,2024,Migrante reciente,1838,1101.4529443315575,OK
+I3_informalidad_asalariada,Chile,2024,No migrante,65428,37713.49023921361,OK
+I4_cuentapropismo,Chile,2015,Migrante,2327,626.1819519117844,OK
+I4_cuentapropismo,Chile,2015,Migrante reciente,1013,240.73751876167825,OK
+I4_cuentapropismo,Chile,2015,No migrante,108181,47060.001157313825,OK
+I4_cuentapropismo,Chile,2017,Migrante,3684,762.2484209847647,OK
+I4_cuentapropismo,Chile,2017,Migrante reciente,2005,390.98826951498444,OK
+I4_cuentapropismo,Chile,2017,No migrante,88733,43467.837870780306,OK
+I4_cuentapropismo,Chile,2022,Migrante,6533,2433.941315381488,OK
+I4_cuentapropismo,Chile,2022,Migrante reciente,3082,1059.1743496851811,OK
+I4_cuentapropismo,Chile,2022,No migrante,79177,41164.058086486635,OK
+I4_cuentapropismo,Chile,2024,Migrante,7786,4203.358608805642,OK
+I4_cuentapropismo,Chile,2024,Migrante reciente,2414,1302.3034304841121,OK
+I4_cuentapropismo,Chile,2024,No migrante,87648,50273.32330628333,OK
+I5_I6_pobreza,Chile,2015,Migrante,3698,1005.3425685756707,OK
+I5_I6_pobreza,Chile,2015,Migrante reciente,1551,390.30676265631166,OK
+I5_I6_pobreza,Chile,2015,No migrante,262974,119837.12803766334,OK
+I5_I6_pobreza,Chile,2017,Migrante,5872,1250.1259947668746,OK
+I5_I6_pobreza,Chile,2017,Migrante reciente,3151,644.4856582650873,OK
+I5_I6_pobreza,Chile,2017,No migrante,210359,107488.18161504048,OK
+I5_I6_pobreza,Chile,2022,Migrante,10835,4071.398503187984,OK
+I5_I6_pobreza,Chile,2022,Migrante reciente,5249,1860.624352995006,OK
+I5_I6_pobreza,Chile,2022,No migrante,191276,102855.09231853235,OK
+I5_I6_pobreza,Chile,2024,Migrante,12734,6872.324581869949,OK
+I5_I6_pobreza,Chile,2024,Migrante reciente,4740,2590.019834821934,OK
+I5_I6_pobreza,Chile,2024,No migrante,205526,118129.72359147172,OK
+I7_asistencia_escolar_6_17,Chile,2015,Migrante,472,145.7755574093382,OK
+I7_asistencia_escolar_6_17,Chile,2015,Migrante reciente,238,109.26145909408095,OK
+I7_asistencia_escolar_6_17,Chile,2015,No migrante,44656,21745.660297757688,OK
+I7_asistencia_escolar_6_17,Chile,2017,Migrante,711,119.25975518895889,OK
+I7_asistencia_escolar_6_17,Chile,2017,Migrante reciente,462,65.8857547679435,OK
+I7_asistencia_escolar_6_17,Chile,2017,No migrante,33836,16403.116125406836,OK
+I7_asistencia_escolar_6_17,Chile,2022,Migrante,1710,631.5307252454246,OK
+I7_asistencia_escolar_6_17,Chile,2022,Migrante reciente,1132,394.009605315348,OK
+I7_asistencia_escolar_6_17,Chile,2022,No migrante,30233,16823.856931052116,OK
+I7_asistencia_escolar_6_17,Chile,2024,Migrante,2163,1202.552075144289,OK
+I7_asistencia_escolar_6_17,Chile,2024,Migrante reciente,1116,629.07414318897,OK
+I7_asistencia_escolar_6_17,Chile,2024,No migrante,32499,19283.09476418451,OK
+I8_asistencia_superior_18_29,Chile,2015,Migrante,1018,202.8269710972613,OK
+I8_asistencia_superior_18_29,Chile,2015,Migrante reciente,558,86.19685277252432,OK
+I8_asistencia_superior_18_29,Chile,2015,No migrante,48808,18376.775375904777,OK
+I8_asistencia_superior_18_29,Chile,2017,Migrante,1756,298.9917181980308,OK
+I8_asistencia_superior_18_29,Chile,2017,Migrante reciente,1210,201.44535848417812,OK
+I8_asistencia_superior_18_29,Chile,2017,No migrante,38044,20152.795445172927,OK
+I8_asistencia_superior_18_29,Chile,2022,Migrante,2606,972.4811916867143,OK
+I8_asistencia_superior_18_29,Chile,2022,Migrante reciente,1635,624.8434985820643,OK
+I8_asistencia_superior_18_29,Chile,2022,No migrante,31386,18326.258802662538,OK
+I8_asistencia_superior_18_29,Chile,2024,Migrante,2747,1489.2231235547895,OK
+I8_asistencia_superior_18_29,Chile,2024,Migrante reciente,1326,731.8519525804238,OK
+I8_asistencia_superior_18_29,Chile,2024,No migrante,32487,19695.39346622083,OK
+I9_cobertura_salud,Chile,2015,Migrante,3670,995.6340142700618,OK
+I9_cobertura_salud,Chile,2015,Migrante reciente,1532,382.058153336337,OK
+I9_cobertura_salud,Chile,2015,No migrante,258818,118412.02038610858,OK
+I9_cobertura_salud,Chile,2017,Migrante,5670,1204.3206191325426,OK
+I9_cobertura_salud,Chile,2017,Migrante reciente,3008,615.0061145239911,OK
+I9_cobertura_salud,Chile,2017,No migrante,205572,104899.71536564371,OK
+I9_cobertura_salud,Chile,2022,Migrante,10695,4013.502996278634,OK
+I9_cobertura_salud,Chile,2022,Migrante reciente,5134,1814.906444537772,OK
+I9_cobertura_salud,Chile,2022,No migrante,189897,102013.42492778151,OK
+I9_cobertura_salud,Chile,2024,Migrante,12679,6834.073839977096,OK
+I9_cobertura_salud,Chile,2024,Migrante reciente,4700,2563.5981091259723,OK
+I9_cobertura_salud,Chile,2024,No migrante,205018,117817.55501837244,OK

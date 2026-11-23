@@ -63,7 +63,15 @@ Los microdatos no están en el repositorio. Se descargan de:
 | ENE (indicadores publicados) | INE Chile; cargados en `Data/indicadores_ENE_CH.xlsx` |
 | Stock migratorio | UNU-CRIS / RIKS |
 
-Los datos procesados pueden solicitarse a la autora (nataliadebandi@gmail.com).
+Los microdatos procesados (`Data/*_proc.csv`) tampoco se suben, porque son registros individuales y pesan casi 1 GB; se regeneran con los pasos 01 y 02.
+
+Sí están en el repositorio todos los resultados agregados, de modo que las cifras del artículo se pueden verificar sin correr nada:
+
+- `Data/indicadores_*.csv`: indicadores por país, año y grupo (no migrante, migrante, migrante reciente), y las brechas.
+- `Data/indicadores_ENE_CH.xlsx`: indicadores de la ENE tomados de las publicaciones del INE.
+- `output/isdm/`: brechas estandarizadas, ISDM anual y resumen por país, subíndices, sensibilidad, composición y tasa de actividad estandarizada por edad.
+- `output/articulo/` y `output/contexto/`: los gráficos del artículo.
+- `output/calidad/`: tamaños muestrales y calidad de las estimaciones.
 
 ## Versiones
 

@@ -6,9 +6,7 @@
 
 # Carpetas del proyecto (datos, outputs, versiones anteriores)
 ES/
-Data/
 graficos/
-output/
 output_context/
 output_graficos/
 output_graficos_recientes/
@@ -37,3 +35,9 @@ output_isdm_v3/
 
 # Versiones anteriores del proyecto (solo local; en git quedan en el tag v1.2.0-pre-orden)
 _version_inicial/
+
+# Datos: los microdatos procesados no se suben (pesan casi 1 GB y son registros individuales).
+# Sí se suben los indicadores agregados y los indicadores de la ENE cargados a mano.
+Data/*
+!Data/indicadores_*.csv
+!Data/indicadores_ENE_CH.xlsx

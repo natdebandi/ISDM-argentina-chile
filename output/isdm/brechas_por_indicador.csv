@@ -1,0 +1,35 @@
+dimension,indicador,pais,grupo,brecha_pp,n_anios
+Labor,I1_tasa_actividad,Argentina,Migrants,1.2691461913440207,8
+Labor,I1_tasa_actividad,Chile,Migrants,-18.891216099061143,7
+Labor,I1_tasa_actividad,Argentina,Recent migrants,-6.860576654369293,8
+Labor,I1_tasa_actividad,Chile,Recent migrants,-21.898946753167046,9
+Labor,I2_tasa_desempleo,Argentina,Migrants,-0.9299075793437843,8
+Labor,I2_tasa_desempleo,Chile,Migrants,-0.24285714285714272,7
+Labor,I2_tasa_desempleo,Argentina,Recent migrants,3.313934401184349,8
+Labor,I2_tasa_desempleo,Chile,Recent migrants,-0.933485163805008,9
+Labor,I3_informalidad_asalariada,Argentina,Migrants,12.838279312607552,8
+Labor,I3_informalidad_asalariada,Chile,Migrants,5.461018105023902,9
+Labor,I3_informalidad_asalariada,Argentina,Recent migrants,12.969180495425555,8
+Labor,I3_informalidad_asalariada,Chile,Recent migrants,15.126281971987805,9
+Labor,I4_cuentapropismo,Argentina,Migrants,5.5852892556499985,8
+Labor,I4_cuentapropismo,Chile,Migrants,-5.236474382956727,9
+Labor,I4_cuentapropismo,Argentina,Recent migrants,-4.716318612104515,8
+Labor,I4_cuentapropismo,Chile,Recent migrants,-7.063193111579067,9
+Poverty,I5_pobreza,Argentina,Migrants,-0.060318319374641494,8
+Poverty,I5_pobreza,Chile,Migrants,3.2554430552493994,9
+Poverty,I5_pobreza,Argentina,Recent migrants,-6.405800429186623,8
+Poverty,I5_pobreza,Chile,Recent migrants,3.9694376676114453,9
+Poverty,I6_pobreza_extrema,Argentina,Migrants,1.209201538809735,8
+Poverty,I6_pobreza_extrema,Chile,Migrants,1.7394828025756903,9
+Poverty,I6_pobreza_extrema,Argentina,Recent migrants,-1.251055281847327,8
+Poverty,I6_pobreza_extrema,Chile,Recent migrants,2.03787229275438,9
+Social,I7_asistencia_escolar_6_17,Argentina,Migrants,2.0732335820578296,8
+Social,I7_asistencia_escolar_6_17,Chile,Migrants,8.786579410190075,9
+Social,I7_asistencia_escolar_6_17,Argentina,Recent migrants,4.7544144070714704,8
+Social,I7_asistencia_escolar_6_17,Chile,Recent migrants,12.992349170271172,9
+Social,I8_asistencia_superior_18_29,Argentina,Migrants,1.9855564510501087,8
+Social,I8_asistencia_superior_18_29,Chile,Migrants,23.2915216225024,9
+Social,I8_asistencia_superior_18_29,Argentina,Recent migrants,-6.445042190876692,8
+Social,I8_asistencia_superior_18_29,Chile,Recent migrants,26.88973570364099,9
+Social,I9_cobertura_salud,Chile,Migrants,14.042679620911269,9
+Social,I9_cobertura_salud,Chile,Recent migrants,22.721948500090516,9
