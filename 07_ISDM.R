@@ -29,7 +29,7 @@ write_csv(res$anual,                "output/isdm/isdm_anual.csv")
 write_csv(res$resumen,              "output/isdm/isdm_resumen_pais.csv")         # Tabla 4 del artículo
 write_csv(res$subindices_resumen,   "output/isdm/subindices_resumen.csv")        # Gráfico 6 del artículo
 
-# Tablas de brechas por indicador (Tablas 2, 4 y 5 del artículo), promedio sin 2020
+# Tablas de brechas por indicador (Tablas 1, 2 y 3 del artículo), promedio sin 2020
 brechas_indicador <- prep %>%
   group_by(dimension, indicador, pais, grupo) %>%
   summarise(brecha_pp = mean(brecha_normalizada, na.rm = TRUE), n_anios = n(), .groups = "drop") %>%

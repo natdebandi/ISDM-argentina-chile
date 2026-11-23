@@ -362,7 +362,7 @@ indicadores_sc <- indicadores_long %>%
     (pais == "Chile" & fuente == "CASEN")
   )
 
-# Todos los indicadores de Chile son CASEN, se interpolam todos
+# Todos los indicadores de Chile son CASEN, se interpolan todos
 anios_todos_sc <- sort(unique(indicadores_sc$anio))
 
 chile_interpolado_sc <- indicadores_sc %>%

@@ -445,7 +445,7 @@ message("      ✓ Asistencia superior 18-29 años calculada\n")
 
 
 # -----------------------------------------------------------------------------
-# I10. SISTEMA PÚBLICO DE SALUD
+# I10. SISTEMA PÚBLICO DE SALUD (solo análisis de sensibilidad, Tabla A2)
 # -----------------------------------------------------------------------------
 message("   → I10. Dependencia del sistema público de salud...")
 
@@ -492,7 +492,7 @@ message("      ✓ Dependencia del sistema público de salud calculada\n")
 
 
 # -----------------------------------------------------------------------------
-# I11. COBERTURA DE SALUD: afiliación a algún sistema previsional
+# I11. COBERTURA DE SALUD: afiliación a algún sistema de salud
 # -----------------------------------------------------------------------------
 # Mide la cobertura horizontal: la persona está afiliada a algún sistema de
 # salud (FONASA de cualquier tramo, ISAPRE, FF.AA. u otro) frente a ninguno

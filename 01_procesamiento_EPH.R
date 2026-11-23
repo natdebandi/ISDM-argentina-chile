@@ -275,11 +275,13 @@ for (anio in anios_a_procesar) {
         TRUE ~ as.numeric(as.character(CAT_OCUP))
       ),
       # SISTEMA DE SALUD
-      # CH08: ¿Tiene obra social y/o plan de salud privado o mutual?
+      # CH08: cobertura médica. Códigos de la EPH:
       # 1 = Obra social (incluye PAMI)
-      # 2 = Plan de salud privado o mutual
-      # 3 = Tiene obra social y plan privado
-      # 4 = No tiene obra social ni plan privado
+      # 2 = Mutual, prepaga o servicio de emergencia
+      # 3 = Planes y seguros públicos
+      # 4 = No paga ni le descuentan
+      # 12, 13, 23 y 123 = combinaciones de las anteriores
+      # 9 = Ns/Nr
       
       # En 2024 algunas etiquetas vienen sin tilde ("Planes y seguros Publicos"),
       # de modo que se comparan normalizadas.
@@ -450,8 +452,10 @@ for (anio in anios_a_procesar) {
           TRUE ~ "S/D"
         ),
         # SISTEMA DE SALUD
-        # Criterio: se considera que usa principalmente sistema público 
-        # si NO tiene obra social ni prepaga
+        # Criterio: usa principalmente el sistema público quien no tiene obra
+        # social ni prepaga. En Argentina no hay indicador de salud en el índice
+        # principal (la cobertura pública es universal); esta variable solo se
+        # usa en el análisis de sensibilidad (I10, Tabla A2).
         sistema_salud = case_when(
           # Obra social (sola o combinada con público)
           CH08 %in% c(1, 13) ~ "Obra social (incluye PAMI)",
@@ -465,7 +469,7 @@ for (anio in anios_a_procesar) {
           TRUE ~ NA_character_
         ),
         
-        # Variable simplificada para el indicador (comparable con CASEN)
+        # Variable simplificada para el indicador I10 de sensibilidad
         usa_sistema_publico = case_when(
           sistema_salud == "Sistema Público" ~ 1,
           sistema_salud %in% c("Obra social (incluye PAMI)", "Prepaga") ~ 0,
@@ -568,8 +572,6 @@ for (anio in anios_a_procesar) {
   # 2.8 CREAR BASE CONJUNTA
   # ---------------------------------------------------------------------------
   
-  # EPH_indiv <- EPH_indiv %>% mutate(nro_hogar = as.character(nro_hogar))  # Ya convertido en línea 197
-  
   eph_total <- left_join(
     EPH_hogar,
     EPH_indiv,
@@ -583,7 +585,7 @@ for (anio in anios_a_procesar) {
   # ---------------------------------------------------------------------------
   
 
-  hog_migrantes <- EPH_indiv %>%  # Usar EPH_indiv en vez de eph_total
+  hog_migrantes <- EPH_indiv %>%
     group_by(cod_usu, nro_hogar) %>%
     summarise(
       migrantes_en_hogar = sum(migrante, na.rm = TRUE),
@@ -635,10 +637,10 @@ if (length(lista_hogar_procesadas) > 0) {
 }
 
 # =============================================================================
-# PARTE 4: GUARDAR RESULTADOS (OPCIONAL)
+# PARTE 4: GUARDAR RESULTADOS
 # =============================================================================
 
-# Descomentar si querés guardar las bases unificadas
+# Bases unificadas (la individual la leen los pasos 3, 8 y 10)
 write_csv(EPH_indiv_unificado, "Data/EPH_indiv_2016_2024_proc.csv")
 write_csv(EPH_hogar_unificado, "Data/EPH_hogar_2016_2024_proc.csv")
 

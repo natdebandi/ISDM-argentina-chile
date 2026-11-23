@@ -68,7 +68,6 @@ base_i1 <- EPH_indiv_unificado %>%
   # al denominador y diluyen la tasa (numerador no se altera, porque nunca están
   # ocupados ni desocupados). Consecuencia de omitirlo: la tasa se calcula sobre
   # población total y deja de ser comparable con la de Chile, que filtra 15+.
-  # Ver diagnosticos/etiquetas_no_contempladas.py y el informe de auditoría.
   filter(edad >= PET_MIN_EDAD & !is.na(estado_actividad) & !is.na(migrante)) %>%  # PET
   mutate(
     activo = ifelse(estado_actividad %in% c("Ocupado", "Desocupado"), 1, 0)
@@ -567,7 +566,11 @@ message("      ✓ Asistencia superior 18-29 años calculada\n")
 
 
 # -----------------------------------------------------------------------------
-# 4. AGREGAR INDICADOR I10 (al final, después de I9)
+# I10. USO DEL SISTEMA PÚBLICO DE SALUD (solo análisis de sensibilidad)
+# -----------------------------------------------------------------------------
+# En Argentina no hay indicador de salud en el índice principal: la cobertura
+# pública es universal y la EPH no permite observar exclusión. I10 se calcula
+# solo para la sensibilidad de la Tabla A2 (paso 7).
 # -----------------------------------------------------------------------------
 
 message("   → I10. Dependencia del sistema público de salud...")
