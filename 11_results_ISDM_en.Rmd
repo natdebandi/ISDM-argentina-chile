@@ -1,0 +1,802 @@
+---
+title: "Synthetic Index of Migrant Inequality (ISDM). Argentina and Chile, 2015-2024"
+subtitle: "Methodology, results and robustness checks"
+author: "Natalia Debandi (CONICET – CIAI-UNSAM)"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    number_sections: true
+    code_folding: hide
+---
+
+```{r setup, include = FALSE}
+# Final notebook (step 11, English version). It does not process microdata: it
+# reads the outputs of steps 00 and 05 to 10 and recomputes the index with the
+# functions in R/isdm_funciones.R, so every figure comes from the same pipeline.
+# Run after steps 01-10: Knit button in RStudio, or
+# rmarkdown::render("11_results_ISDM_en.Rmd")
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 10, fig.height = 5.5, dpi = 110)
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+  library(kableExtra)
+})
+source("R/isdm_funciones.R")
+
+# ---- Palette and labels ----
+country_colours <- c("Argentina" = "#2E86AB", "Chile" = "#A23B72")
+group_colours   <- c("Non-migrants" = "#1B9E77", "Migrants" = "#D95F02", "Recent migrants" = "#7570B3")
+group_en <- c("Migrants" = "Migrants", "Recent migrants" = "Recent migrants",
+              "No migrante" = "Non-migrants", "Migrante" = "Migrants", "Migrante reciente" = "Recent migrants")
+dim_en   <- c("Labor" = "Labour", "Poverty" = "Poverty", "Social" = "Social")
+ind_en   <- c(
+  "I1_tasa_actividad"            = "I1 – Activity rate (15+)",
+  "I2_tasa_desempleo"            = "I2 – Unemployment rate",
+  "I3_informalidad_asalariada"   = "I3 – Salaried informality",
+  "I4_cuentapropismo"            = "I4 – Self-employment",
+  "I5_pobreza"                   = "I5 – Monetary poverty",
+  "I6_pobreza_extrema"           = "I6 – Extreme poverty",
+  "I7_asistencia_escolar_6_17"   = "I7 – School attendance (6-17)",
+  "I8_asistencia_superior_18_29" = "I8 – Higher education attendance (18-29)",
+  "I9_cobertura_salud"           = "I9 – Health coverage (Chile only)",
+  "I9_sistema_salud_publico"     = "I9 – Use of the public health system (sensitivity)")
+
+tbl <- function(df, caption = NULL, digits = 2, align = NULL) {
+  if (is.null(align)) align <- c("l", rep("r", ncol(df) - 1))
+  df <- df %>% mutate(across(where(is.double), ~ if_else(
+    is.na(.x), "—", formatC(.x, format = "f", digits = digits, big.mark = ","))))
+  df <- df %>% mutate(across(where(is.character), ~ replace_na(.x, "—")))
+  kable(df, caption = caption, align = align) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  full_width = FALSE, position = "left")
+}
+th <- theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom", panel.grid.minor = element_blank(),
+        strip.text = element_text(face = "bold"))
+
+# ---- Data ----
+gaps_ene <- read_csv("Data/indicadores_con_brechas_arg_chile_2015_2024.csv", show_col_types = FALSE)
+gaps_sc  <- read_csv("Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv", show_col_types = FALSE)
+scenario_en <- c(S0 = "S0 Use of the public system (positive valence)",
+                 S1 = "S1 No health indicator",
+                 S2 = "S2 Use of the public system (negative valence)",
+                 S3 = "S3 Coverage (Chile), no indicator for Argentina (main)")
+sensitivity <- read_csv("output/isdm/sensibilidad_salud.csv", show_col_types = FALSE) %>%
+  mutate(escenario = scenario_en[str_sub(escenario, 1, 2)])
+composition  <- read_csv("output/isdm/composicion_poblaciones.csv", show_col_types = FALSE)
+activity     <- read_csv("output/isdm/actividad_estandarizada_edad.csv", show_col_types = FALSE)
+activity_y   <- read_csv("output/isdm/actividad_estandarizada_edad_anual.csv", show_col_types = FALSE)
+quality      <- read_csv("output/calidad/calidad_muestral.csv", show_col_types = FALSE)
+
+# ---- Main specification ----
+datos  <- cargar_brechas()
+clasif <- clasificacion_isdm("cobertura")
+prep   <- preparar_isdm(datos, salud = "cobertura", escala = "dispersion")
+res    <- calcular_isdm(prep)
+
+# Computation with any classification (same logic as preparar_isdm with
+# escala = "dispersion"). Used in the robustness checks.
+isdm_with <- function(d, cl = clasif, excluded_years = 2020) {
+  d %>%
+    filter(!anio %in% excluded_years) %>%
+    inner_join(cl, by = "indicador") %>%
+    mutate(brecha_normalizada = if_else(tipo == "negativo", -brecha, brecha),
+           p_media  = ((tasa_no_migrante + tasa_grupo) / 2) / 100,
+           disp_ind = sqrt(p_media * (1 - p_media)) * 100,
+           brecha_z = brecha_normalizada / disp_ind) %>%
+    calcular_isdm()
+}
+
+# Checks: what is recomputed here must match what step 07 saved
+saved <- read_csv("output/isdm/isdm_resumen_pais.csv", show_col_types = FALSE)
+check_07  <- max(abs(saved$isdm_abs_de - res$resumen$isdm_abs_de))
+check_fun <- max(abs(isdm_with(datos)$resumen$isdm_abs_de - res$resumen$isdm_abs_de))
+```
+
+# Overview
+
+This document brings together the full methodology of the Synthetic Index of Migrant Inequality (*Índice Sintético de Desigualdad Migratoria*, ISDM), all its results and the robustness checks, for Argentina and Chile between 2015 and 2024. It accompanies the article "Gaps in access to rights between migrant and non-migrant populations in Argentina and Chile (2015-2024)" and is part of the project's public repository, which reproduces every figure from the microdata of the official surveys.
+
+The document does not process microdata. It reads the outputs of the previous steps of the pipeline (00 and 05 to 10) and recomputes the index with the same functions. The code of each block is folded and can be expanded with the *Code* button.
+
+Consistency check: the maximum difference between the ISDM computed in this document and the one saved by step 07 is `r format(check_07, digits = 2)`, and between the two computation functions, `r format(check_fun, digits = 2)` (both must be 0).
+
+**Reading conventions**
+
+- **Groups.** Non-migrant population, migrant population (total) and recent migrant population, which is a subset of the latter.
+- **Gap (pp).** Difference in percentage points between the rate of the non-migrant population and that of the migrant group, with the sign adjusted to the valence of the indicator. Throughout the document, **a positive value means that the non-migrant population is better off and a negative value, that the migrant population is**.
+- **d.** Gap standardised by the dispersion of the indicator. 0 is parity; as a usual reference, 0.2 is a small difference and 0.5 a moderate one (Cohen, 1988).
+- **Absolute and directional ISDM.** The absolute index measures how much inequality there is, regardless of who is better off. The directional index shows towards which group it leans.
+- **2020 is excluded** from all computations.
+
+# Methodology
+
+## Approach
+
+The study follows a comparative quantitative strategy. Since the statistical systems of the two countries differ in their definitions and methods, absolute levels are not compared across countries; instead, the analysis compares **internal gaps** between groups defined homogeneously within the same country and year. The indicators are understood as outcome indicators, in the sense of the progress indicators of the Protocol of San Salvador, that is, as measures of the effective enjoyment of rights rather than of the existence of norms or programmes (Pautassi, 2010; GTPSS, 2015; ETI-Rafidha, n.d.).
+
+## Sources and period
+
+```{r sources-table}
+tribble(
+  ~Source, ~Country, ~Years, ~Use,
+  "Permanent Household Survey (EPH), INDEC", "Argentina", "2016-2024 (excl. 2020)",
+    "All indicators. Microdata of the four quarters of each year, stacked.",
+  "National Socioeconomic Characterisation Survey (CASEN), Ministry of Social Development and Family", "Chile",
+    "2015, 2017, 2022 and 2024",
+    "All indicators except activity and unemployment of the total migrant population. All indicators for recent migrants.",
+  "National Employment Survey (ENE), INE", "Chile", "2017-2024",
+    "Activity and unemployment of the total migrant population (published indicators; the ENE does not record residence five years earlier).",
+  "World Bank (WDI) and UNU-CRIS", "Both", "1960-2024", "Context (migrant stock, GDP per capita, Gini)."
+) %>% tbl("Data sources", align = "l")
+```
+
+The period runs from 2015 to 2024. In Argentina it starts in 2016 because of the limitations of the EPH in previous years (Zack et al., 2020). The CASEN is conducted every two or three years; for the years in between, the rates of each group are **linearly interpolated** before computing the gaps. The 2020 CASEN wave, carried out during the pandemic and with a definition of migrant based on place of birth, is not used as an interpolation point. In 2024 the CASEN adopted a new poverty methodology; to keep the series comparable, the measurement with the previous methodology, which the 2024 dataset also includes, is used. The year 2020 is excluded for both countries because of the methodological and operational disruptions of the surveys during the pandemic.
+
+```{r sources-chile, fig.height = 5}
+bind_rows(
+  gaps_ene %>% filter(pais == "Chile", !is.na(brecha_nat_mig)) %>% mutate(grupo = "Migrants"),
+  gaps_sc  %>% filter(pais == "Chile", !is.na(brecha_nat_rec)) %>% mutate(grupo = "Recent migrants")) %>%
+  filter(indicador %in% clasif$indicador, anio != 2020) %>%
+  mutate(indicador = ind_en[indicador],
+         fuente = recode(fuente, CASEN_interpolado = "CASEN interpolated")) %>%
+  ggplot(aes(factor(anio), fct_rev(indicador), fill = fuente)) +
+  geom_tile(colour = "white", linewidth = 0.8) +
+  facet_wrap(~ grupo) +
+  scale_fill_manual(values = c("CASEN" = "#1B7837", "CASEN interpolated" = "#A6DBA0", "ENE" = "#2E86AB")) +
+  labs(x = NULL, y = NULL, fill = "Source", title = "Chile: origin of each value") + th
+```
+
+## Populations compared
+
+- **Migrant population.** In Argentina, people born in another country (EPH, CH15), which includes naturalised citizens. In Chile, people of foreign nationality (CASEN, r1a), which excludes those holding dual Chilean nationality. This difference reflects the information available in each survey.
+- **Recent migrant population.** Migrants who lived in another country five years before the survey (EPH, CH16; CASEN 2015, 2017 and 2022, r2). In the 2024 CASEN, which does not include that question, those who arrived in the country between 2020 and 2024 (r1cp).
+- **Non-migrant population.** The rest of the population.
+
+Neither survey records migration status (documented or undocumented). Sample sizes do not allow robust annual estimates by country of origin either.
+
+## Indicators and valences
+
+Each indicator has a **valence**: positive if higher values represent better access to rights and negative if they represent a deficit. The valence determines the sign with which the gap enters the index.
+
+```{r table-a1}
+tribble(
+  ~Indicator, ~Dimension, ~Valence, ~Computation, ~`Argentina (EPH)`, ~`Chile`,
+  "I1 – Activity rate", "Labour", "Positive",
+    "Economically active population aged 15+ / population aged 15+ × 100",
+    "ESTADO", "Total: ENE. Recent: CASEN (activ)",
+  "I2 – Unemployment rate", "Labour", "Negative",
+    "Unemployed / economically active population × 100 (15+)",
+    "ESTADO", "Total: ENE. Recent: CASEN (activ)",
+  "I3 – Salaried informality", "Labour", "Negative",
+    "Employees without pension contributions / all employees × 100 (15+)",
+    "PP07H: no pension deduction", "CASEN: does not contribute (o29/o32), including those not affiliated (o28/o31)",
+  "I4 – Self-employment", "Labour", "Negative",
+    "Own-account workers / all employed × 100 (15+)",
+    "CAT_OCUP", "CASEN (o15, all employed)",
+  "I5 – Monetary poverty", "Poverty", "Negative",
+    "People in households with per capita income below the poverty line × 100",
+    "INDEC regional baskets (eph package), PONDIH weight", "CASEN (2024 with the previous methodology)",
+  "I6 – Extreme poverty", "Poverty", "Negative",
+    "People below the extreme poverty line × 100",
+    "Same, PONDIH weight", "CASEN (2024 with the previous methodology)",
+  "I7 – School attendance", "Social", "Positive",
+    "People aged 6-17 attending an educational institution × 100",
+    "CH10", "CASEN (asiste)",
+  "I8 – Higher education attendance", "Social", "Positive",
+    "People aged 18-29 attending higher education × 100",
+    "CH10 and CH12", "CASEN (asiste and level)",
+  "I9 – Health coverage", "Social", "Positive",
+    "People affiliated to any health system (FONASA, ISAPRE, Armed Forces or other) × 100",
+    "Not computed", "CASEN (s12/s13)"
+) %>% tbl("Table A1. Indicators, interpretation and computation", align = "l")
+```
+
+**Rationale for the less obvious valences**
+
+- **Activity rate (positive).** Higher participation expresses a fuller exercise of the right to work. Since the rate depends on the age structure, it is computed for the population aged 15 and over in both countries and checked against an age-standardised version (see the composition and robustness sections).
+- **Self-employment (negative).** Own-account work is associated with informal, precarious or platform-based forms of employment that disproportionately affect migrants, and may reflect insertion strategies shaped by restricted access to formal employment (Longo et al., 2023).
+- **Informality.** An indicator of total informality was initially computed, but including it together with salaried informality and self-employment introduced a structural redundancy. The two disaggregated components are kept.
+- **Health.** The indicator identifies people without any coverage. In Chile, affiliation to a health system is the gateway to the network of services, and its absence expresses exclusion. In Argentina, during the period, coverage by the public system was universal, did not require affiliation and did not depend on migration or employment status (Law 25,871, art. 8), so the coverage gap is formally zero; moreover, the EPH cannot capture de facto exclusion. The indicator is therefore not computed for Argentina, and the robustness section shows what happens if it is included with a zero gap (S4). This began to change at the end of the period: in 2024 Salta, Mendoza, Jujuy and Santa Cruz started charging non-resident foreigners for care in public hospitals, and Decree 366/2025 made access for people who are not permanent residents, except in emergencies, conditional on prior payment or health insurance.
+
+The two debatable valences (activity and self-employment) are tested in the robustness section.
+
+```{r sign-reading}
+tribble(
+  ~Indicator, ~`A positive gap means`, ~`A negative gap means`,
+  "I1 – Activity", "Migrants participate less", "Migrants participate more",
+  "I2 – Unemployment", "Migrants have higher unemployment", "Migrants have lower unemployment",
+  "I3 – Salaried informality", "Migrants are more informal", "Migrants are less informal",
+  "I4 – Self-employment", "Migrants are more often self-employed", "Migrants are less often self-employed",
+  "I5-I6 – Poverty", "Migrants are poorer", "Migrants are less poor",
+  "I7-I8 – Educational attendance", "Migrants attend less", "Migrants attend more",
+  "I9 – Health coverage", "Migrants have less coverage", "Migrants have more coverage"
+) %>% tbl("How to read the sign of the gap for each indicator", align = "l")
+```
+
+## Harmonised gap
+
+Let $X_{i,c,t}^{g}$ be the value of indicator $i$ in country $c$, year $t$ and group $g$ (non-migrant, $nm$, or migrant, $m$). With an orientation factor $s_i$ equal to $+1$ for indicators with positive valence and $-1$ for those with negative valence, the harmonised gap is
+
+$$\Delta_{i,c,t} = s_i \cdot \left(X_{i,c,t}^{nm} - X_{i,c,t}^{m}\right)$$
+
+A positive value indicates a relative advantage of the non-migrant population and a negative value, of the migrant population. The gap is computed separately for the total and the recent migrant population.
+
+## Standardisation: why parity is the reference
+
+The indicators have very different levels and variability (unemployment is around 8% and activity around 60%), so the same gap in percentage points does not mean the same in all of them. To make them comparable, each gap is divided by the **individual-level dispersion** of the indicator:
+
+$$Z_{i,c,t} = \frac{\Delta_{i,c,t}}{\sqrt{\bar p_{i,c,t}\,(1-\bar p_{i,c,t})}}, \qquad \bar p_{i,c,t} = \frac{X_{i,c,t}^{nm} + X_{i,c,t}^{m}}{200}$$
+
+where $\sqrt{\bar p(1-\bar p)}$ is the standard deviation of a binary variable with the average prevalence of the two groups. The result is a standardised difference in proportions, equivalent to Cohen's d for proportions (Cohen, 1988). In the article and in this document it is denoted $Z$, and its values are expressed in d units.
+
+When building composite indices it is common to normalise indicators as z-scores, subtracting the mean of the cases compared and dividing by their standard deviation (OECD & JRC, 2008). This is not done here because the ISDM does not aim to rank countries, but to measure the distance between two groups with respect to a substantive reference: **equality in access to rights**. Subtracting the mean of the gaps would have three undesirable consequences.
+
+1. **Zero would no longer mean parity.** It would represent "the average gap of the cases compared", so a value close to zero could correspond to considerable inequality if both countries share it.
+2. **With two countries, results would mirror each other.** Whatever one country deviates from the average, the other deviates in the opposite direction, so one of them would always appear in a favourable position even if migrants were disadvantaged in both.
+3. **The index would depend on the set of cases.** It would change when countries or years are added or removed, and would be unstable for indicators observed in few cases, such as health coverage, which exists only for Chile.
+
+The individual-level dispersion, by contrast, keeps zero as parity, is computed within each country and year without depending on other cases, and weighs the gap according to the level of the indicator. For example, a 5 pp gap weighs more when the rate is around 10% than when it is around 50%. The robustness section shows that the comparison between countries holds when percentage points are used directly.
+
+## Hierarchical aggregation
+
+At the first level, the standardised gaps of each dimension are averaged into a **sub-index**:
+
+$$SI_{D,c,t} = \frac{1}{n_D}\sum_{i \in D} Z_{i,c,t}$$
+
+At the second level, the ISDM is the simple average of the three sub-indices (labour, poverty and social), so that each dimension contributes one third of the index regardless of how many indicators it contains. This prevents the labour dimension, with four indicators, from weighing more than the others, and allows correlated indicators, such as poverty and extreme poverty, to be included without distorting the weight of their dimension. Two versions are computed.
+
+$$ISDM^{dir}_{c,t} = \frac{1}{3}\sum_{D} \frac{1}{n_D}\sum_{i \in D} Z_{i,c,t} \qquad\qquad ISDM^{abs}_{c,t} = \frac{1}{3}\sum_{D} \frac{1}{n_D}\sum_{i \in D} \left|Z_{i,c,t}\right|$$
+
+The **directional** index keeps the sign and shows towards which group inequality leans. The **absolute** index averages absolute values and measures its magnitude, so gaps of opposite sign do not cancel out. Both are also expressed in percentage points, applying the same aggregation to the unstandardised gaps. The value for the period is the average of the annual values (excluding 2020), and the index is computed separately for the total and the recent migrant population.
+
+## Quality of the estimates
+
+For each indicator, country, year and group, the sample size and **Kish's effective sample size** (Kish, 1965), $n_{eff} = (\sum w)^2 / \sum w^2$, are computed; the latter discounts the loss of precision due to the variability of survey weights. Estimates are classified as OK if $n \ge 100$ and $n_{eff} \ge 50$, as CAUTION if $n \ge 30$ and $n_{eff} \ge 30$, and as DO NOT USE below that. This is a diagnostic: no value is excluded from the main index, and the robustness section shows what happens if they are excluded.
+
+## Limitations
+
+- The surveys do not record migration status and under-represent situations of extreme irregularity.
+- Migrants are defined by birth in Argentina and by nationality in Chile.
+- In Chile, most annual values are interpolated between CASEN waves, and the series for the total migrant population combines the ENE and the CASEN. Annual changes should be read as trends.
+- In Chile, in 2015 and 2016 the labour dimension for the total migrant population has only two indicators (the ENE starts in 2017).
+- Some estimates for recent migrants in Argentina are based on small samples.
+- Income indicators rely on reported income.
+
+# Context
+
+```{r context, results = "asis"}
+context <- c("Figure 1. Migrant stock in Argentina and Chile, 1960-2024 (thousands)" = "output/contexto/stock_migratorio_arg_chl.png",
+             "Figure A1. GDP per capita, Argentina and Chile (1995-2022)" = "output/contexto/gdp_per_capita_arg_chl_media.png",
+             "Figure A2. Gini coefficient, Argentina and Chile (1995-2022)" = "output/contexto/gini_arg_chl_media.png")
+for (i in seq_along(context)) {
+  if (file.exists(context[i])) {
+    cat("\n\n**", names(context)[i], "**\n\n", sep = "")
+    cat(sprintf("![](%s){width=85%%}\n\n", context[i]))
+  }
+}
+```
+
+# Indicators by country, year and group
+
+Rates (%) for each group. Dots mark observed values; in Chile, segments without dots are interpolated.
+
+```{r indicators, fig.height = 11}
+ind_long <- bind_rows(
+  gaps_ene %>% transmute(pais, fuente, anio, indicador, `Non-migrants` = nativos, Migrants = migrantes),
+  gaps_sc  %>% transmute(pais, fuente, anio, indicador, `Recent migrants` = migrantes_recientes)) %>%
+  pivot_longer(c(`Non-migrants`, Migrants, `Recent migrants`), names_to = "grupo", values_to = "rate") %>%
+  filter(!is.na(rate), anio != 2020, indicador %in% clasif$indicador) %>%
+  distinct(pais, anio, indicador, grupo, .keep_all = TRUE) %>%
+  mutate(indicador = factor(ind_en[indicador], levels = ind_en[clasif$indicador]),
+         grupo = factor(grupo, levels = names(group_colours)),
+         observed = fuente != "CASEN_interpolado")
+
+ggplot(ind_long, aes(anio, rate, colour = grupo, linetype = pais)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(data = filter(ind_long, observed), size = 1.6) +
+  facet_wrap(~ indicador, scales = "free_y", ncol = 3) +
+  scale_colour_manual(values = group_colours) +
+  scale_x_continuous(breaks = seq(2015, 2024, 3)) +
+  labs(x = NULL, y = "%", colour = "Group", linetype = "Country") + th
+```
+
+# Gaps by dimension
+
+Average harmonised gap for the period, in percentage points and unstandardised (average 2015-2024, excluding 2020). Positive = the non-migrant population is better off. The figures show the distribution of the annual values.
+
+```{r gap-tables, results = "asis"}
+gaps_ind <- prep %>%
+  group_by(dimension, indicador, pais, grupo) %>%
+  summarise(b = mean(brecha_normalizada), .groups = "drop") %>%
+  pivot_wider(names_from = pais, values_from = b) %>%
+  mutate(`CHL−ARG` = Chile - Argentina) %>%
+  pivot_wider(names_from = grupo, values_from = c(Argentina, Chile, `CHL−ARG`)) %>%
+  transmute(dimension, Indicator = ind_en[indicador],
+            ARG = Argentina_Migrants, CHL = Chile_Migrants, `CHL−ARG` = `CHL−ARG_Migrants`,
+            `ARG ` = `Argentina_Recent migrants`, `CHL ` = `Chile_Recent migrants`,
+            `CHL−ARG ` = `CHL−ARG_Recent migrants`)
+titles <- c(Labor   = "Table 1. Labour gaps between non-migrants and migrants by country and population subgroup (pp). Argentina and Chile, 2015–2024",
+            Poverty = "Table 2. Economic deprivation gaps between non-migrants and migrants by country and population subgroup (pp). Argentina and Chile, 2015–2024",
+            Social  = "Table 3. Social rights gaps between non-migrants and migrants by country and population subgroup (pp). Argentina and Chile, 2015–2024")
+for (d in names(titles)) {
+  print(gaps_ind %>% filter(dimension == d) %>% select(-dimension) %>%
+          tbl(titles[d], digits = 1) %>%
+          add_header_above(c(" " = 1, "Total migration" = 3, "Recent migration" = 3)))
+  cat("\n\n")
+}
+```
+
+```{r gap-figures, fig.height = 6, results = "asis"}
+dim_figure <- function(dim, title) {
+  cat("\n\n**", title, "**\n\n", sep = "")
+  p <- prep %>%
+    filter(dimension == dim) %>%
+    mutate(indicador = fct_rev(factor(ind_en[indicador], levels = ind_en))) %>%
+    ggplot(aes(indicador, brecha_normalizada, colour = pais)) +
+    geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7) +
+    geom_boxplot(alpha = 0.4, position = position_dodge(0.8), outlier.shape = NA) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8, seed = 1),
+               alpha = 0.6, size = 1.8) +
+    coord_flip() + facet_wrap(~ grupo) +
+    scale_colour_manual(values = country_colours) +
+    labs(x = NULL, y = "Harmonised gap (pp)  ·  negative = migrants better off | positive = non-migrants better off",
+         colour = "Country", caption = "Each dot is a year. Unstandardised data, oriented according to the valence of the indicator.") + th
+  print(p)
+}
+dim_figure("Labor",   "Figure 2. Annual distribution of labour gaps between non-migrants and migrants by country and population subgroup (pp). Argentina and Chile, 2015–2024")
+dim_figure("Poverty", "Figure 3. Annual distribution of economic deprivation gaps between non-migrants and migrants by country and population subgroup (pp). Argentina and Chile, 2015–2024")
+dim_figure("Social",  "Figure 4. Annual distribution of social rights gaps between non-migrants and migrants by country and population subgroup (pp). Argentina and Chile, 2015–2024")
+```
+
+# The index
+
+## How it is computed
+
+The ISDM is built in four steps, for each country $c$, year $t$ and migrant group (total or recent).
+
+**1. Harmonised gap (pp).** Difference between the rate of the non-migrant population and that of the migrant group, with the sign of the valence ($s_i = +1$ if more is better, $-1$ if more is worse):
+
+$$\Delta_{i,c,t} = s_i \cdot \left(X_{i,c,t}^{nm} - X_{i,c,t}^{m}\right)$$
+
+**2. Standardised gap (Z, in d units).** The gap is divided by the individual-level dispersion of the indicator, computed with the average rate of the two groups:
+
+$$Z_{i,c,t} = \frac{\Delta_{i,c,t}}{\sqrt{\bar p_{i,c,t}\,(1-\bar p_{i,c,t})}}, \qquad \bar p_{i,c,t} = \frac{X_{i,c,t}^{nm} + X_{i,c,t}^{m}}{200}$$
+
+**3. Sub-indices by dimension.** Average of the standardised gaps of the indicators in each dimension $D$ (labour, poverty, social), with their sign for the directional version and in absolute value for the absolute version:
+
+$$SI^{dir}_{D,c,t} = \frac{1}{n_D}\sum_{i \in D} Z_{i,c,t} \qquad\qquad SI^{abs}_{D,c,t} = \frac{1}{n_D}\sum_{i \in D} \left|Z_{i,c,t}\right|$$
+
+**4. ISDM.** Simple average of the three sub-indices, so that each dimension weighs one third:
+
+$$ISDM^{dir}_{c,t} = \frac{1}{3}\sum_{D} SI^{dir}_{D,c,t} \qquad\qquad ISDM^{abs}_{c,t} = \frac{1}{3}\sum_{D} SI^{abs}_{D,c,t}$$
+
+The value for the period is the average of the annual values, excluding 2020. The percentage-point versions apply steps 3 and 4 to $\Delta$ instead of $Z$.
+
+**How to read the values.** The absolute ISDM equals 0 when there is parity in all indicators and grows with the distance between groups, regardless of who is better off. As a reference, in d units, around 0.2 is a small difference and around 0.5 a moderate one (Cohen, 1988). The directional ISDM is positive when, on average, the non-migrant population is better off and negative when the migrant population is. Since gaps of opposite sign cancel out, the directional index is always smaller than or equal to the absolute index in absolute value; the distance between them shows how much advantages and disadvantages offset each other across indicators.
+
+### Worked example: Chile, 2022, total migrant population
+
+```{r example}
+ex_country <- "Chile"; ex_year <- 2022; ex_group <- "Migrants"
+ex <- prep %>% filter(pais == ex_country, anio == ex_year, grupo == ex_group) %>%
+  mutate(dimension = factor(dimension, levels = names(dim_en))) %>%
+  arrange(dimension, indicador)
+ex %>%
+  transmute(Dimension = dim_en[as.character(dimension)], Indicator = ind_en[indicador],
+            Valence = if_else(tipo == "positivo", "+1", "−1"),
+            `Non-migrants (%)` = tasa_no_migrante, `Migrants (%)` = tasa_grupo,
+            `Δ (pp)` = brecha_normalizada, `p̄` = p_media,
+            `√(p̄(1−p̄)) (pp)` = disp_ind, `Z (d)` = brecha_z) %>%
+  tbl(sprintf("Steps 1 and 2. Gaps in %s, %d, total migrant population", ex_country, ex_year), digits = 3)
+```
+
+```{r example-step, include = FALSE}
+f <- function(x, k = 2) formatC(x, format = "f", digits = k)
+inf <- ex %>% filter(indicador == "I3_informalidad_asalariada")
+```
+
+For instance, salaried informality has a negative valence, so the harmonised gap is $\Delta = -1 \cdot (`r f(inf$tasa_no_migrante)` - `r f(inf$tasa_grupo)`) = `r f(inf$brecha_normalizada)`$ pp. The average rate of the two groups is $\bar p = (`r f(inf$tasa_no_migrante)` + `r f(inf$tasa_grupo)`)/200 = `r f(inf$p_media, 3)`$, and the dispersion is $\sqrt{`r f(inf$p_media, 3)` \cdot (1 - `r f(inf$p_media, 3)`)} = `r f(inf$disp_ind / 100, 3)`$, that is, `r f(inf$disp_ind, 1)` pp. Hence $Z = `r f(inf$brecha_normalizada)` / `r f(inf$disp_ind, 1)` = `r f(inf$brecha_z, 3)`$: migrants are at a disadvantage, with a small to moderate difference. In the activity rate, by contrast, migrants participate more, so the gap is negative (migrant advantage).
+
+```{r example-aggregation}
+ex_sub <- ex %>% group_by(dimension) %>%
+  summarise(n = n(), `Directional SI (d)` = mean(brecha_z), `Absolute SI (d)` = mean(abs(brecha_z)),
+            `Directional SI (pp)` = mean(brecha_normalizada), `Absolute SI (pp)` = mean(abs(brecha_normalizada)),
+            .groups = "drop") %>%
+  mutate(dimension = dim_en[as.character(dimension)])
+ex_isdm <- ex_sub %>% summarise(dimension = "ISDM (average of the three sub-indices)", n = sum(n),
+                                across(contains("SI", ignore.case = FALSE), mean))
+bind_rows(ex_sub, ex_isdm) %>%
+  rename(Dimension = dimension, Indicators = n) %>%
+  tbl(sprintf("Steps 3 and 4. Sub-indices and ISDM in %s, %d, total migrant population", ex_country, ex_year), digits = 3) %>%
+  row_spec(nrow(ex_sub) + 1, bold = TRUE)
+ex_check <- res$anual %>% filter(pais == ex_country, anio == ex_year, grupo == ex_group)
+```
+
+The result matches the annual ISDM saved by the pipeline (absolute `r formatC(ex_check$isdm_abs_de, format = "f", digits = 3)` and directional `r formatC(ex_check$isdm_dir_de, format = "f", digits = 3)` in d units). Repeating this for every year and averaging gives the period value in Table 4.
+
+## Average for the period
+
+```{r table4}
+res$resumen %>%
+  transmute(Country = pais, Group = group_en[grupo],
+            `Absolute (d)` = isdm_abs_de, `Directional (d)` = isdm_dir_de,
+            `Absolute (pp)` = isdm_abs_pp, `Directional (pp)` = isdm_dir_pp, Years = n_anios) %>%
+  tbl("Table 4. Synthetic Index of Migrant Inequality (ISDM) by country and population subgroup. Argentina and Chile, average 2015–2024 (excluding 2020)", digits = 3)
+```
+
+## Annual trends
+
+```{r figure5}
+annual <- res$anual %>% mutate(grupo = group_en[grupo])
+ggplot(annual, aes(anio, isdm_abs_de, colour = pais, linetype = grupo)) +
+  geom_line(linewidth = 1.1) + geom_point(size = 2.2) +
+  scale_colour_manual(values = country_colours) +
+  scale_x_continuous(breaks = sort(unique(annual$anio))) +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = NULL, y = "Absolute ISDM (d)  ·  0 = parity", colour = "Country", linetype = "Group",
+       title = "Figure 5. Absolute ISDM by country and population subgroup (d). Argentina and Chile, 2015–2024") + th +
+  theme(plot.title = element_text(size = 11))
+
+ggplot(annual, aes(anio, isdm_dir_pp, colour = pais, linetype = grupo)) +
+  geom_hline(yintercept = 0, linewidth = 0.6) +
+  geom_line(linewidth = 1.1) + geom_point(size = 2.2) +
+  scale_colour_manual(values = country_colours) +
+  scale_x_continuous(breaks = sort(unique(annual$anio))) +
+  labs(x = NULL, y = "Directional ISDM (pp)  ·  positive = non-migrants better off",
+       colour = "Country", linetype = "Group", title = "Direction of inequality by year") + th
+
+annual %>%
+  arrange(anio) %>%
+  select(pais, grupo, anio, isdm_abs_de) %>%
+  pivot_wider(names_from = anio, values_from = isdm_abs_de) %>%
+  rename(Country = pais, Group = grupo) %>%
+  arrange(Country, Group) %>%
+  tbl("Absolute ISDM (d) by year", digits = 3)
+```
+
+In every year with data for both countries, Chile's absolute ISDM exceeds Argentina's, for both total and recent migration: `r annual %>% select(pais, grupo, anio, isdm_abs_de) %>% pivot_wider(names_from = pais, values_from = isdm_abs_de) %>% filter(!is.na(Argentina), !is.na(Chile)) %>% summarise(n = n(), yes = sum(Chile > Argentina)) %>% glue::glue_data("{yes} out of {n} comparisons (each year, for each group)")`.
+
+## Sub-indices by dimension
+
+```{r figure6, fig.height = 4.5}
+sub <- res$subindices_resumen %>%
+  mutate(dimension = factor(dim_en[dimension], levels = dim_en), grupo = group_en[grupo])
+ggplot(sub, aes(sub_dir_pp, fct_rev(dimension), fill = pais)) +
+  geom_col(position = position_dodge(0.8), width = 0.7) +
+  geom_vline(xintercept = 0, linewidth = 0.7) +
+  geom_text(aes(label = sprintf("%+.2f", sub_dir_pp), hjust = if_else(sub_dir_pp >= 0, -0.15, 1.15)),
+            position = position_dodge(0.8), size = 3.5) +
+  facet_wrap(~ grupo) +
+  scale_fill_manual(values = country_colours) +
+  scale_x_continuous(expand = expansion(mult = 0.3)) +
+  labs(x = "Directional sub-index (pp)  ·  negative = migrants better off | positive = non-migrants better off",
+       y = NULL, fill = "Country",
+       title = "Figure 6. Directional ISDM sub-indices by dimension, country and population subgroup (pp).\nArgentina and Chile, average 2015–2024") + th +
+  theme(plot.title = element_text(size = 11))
+
+sub %>%
+  transmute(Country = pais, Group = grupo, Dimension = dimension,
+            `Absolute (d)` = sub_abs_de, `Directional (d)` = sub_dir_de,
+            `Absolute (pp)` = sub_abs_pp, `Directional (pp)` = sub_dir_pp) %>%
+  arrange(Group, Dimension, Country) %>%
+  tbl("Sub-indices by dimension", digits = 3)
+```
+
+# Robustness
+
+Each check changes one methodological decision and recomputes the index. The central question is whether the main result holds, that is, whether **the magnitude of inequality (absolute ISDM) is greater in Chile than in Argentina**, for both total and recent migration. A table at the end of the section summarises all the checks.
+
+```{r rob-helpers}
+summarise_check <- function(r, check, family) {
+  r$resumen %>% transmute(family, check, pais, grupo,
+                          abs_d = isdm_abs_de, dir_pp = isdm_dir_pp, abs_pp = isdm_abs_pp)
+}
+wide <- function(df, var) {
+  df %>% select(family, check, pais, grupo, v = {{ var }}) %>%
+    mutate(col = paste(if_else(pais == "Argentina", "ARG", "CHL"),
+                       if_else(grupo == "Migrants", "total", "recent"))) %>%
+    select(-pais, -grupo) %>%
+    pivot_wider(names_from = col, values_from = v) %>%
+    select(family, check, `ARG total`, `CHL total`, `ARG recent`, `CHL recent`)
+}
+main_spec <- summarise_check(res, "Main specification", "Main")
+```
+
+## Valences
+
+The absolute ISDM does not depend on valences. Changing the valence of an indicator only changes the sign of its gap, and the absolute index takes absolute values, so its magnitude is identical. Valences only affect the directional ISDM and the directional sub-indices. The two debatable valences are those of the activity rate and of self-employment. Each is inverted and each indicator is excluded in turn.
+
+```{r rob-valences}
+set_valence <- function(cl, ind, new_type) cl %>% mutate(tipo = if_else(indicador == ind, new_type, tipo))
+val <- list(
+  "Self-employment with positive valence"   = set_valence(clasif, "I4_cuentapropismo", "positivo"),
+  "Without self-employment"                 = filter(clasif, indicador != "I4_cuentapropismo"),
+  "Activity with negative valence"          = set_valence(clasif, "I1_tasa_actividad", "negativo"),
+  "Without activity rate"                   = filter(clasif, indicador != "I1_tasa_actividad"),
+  "Without activity or self-employment"     = filter(clasif, !indicador %in% c("I1_tasa_actividad", "I4_cuentapropismo"))
+)
+rob_val <- imap_dfr(val, ~ summarise_check(isdm_with(datos, .x), .y, "Valences"))
+lab_val <- imap_dfr(c(list("Main specification" = clasif), val), function(cl, name) {
+  isdm_with(datos, cl)$subindices_resumen %>% filter(dimension == "Labor") %>%
+    transmute(check = name, pais, grupo, lab = sub_dir_pp)
+}) %>%
+  mutate(col = paste("Labour dir. (pp)", if_else(pais == "Argentina", "ARG", "CHL"),
+                     if_else(grupo == "Migrants", "total", "recent"))) %>%
+  select(-pais, -grupo) %>% pivot_wider(names_from = col, values_from = lab) %>%
+  select(check, ends_with("ARG total"), ends_with("CHL total"), ends_with("ARG recent"), ends_with("CHL recent"))
+
+bind_rows(main_spec, rob_val) %>% wide(dir_pp) %>% select(-family) %>%
+  left_join(lab_val, by = "check") %>%
+  rename(Check = check) %>%
+  tbl("Directional ISDM and directional labour sub-index (pp) by valence", digits = 2) %>%
+  add_header_above(c(" " = 1, "Directional ISDM (pp)" = 4, "Directional labour sub-index (pp)" = 4))
+
+bind_rows(main_spec, rob_val) %>% wide(abs_d) %>% select(-family) %>% rename(Check = check) %>%
+  tbl("Absolute ISDM (d) by valence", digits = 3)
+dir_chile <- rob_val %>% filter(pais == "Chile") %>% pull(dir_pp)
+```
+
+Inverting a valence leaves the absolute ISDM unchanged, as expected. Excluding the activity rate or self-employment changes it little and does not alter the ranking of the two countries. As for direction, Chile's directional ISDM remains favourable to the non-migrant population in all variants (between `r formatC(min(dir_chile), format = "f", digits = 1)` and `r formatC(max(dir_chile), format = "f", digits = 1)` pp). The valence of the activity rate is the decision with the greatest weight on the direction of Chile's labour sub-index, because migrants participate much more than non-migrants. With a positive valence, that higher participation counts as a migrant advantage and offsets the disadvantage in informality; if it is regarded as a deficit, the Chilean labour sub-index becomes unfavourable to migrants.
+
+## Health indicator
+
+Five specifications are compared. S0 measures exclusive use of the public system with positive valence, a common operationalisation of access to health. In Argentina, however, that variable identifies people without social health insurance or private plans, so it mainly expresses the lack of contributory coverage and overlaps with informality, which is already part of the labour dimension. S1 excludes health, S2 inverts the valence of S0, S3 is the main specification (coverage in Chile, no indicator for Argentina) and S4 also includes the indicator for Argentina with a zero gap, which corresponds to the universal, affiliation-free coverage of the public system during the period.
+
+```{r rob-health}
+# S4: health coverage also for Argentina, with a zero gap (universal public coverage without affiliation)
+arg_health <- datos %>% filter(pais == "Argentina") %>% distinct(pais, anio, grupo) %>%
+  mutate(fuente = "assumed", indicador = "I9_cobertura_salud",
+         tasa_no_migrante = 99, tasa_grupo = 99, brecha = 0)   # Δ = 0 => Z = 0
+r_s4 <- isdm_with(bind_rows(datos, arg_health))
+s4 <- r_s4$resumen %>%
+  left_join(r_s4$subindices_resumen %>% filter(dimension == "Social") %>% select(pais, grupo, social_dir_pp = sub_dir_pp),
+            by = c("pais", "grupo")) %>%
+  mutate(escenario = "S4 Coverage (Chile) and zero gap for Argentina", .before = 1)
+sensitivity <- bind_rows(sensitivity, s4)
+sensitivity %>%
+  transmute(Scenario = escenario, Country = pais, Group = group_en[grupo],
+            `Absolute (d)` = isdm_abs_de, `Directional (pp)` = isdm_dir_pp,
+            `Social directional (pp)` = social_dir_pp) %>%
+  tbl("Table A2. Absolute ISDM and social dimension by specification of the health indicator. Argentina and Chile, average 2015–2024", digits = 3)
+rob_health <- sensitivity %>%
+  filter(!str_starts(escenario, "S3")) %>%
+  transmute(family = "Health", check = escenario, pais, grupo,
+            abs_d = isdm_abs_de, dir_pp = isdm_dir_pp, abs_pp = isdm_abs_pp)
+```
+
+## Sources and interpolation in Chile
+
+The Chilean series combines the ENE and the CASEN and interpolates between waves. The index is recomputed using only the CASEN (without the ENE) and using only the years actually surveyed by the CASEN (2015, 2017, 2022 and 2024), with no interpolated value.
+
+```{r rob-sources}
+file_sc <- "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv"
+rob_sources <- bind_rows(
+  summarise_check(isdm_with(cargar_brechas(archivo_ene = file_sc)), "Chile with CASEN only", "Sources"),
+  summarise_check(isdm_with(cargar_brechas(archivo_ene = file_sc) %>%
+                              filter(pais == "Argentina" | anio %in% c(2015, 2017, 2022, 2024))),
+                  "Chile with surveyed years only (no interpolation)", "Sources"))
+bind_rows(main_spec, rob_sources) %>% filter(pais == "Chile") %>%
+  transmute(Check = check, Group = group_en[grupo], `Absolute (d)` = abs_d, `Directional (pp)` = dir_pp) %>%
+  tbl("Chile: ISDM by sources and years", digits = 3)
+```
+
+## Excluding indicators and dimensions
+
+The index is recomputed excluding one indicator at a time and, then, one dimension at a time.
+
+```{r rob-exclusion}
+rob_ind <- map_dfr(clasif$indicador, function(i)
+  summarise_check(isdm_with(datos, filter(clasif, indicador != i)), paste("Without", ind_en[i]), "Excluding indicators"))
+rob_dim <- map_dfr(names(dim_en), function(d)
+  summarise_check(isdm_with(datos, filter(clasif, dimension != d)),
+                  paste("Without the", tolower(dim_en[d]), "dimension"), "Excluding dimensions"))
+bind_rows(main_spec, rob_ind, rob_dim) %>% wide(abs_d) %>% select(-family) %>% rename(Check = check) %>%
+  tbl("Absolute ISDM (d) excluding indicators and dimensions", digits = 3)
+```
+
+## Weighting
+
+In the main specification each dimension weighs one third. As an alternative, each indicator is given the same weight (simple average of all standardised gaps, without going through the sub-indices), which increases the weight of the labour dimension.
+
+```{r rob-weights}
+flat <- prep %>%
+  group_by(pais, anio, grupo) %>%
+  summarise(isdm_abs_de = mean(abs(brecha_z)), isdm_dir_pp = mean(brecha_normalizada),
+            isdm_abs_pp = mean(abs(brecha_normalizada)), .groups = "drop") %>%
+  group_by(pais, grupo) %>%
+  summarise(across(starts_with("isdm_"), mean), .groups = "drop")
+rob_weights <- summarise_check(list(resumen = flat), "Equal weight for each indicator", "Weighting")
+bind_rows(main_spec, rob_weights) %>% wide(abs_d) %>% select(-family) %>% rename(Check = check) %>%
+  tbl("Absolute ISDM (d) by weighting", digits = 3)
+```
+
+## Scale
+
+The index is also computed in percentage points, without standardisation. The ranking of the two countries does not depend on standardisation.
+
+```{r rob-scale}
+rob_scale <- main_spec %>% mutate(family = "Scale", check = "Gaps in pp, unstandardised", abs_d = abs_pp)
+bind_rows(main_spec %>% mutate(check = "Standardised difference (d)"), rob_scale) %>%
+  wide(abs_d) %>% select(-family) %>% rename(Scale = check) %>%
+  tbl("Absolute ISDM by scale (d or pp)", digits = 3)
+```
+
+## Sample quality
+
+Gaps for which the migrant or non-migrant group has an estimate classified as DO NOT USE are excluded from the computation and, in a second check, also those classified as CAUTION. All of them concern recent migrants in Argentina.
+
+```{r rob-quality}
+exclude_cells <- function(threshold) {
+  ex <- quality %>% filter(semaforo %in% threshold) %>%
+    mutate(indicador = if_else(indicador == "I5_I6_pobreza", "I5_pobreza|I6_pobreza_extrema", indicador)) %>%
+    separate_rows(indicador, sep = "\\|")
+  bind_rows(
+    ex %>% filter(grupo == "No migrante") %>% select(-grupo) %>% crossing(grupo = c("Migrants", "Recent migrants")),
+    ex %>% filter(grupo != "No migrante") %>%
+      mutate(grupo = recode(grupo, "Migrante" = "Migrants", "Migrante reciente" = "Recent migrants"))) %>%
+    distinct(indicador, pais, anio, grupo)
+}
+cells_do_not_use <- exclude_cells("NO USAR")
+cells_caution    <- exclude_cells(c("NO USAR", "CUIDADO"))
+rob_quality <- bind_rows(
+  summarise_check(isdm_with(anti_join(datos, cells_do_not_use, by = c("indicador", "pais", "anio", "grupo"))),
+                  sprintf("Without the %d gaps with DO NOT USE samples", nrow(cells_do_not_use)), "Sample quality"),
+  summarise_check(isdm_with(anti_join(datos, cells_caution, by = c("indicador", "pais", "anio", "grupo"))),
+                  sprintf("Without the %d gaps with DO NOT USE or CAUTION samples", nrow(cells_caution)), "Sample quality"))
+bind_rows(main_spec, rob_quality) %>% wide(abs_d) %>% select(-family) %>% rename(Check = check) %>%
+  tbl("Absolute ISDM (d) excluding estimates based on small samples", digits = 3)
+```
+
+## Age structure of the activity rate
+
+The activity rate is replaced by its age-standardised version (direct method, using the age structure of the non-migrant population). The standardised version is available for years with microdata (in Chile, only the CASEN waves), so the comparison is made over those same years.
+
+```{r rob-age}
+act <- activity_y %>%
+  transmute(pais, anio, grupo = recode(grupo, "Migrante" = "Migrants", "Migrante reciente" = "Recent migrants"),
+            tasa_no_migrante, tasa_grupo = tasa_estandarizada)
+same_years <- datos %>% semi_join(distinct(act, pais, anio), by = c("pais", "anio"))
+with_age <- same_years %>%
+  filter(indicador != "I1_tasa_actividad") %>%
+  bind_rows(act %>% mutate(fuente = "standardised", indicador = "I1_tasa_actividad",
+                           brecha = tasa_no_migrante - tasa_grupo))
+rob_age <- bind_rows(
+  summarise_check(isdm_with(same_years), "Same years, crude activity rate", "Age structure"),
+  summarise_check(isdm_with(with_age), "Same years, age-standardised activity rate", "Age structure"))
+rob_age %>% wide(abs_d) %>% select(-family) %>% rename(Check = check) %>%
+  tbl("Absolute ISDM (d) with the crude and age-standardised activity rate", digits = 3)
+```
+
+Another age-related decision is the threshold of the working-age population. INDEC's official definition is 10 years and over, but it was harmonised at 15 years and over in both countries, as used by the CASEN and the ENE. Argentina's activity gap for total migration depends on that threshold (−9.5 pp without an age filter, −3.1 pp for 10 and over and +1.3 pp for 15 and over; see script 03), which is why the article complements it with the age-standardised version.
+
+## Summary of the checks
+
+```{r rob-summary}
+all_checks <- bind_rows(main_spec, rob_val, rob_health, rob_sources, rob_ind, rob_dim,
+                        rob_weights, rob_scale, rob_quality, rob_age)
+rob_summary <- all_checks %>% wide(abs_d) %>%
+  mutate(`Chile > Argentina` = if_else(`CHL total` > `ARG total` & `CHL recent` > `ARG recent`, "Yes", "No"))
+rob_summary %>% rename(Family = family, Check = check) %>%
+  tbl("All checks: absolute ISDM (d; pp in the scale check)", digits = 3) %>%
+  column_spec(7, bold = TRUE, color = if_else(rob_summary$`Chile > Argentina` == "Yes", "#1A9850", "#D73027")) %>%
+  collapse_rows(columns = 1, valign = "top")
+```
+
+In `r sum(rob_summary$"Chile > Argentina" == "Yes")` out of `r nrow(rob_summary)` specifications, the magnitude of inequality is greater in Chile than in Argentina, for both total and recent migration.
+
+```{r rob-figure, fig.height = 9}
+all_checks %>%
+  mutate(grupo = group_en[grupo], check = fct_inorder(check)) %>%
+  filter(family != "Scale") %>%
+  ggplot(aes(abs_d, fct_rev(check), colour = pais)) +
+  geom_vline(data = main_spec %>% mutate(grupo = group_en[grupo]),
+             aes(xintercept = abs_d, colour = pais), linetype = "dashed", alpha = 0.6) +
+  geom_point(size = 2.3) +
+  facet_wrap(~ grupo) +
+  scale_colour_manual(values = country_colours) +
+  scale_x_continuous(limits = c(0, NA)) +
+  labs(x = "Absolute ISDM (d)", y = NULL, colour = "Country",
+       title = "Absolute ISDM in all checks (dashed lines: main specification)") + th +
+  theme(axis.text.y = element_text(size = 8))
+```
+
+# Population composition and age structure
+
+```{r composition}
+composition %>%
+  transmute(Country = pais, Group = group_en[grupo], `Mean age` = edad_media, `% under 15` = pct_menor_15,
+            `% 15-64` = pct_15_64, `% 65+` = pct_65_mas, `% women` = pct_mujeres,
+            `% recent` = pct_reciente, `% neighbouring country` = pct_limitrofe,
+            `25+ up to incomplete secondary` = `educ25_Hasta secundaria incompleta`,
+            `25+ complete secondary or incomplete tertiary` = `educ25_Secundaria completa o superior incompleta`,
+            `25+ complete tertiary` = `educ25_Superior completa`) %>%
+  tbl("Table A3. Composition of the non-migrant, migrant and recent migrant populations. Argentina and Chile, average 2015–2024 (%)", digits = 1)
+```
+
+The age-standardised activity rate applies the five-year age-specific rates of each migrant group to the age structure of the non-migrant population of the same country and year (direct method). In Chile the CASEN is used, because the ENE does not provide microdata, so the crude values differ slightly from those in Table 1.
+
+```{r activity}
+activity %>%
+  transmute(Country = pais, Group = group_en[grupo], `Non-migrant rate` = tasa_no_migrante,
+            `Crude rate` = tasa_bruta, `Standardised rate` = tasa_estandarizada,
+            `Crude gap (pp)` = brecha_bruta, `Standardised gap (pp)` = brecha_estandarizada) %>%
+  tbl("Table A4. Activity rate of the population aged 15 and over, crude and age-standardised. Argentina and Chile, average 2015–2024 (%)", digits = 1)
+
+activity_y %>%
+  mutate(grupo = group_en[grupo]) %>%
+  select(pais, anio, grupo, Crude = brecha_bruta, `Age-standardised` = brecha_estandarizada) %>%
+  pivot_longer(c(Crude, `Age-standardised`), names_to = "measure", values_to = "gap") %>%
+  ggplot(aes(anio, gap, colour = measure)) +
+  geom_hline(yintercept = 0, linewidth = 0.5) +
+  geom_line(linewidth = 1) + geom_point(size = 1.8) +
+  facet_grid(grupo ~ pais) +
+  scale_colour_manual(values = c("Crude" = "#999999", "Age-standardised" = "#D95F02")) +
+  labs(x = NULL, y = "Activity gap (pp)  ·  negative = migrants participate more", colour = NULL) + th
+```
+
+# Sample quality
+
+```{r quality, fig.height = 8}
+quality_en <- quality %>%
+  mutate(semaforo = recode(semaforo, "OK" = "OK", "CUIDADO" = "CAUTION", "NO USAR" = "DO NOT USE"),
+         grupo = group_en[grupo])
+quality_en %>% count(pais, grupo, semaforo) %>%
+  pivot_wider(names_from = semaforo, values_from = n, values_fill = 0) %>%
+  rename(Country = pais, Group = grupo) %>%
+  tbl("Number of estimates (indicator × year) by category")
+
+quality_en %>%
+  mutate(indicador = coalesce(ind_en[indicador], recode(indicador, I5_I6_pobreza = "I5-I6 Poverty and extreme poverty")),
+         semaforo = factor(semaforo, levels = c("OK", "CAUTION", "DO NOT USE"))) %>%
+  ggplot(aes(factor(anio), fct_rev(indicador), fill = semaforo)) +
+  geom_tile(colour = "white") +
+  facet_grid(grupo ~ pais, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = c("OK" = "#1A9850", "CAUTION" = "#FEB24C", "DO NOT USE" = "#D73027"), drop = FALSE) +
+  labs(x = NULL, y = NULL, fill = NULL,
+       caption = "ENE indicators (activity and unemployment of the total migrant population in Chile) have no microdata.") + th +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+
+# Correspondence with the article
+
+```{r map}
+tribble(
+  ~`In the article`, ~`File`, ~`Step`,
+  "Figure 1", "output/contexto/stock_migratorio_arg_chl.png", "00",
+  "Figures A1 and A2", "output/contexto/gdp_per_capita_arg_chl_media.png, gini_arg_chl_media.png", "00",
+  "Tables 1, 2 and 3", "output/isdm/brechas_por_indicador.csv", "07",
+  "Figures 2, 3 and 4", "output/articulo/grafico2_laboral.png, grafico3_pobreza.png, grafico4_social.png", "09",
+  "Table 4", "output/isdm/isdm_resumen_pais.csv", "07",
+  "Figure 5", "output/articulo/grafico5_isdm_absoluto.png", "09",
+  "Figure 6", "output/articulo/grafico6_subindices.png", "09",
+  "Table A2", "output/isdm/sensibilidad_salud.csv (S4 computed in this document)", "07",
+  "Tables A3 and A4", "output/isdm/composicion_poblaciones.csv, actividad_estandarizada_edad.csv", "08",
+  "Sample quality", "output/calidad/calidad_muestral.csv", "10",
+  "Robustness checks", "This document", "11"
+) %>% tbl(align = "l")
+```
+
+# References
+
+Cohen, J. (1988). *Statistical power analysis for the behavioral sciences* (2nd ed.). Lawrence Erlbaum.
+
+ETI-Rafidha, Equipo de Trabajo e Investigación sobre Indicadores. (n.d.). *Indicadores de medición de derechos humanos. Aproximaciones conceptuales y avances* [Working paper] (L. Pautassi & F. Geller, Eds.). Rafidha, CONICET and Secretaría de Derechos Humanos y Pluralismo Cultural.
+
+Grupo de Trabajo para el Análisis de los Informes Nacionales previstos en el Protocolo de San Salvador [GTPSS]. (2015). *Indicadores de progreso para la medición de derechos contemplados en el Protocolo de San Salvador* (OEA/Ser.D/XXVI.11). Organization of American States.
+
+Kish, L. (1965). *Survey sampling*. John Wiley & Sons.
+
+Kozlowski, D., Tiscornia, P., Weksler, G., Rosati, G., & Shokida, N. (2020). *eph: Argentina's Permanent Household Survey Data and Manipulation Utilities*. https://doi.org/10.5281/zenodo.3462677
+
+Longo, J., Busso, M., & Fernández Massi, M. (2023). Trabajar en plataformas en Argentina: Usos y valoraciones de esta nueva modalidad de trabajo. *Trabajo y Sociedad, 24*(41).
+
+OECD & JRC. (2008). *Handbook on constructing composite indicators: Methodology and user guide*. OECD Publishing. https://doi.org/10.1787/9789264043466-en
+
+Pautassi, L. (2010). Indicadores en materia de derechos económicos, sociales y culturales. Más allá de la medición. In V. Abramovich & L. Pautassi (Eds.), *La medición de derechos en las políticas sociales*. Editores del Puerto.
+
+Zack, G., Schteingart, D., & Favata, F. (2020). Pobreza e indigencia en Argentina: Construcción de una serie completa y metodológicamente homogénea. *Sociedad y Economía*, (40). https://doi.org/10.25100/sye.v0i40.7990

@@ -2,8 +2,7 @@
 # 1. Procesamiento de la EPH (INDEC), Argentina 2016-2024
 # =============================================================================
 # Autora: Natalia Debandi
-# Lee:      microdatos EPH_indiv_AAAA.csv y EPH_hogar_AAAA.csv (carpeta c:/Data/EPH o
-#           variable de entorno ISDM_EPH_DIR). Se apilan los trimestres de cada año.
+# Lee:      microdatos EPH_indiv_AAAA.csv y EPH_hogar_AAAA.csv (ruta local). Se apilan los trimestres de cada año.
 # Hace:     homogeneiza etiquetas entre años, define población migrante (CH15: nacido
 #           en país limítrofe u otro país) y migrante reciente (CH16: vivía en otro
 #           país hace 5 años), categorías laborales, formalidad (PP07H), salud (CH08)

@@ -10,7 +10,8 @@ pasos <- c("01_procesamiento_EPH.R", "02_procesamiento_CASEN.R",
            "03_indicadores_EPH.R", "04_indicadores_CASEN.R",
            "05_indicadores_unificados.R", "06_construccion_brechas.Rmd",
            "07_ISDM.R", "08_composicion_y_edad.R", "09_graficos_articulo.R",
-           "10_calidad_muestral.R", "11_resultados_ISDM.Rmd")
+           "10_calidad_muestral.R", "11_resultados_ISDM.Rmd",
+           "11_results_ISDM_en.Rmd")
 # 00_contexto_ARG_CHL.Rmd (Gráficos 1, A1 y A2) descarga datos del Banco Mundial:
 # se corre aparte, cuando haga falta.
 

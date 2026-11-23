@@ -41,3 +41,7 @@ _version_inicial/
 Data/*
 !Data/indicadores_*.csv
 !Data/indicadores_ENE_CH.xlsx
+
+# Las notebooks finales renderizadas sí se publican (se leen sin instalar R)
+!11_resultados_ISDM.html
+!11_results_ISDM_en.html

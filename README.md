@@ -8,6 +8,8 @@ Código del artículo «Brechas de acceso a derechos entre población migrante y
 
 ## Cómo correrlo
 
+**Para ver los resultados sin instalar nada**, abrí `11_resultados_ISDM.html` (castellano) o `11_results_ISDM_en.html` (English): reúnen la metodología, todos los resultados y las pruebas de robustez.
+
 Los scripts se corren **en orden, del 00 al 11**. Cada uno lee lo que produjo el anterior. Todos empiezan con `rm(list = ls())`, así que se pueden correr uno por uno a mano en RStudio. `correr_todo.R` corre del 01 al 11 seguidos, cada uno en un proceso aparte, con logs en `logs/`.
 
 | Paso | Script | Lee | Escribe |
@@ -23,7 +25,7 @@ Los scripts se corren **en orden, del 00 al 11**. Cada uno lee lo que produjo el
 | 08 | `08_composicion_y_edad.R` | pasos 01 y 02 | `output/isdm/composicion_*`, `actividad_estandarizada_edad*` |
 | 09 | `09_graficos_articulo.R` | paso 06 | `output/articulo/` (Gráficos 2 a 6) |
 | 10 | `10_calidad_muestral.R` | pasos 01 y 02 | `output/calidad/calidad_muestral.csv` |
-| 11 | `11_resultados_ISDM.Rmd` | salidas de los pasos 00 y 05 a 10 | `11_resultados_ISDM.html`: notebook final de lectura con todos los resultados (fuentes, indicadores, brechas, ISDM, robustez, composición y calidad muestral) |
+| 11 | `11_resultados_ISDM.Rmd` y `11_results_ISDM_en.Rmd` | salidas de los pasos 00 y 05 a 10 | `11_resultados_ISDM.html` (castellano) y `11_results_ISDM_en.html` (inglés): notebook final con la metodología completa, todos los resultados y 30 pruebas de robustez |
 
 Rutas de los microdatos: `c:/Data/EPH` y `c:/Data/Casen`, o las variables de entorno `ISDM_EPH_DIR` e `ISDM_CASEN_DIR`.
 

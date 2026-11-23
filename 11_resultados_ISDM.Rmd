@@ -1,7 +1,7 @@
 ---
-title: "ISDM Argentina y Chile (2015-2024): todos los resultados"
-subtitle: "Notebook final de lectura: reúne lo que producen los pasos 05 a 10"
-author: "Natalia Debandi"
+title: "Índice Sintético de Desigualdad Migratoria (ISDM). Argentina y Chile, 2015-2024"
+subtitle: "Metodología, resultados y pruebas de robustez"
+author: "Natalia Debandi (CONICET – CIAI-UNSAM)"
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 output:
   html_document:
@@ -10,14 +10,13 @@ output:
     toc_depth: 2
     number_sections: true
     code_folding: hide
-    df_print: kable
 ---
 
 ```{r setup, include = FALSE}
-# Notebook de lectura: no procesa microdatos. Lee los CSV que dejan los pasos
-# 05 a 10 y vuelve a calcular el índice con las funciones de R/isdm_funciones.R
-# (es rápido), así todas las cifras salen de la misma cadena.
-# Se corre después de 01-10. En RStudio: botón Knit, o
+# Notebook final (paso 11). No procesa microdatos: lee las salidas de los pasos
+# 00 y 05 a 10 y recalcula el índice con las funciones de R/isdm_funciones.R,
+# de modo que todas las cifras salen de la misma cadena.
+# Se corre después de 01-10: botón Knit en RStudio, o
 # rmarkdown::render("11_resultados_ISDM.Rmd")
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       fig.width = 10, fig.height = 5.5, dpi = 110)
@@ -28,31 +27,30 @@ suppressPackageStartupMessages({
 })
 source("R/isdm_funciones.R")
 
-# Paleta: la de los gráficos del artículo, más un color por grupo
+# ---- Paleta y etiquetas ----
 colores_pais  <- c("Argentina" = "#2E86AB", "Chile" = "#A23B72")
 colores_grupo <- c("No migrante" = "#1B9E77", "Migrante" = "#D95F02",
                    "Migrante reciente" = "#7570B3")
-
-# Traducciones (los CSV del índice usan etiquetas en inglés, como el manuscrito)
-grupo_es <- c("Migrants" = "Migrante", "Recent migrants" = "Migrante reciente",
-              "Nativos" = "No migrante", "Migrantes" = "Migrante",
-              "Migrantes recientes" = "Migrante reciente")
+grupo_es <- c("Migrants" = "Migrante", "Recent migrants" = "Migrante reciente")
 dim_es   <- c("Labor" = "Laboral", "Poverty" = "Pobreza", "Social" = "Social")
 ind_es   <- c(
-  "I1_tasa_actividad"            = "I1 Tasa de actividad (15+)",
-  "I2_tasa_desempleo"            = "I2 Tasa de desempleo",
-  "I3_informalidad_asalariada"   = "I3 Informalidad asalariada",
-  "I4_cuentapropismo"            = "I4 Cuentapropismo",
-  "I5_pobreza"                   = "I5 Pobreza",
-  "I6_pobreza_extrema"           = "I6 Pobreza extrema",
-  "I7_asistencia_escolar_6_17"   = "I7 Asistencia escolar (6-17)",
-  "I8_asistencia_superior_18_29" = "I8 Asistencia a educación superior (18-29)",
-  "I9_cobertura_salud"           = "I9 Cobertura de salud (solo Chile)",
-  "I9_sistema_salud_publico"     = "I9 Uso del sistema público de salud (sensibilidad)")
+  "I1_tasa_actividad"            = "I1 – Tasa de actividad (15+)",
+  "I2_tasa_desempleo"            = "I2 – Tasa de desempleo",
+  "I3_informalidad_asalariada"   = "I3 – Informalidad asalariada",
+  "I4_cuentapropismo"            = "I4 – Cuentapropismo",
+  "I5_pobreza"                   = "I5 – Pobreza monetaria",
+  "I6_pobreza_extrema"           = "I6 – Pobreza extrema",
+  "I7_asistencia_escolar_6_17"   = "I7 – Asistencia escolar (6-17)",
+  "I8_asistencia_superior_18_29" = "I8 – Asistencia superior (18-29)",
+  "I9_cobertura_salud"           = "I9 – Cobertura de salud (solo Chile)",
+  "I9_sistema_salud_publico"     = "I9 – Uso del sistema público de salud (sensibilidad)")
 
-tabla <- function(df, caption = NULL, digits = 2) {
-  kable(df, caption = caption, digits = digits, format.args = list(decimal.mark = ","),
-        align = c("l", rep("r", ncol(df) - 1))) %>%
+tabla <- function(df, caption = NULL, digits = 2, align = NULL) {
+  if (is.null(align)) align <- c("l", rep("r", ncol(df) - 1))
+  df <- df %>% mutate(across(where(is.double), ~ if_else(
+    is.na(.x), "—", formatC(.x, format = "f", digits = digits, decimal.mark = ",", big.mark = "."))))
+  df <- df %>% mutate(across(where(is.character), ~ replace_na(.x, "—")))
+  kable(df, caption = caption, align = align) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                   full_width = FALSE, position = "left")
 }
@@ -61,47 +59,218 @@ tema <- theme_minimal(base_size = 12) +
         strip.text = element_text(face = "bold"))
 
 # ---- Datos ----
-indicadores <- read_csv("Data/indicadores_unificados_arg_chile_2015_2024.csv", show_col_types = FALSE)
 brechas_ene <- read_csv("Data/indicadores_con_brechas_arg_chile_2015_2024.csv", show_col_types = FALSE)
 brechas_sc  <- read_csv("Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv", show_col_types = FALSE)
-
-datos <- cargar_brechas()
-prep  <- preparar_isdm(datos, salud = "cobertura", escala = "dispersion")
-res   <- calcular_isdm(prep)
-
-sensibilidad <- read_csv("output/isdm/sensibilidad_salud.csv", show_col_types = FALSE)
-escalas      <- read_csv("output/isdm/comparacion_escalas.csv", show_col_types = FALSE)
+sensibilidad <- read_csv("output/isdm/sensibilidad_salud.csv", show_col_types = FALSE) %>%
+  mutate(escenario = str_remove(escenario, "(Original|Principal): "),
+         escenario = sub("^(S\\d) (.)", "\\1 \\U\\2", escenario, perl = TRUE),
+         escenario = if_else(str_starts(escenario, "S3"), paste(escenario, "(principal)"), escenario))
 composicion  <- read_csv("output/isdm/composicion_poblaciones.csv", show_col_types = FALSE)
 actividad    <- read_csv("output/isdm/actividad_estandarizada_edad.csv", show_col_types = FALSE)
 actividad_a  <- read_csv("output/isdm/actividad_estandarizada_edad_anual.csv", show_col_types = FALSE)
 calidad      <- read_csv("output/calidad/calidad_muestral.csv", show_col_types = FALSE)
 
-# Control: lo que se recalcula acá tiene que coincidir con lo que guardó el paso 07
+# ---- Especificación principal ----
+datos  <- cargar_brechas()
+clasif <- clasificacion_isdm("cobertura")
+prep   <- preparar_isdm(datos, salud = "cobertura", escala = "dispersion")
+res    <- calcular_isdm(prep)
+
+# Cálculo con una clasificación cualquiera (misma lógica que preparar_isdm con
+# escala = "dispersion"). Se usa en las pruebas de robustez.
+isdm_con <- function(d, cl = clasif, excluir_anios = 2020) {
+  d %>%
+    filter(!anio %in% excluir_anios) %>%
+    inner_join(cl, by = "indicador") %>%
+    mutate(brecha_normalizada = if_else(tipo == "negativo", -brecha, brecha),
+           p_media  = ((tasa_no_migrante + tasa_grupo) / 2) / 100,
+           disp_ind = sqrt(p_media * (1 - p_media)) * 100,
+           brecha_z = brecha_normalizada / disp_ind) %>%
+    calcular_isdm()
+}
+
+# Controles: lo recalculado acá debe coincidir con lo que guardó el paso 07
 guardado <- read_csv("output/isdm/isdm_resumen_pais.csv", show_col_types = FALSE)
-control  <- max(abs(guardado$isdm_abs_de - res$resumen$isdm_abs_de))
+control_07  <- max(abs(guardado$isdm_abs_de - res$resumen$isdm_abs_de))
+control_fun <- max(abs(isdm_con(datos)$resumen$isdm_abs_de - res$resumen$isdm_abs_de))
 ```
 
-# Cómo leer esta notebook
+# Presentación
 
-Esta notebook reúne en un solo lugar todo lo que produce la cadena del proyecto: fuentes, indicadores, brechas, el índice, los controles de robustez, la composición de las poblaciones y la calidad muestral. No procesa microdatos: lee lo que dejan los pasos 05 a 10, así que hay que correrla al final. El código está plegado; se despliega con el botón *Code* de cada bloque.
+Este documento reúne la metodología completa del Índice Sintético de Desigualdad Migratoria (ISDM), todos sus resultados y las pruebas de robustez, para Argentina y Chile entre 2015 y 2024. Acompaña al artículo «Brechas de acceso a derechos entre población migrante y no migrante en Argentina y Chile (2015-2024)» y forma parte del repositorio público del proyecto, que reproduce cada cifra a partir de los microdatos de las encuestas oficiales.
 
-Convenciones que se usan en todo el documento:
+El documento no procesa microdatos. Lee lo que producen los pasos anteriores de la cadena (00 y 05 a 10) y vuelve a calcular el índice con las mismas funciones. El código de cada bloque está plegado y se despliega con el botón *Code*.
 
-- **Grupos.** No migrante, migrante (total) y migrante reciente (vivía en otro país cinco años antes; en la CASEN 2024, llegó entre 2020 y 2024). El migrante reciente es un subconjunto del migrante.
-- **Brecha (pp).** Tasa de la población no migrante menos tasa del grupo migrante, en puntos porcentuales. La *brecha normalizada* invierte el signo en los indicadores en que más es peor (desempleo, informalidad, cuentapropismo, pobreza), de modo que **positivo = la población no migrante está mejor** y negativo = está mejor la migrante.
-- **d.** Brecha normalizada dividida por la dispersión individual del indicador, √(p(1−p)), con p el promedio de las tasas de los dos grupos. Es una diferencia de proporciones estandarizada, comparable a la d de Cohen: 0 es la paridad, 0,2 una diferencia chica, 0,5 una mediana.
-- **ISDM.** Promedio de tres subíndices (laboral, pobreza, social), cada uno promedio de sus indicadores. El **absoluto** promedia el valor absoluto de las brechas (cuánta desigualdad hay, sin importar a favor de quién) y el **direccional**, las brechas con signo (quién está mejor). 2020 queda afuera.
+Control de consistencia: la diferencia máxima entre el ISDM calculado en este documento y el guardado por el paso 07 es `r format(control_07, digits = 2)`, y entre las dos funciones de cálculo, `r format(control_fun, digits = 2)` (ambas deben ser 0).
 
-Control de la cadena: la diferencia máxima entre el ISDM recalculado acá y el que guardó el paso 07 es **`r format(control, digits = 2)`** (tiene que ser 0).
+**Convenciones de lectura**
 
-# Contexto (paso 00)
+- **Grupos.** Población no migrante, población migrante (total) y población migrante reciente, que es un subconjunto de la anterior.
+- **Brecha (pp).** Diferencia en puntos porcentuales entre la tasa de la población no migrante y la del grupo migrante, con el signo ajustado según la valencia del indicador. En todo el documento, **un valor positivo indica que la población no migrante está en mejor posición y uno negativo, que lo está la población migrante**.
+- **d.** Brecha estandarizada por la dispersión del indicador. El 0 es la paridad; como referencia habitual, 0,2 es una diferencia pequeña y 0,5 una diferencia moderada (Cohen, 1988).
+- **ISDM absoluto y direccional.** El absoluto mide cuánta desigualdad hay, sin importar a favor de quién. El direccional indica hacia qué grupo se inclina.
+- El año **2020 se excluye** de todos los cálculos.
 
-Los gráficos de contexto los produce `00_contexto_ARG_CHL.Rmd` (descarga datos del Banco Mundial). Si todavía no se corrió, este bloque no muestra nada.
+# Metodología
 
-```{r contexto, results = "asis", out.width = "85%"}
-contexto <- c("Gráfico 1. Stock migratorio" = "output/contexto/stock_migratorio_arg_chl.png",
-              "Gráfico A1. PIB per cápita"  = "output/contexto/gdp_per_capita_arg_chl_media.png",
-              "Gráfico A2. Coeficiente de Gini" = "output/contexto/gini_arg_chl_media.png")
+## Enfoque
+
+El estudio adopta una estrategia cuantitativa comparada. Como los sistemas estadísticos de ambos países difieren en sus definiciones y metodologías, no se comparan niveles absolutos entre países, sino **brechas internas** entre grupos definidos de manera homogénea dentro de un mismo país y año. Los indicadores se entienden como indicadores de resultado, en el sentido de los sistemas de indicadores de progreso del Protocolo de San Salvador, es decir, como medidas del goce efectivo de los derechos y no de la existencia de normas o programas (Pautassi, 2010; GTPSS, 2015; ETI-Rafidha, s. f.).
+
+## Fuentes y período
+
+```{r tabla-fuentes}
+tribble(
+  ~Fuente, ~País, ~Años, ~Uso,
+  "Encuesta Permanente de Hogares (EPH), INDEC", "Argentina", "2016-2024 (sin 2020)",
+    "Todos los indicadores. Microdatos de los cuatro trimestres de cada año, apilados.",
+  "Encuesta de Caracterización Socioeconómica Nacional (CASEN), Ministerio de Desarrollo Social y Familia", "Chile",
+    "2015, 2017, 2022 y 2024",
+    "Todos los indicadores salvo actividad y desempleo de la población migrante total. Todos los de la población migrante reciente.",
+  "Encuesta Nacional de Empleo (ENE), INE", "Chile", "2017-2024",
+    "Actividad y desempleo de la población migrante total (indicadores publicados; la ENE no registra la residencia cinco años atrás).",
+  "Banco Mundial (WDI) y UNU-CRIS", "Ambos", "1960-2024", "Contexto (stock migratorio, PIB per cápita, Gini)."
+) %>% tabla("Fuentes de datos", align = "l")
+```
+
+El período va de 2015 a 2024. En Argentina comienza en 2016 por las limitaciones de la EPH para los años previos (Zack et al., 2020). La CASEN se releva cada dos o tres años; para los años intermedios, las tasas de cada grupo se **interpolan linealmente** antes de calcular las brechas. La onda 2020 de la CASEN, relevada durante la pandemia y con una definición de migrante basada en el lugar de nacimiento, no se usa como punto de interpolación. En 2024 la CASEN adoptó una nueva metodología de pobreza; para preservar la comparabilidad de la serie se usa la medición con la metodología anterior, que la base de 2024 también incluye. El año 2020 se excluye de ambos países por las alteraciones metodológicas y operativas de los relevamientos durante la pandemia.
+
+```{r fuentes-chile, fig.height = 5}
+bind_rows(
+  brechas_ene %>% filter(pais == "Chile", !is.na(brecha_nat_mig)) %>% mutate(grupo = "Migrante"),
+  brechas_sc  %>% filter(pais == "Chile", !is.na(brecha_nat_rec)) %>% mutate(grupo = "Migrante reciente")) %>%
+  filter(indicador %in% clasif$indicador, anio != 2020) %>%
+  mutate(indicador = ind_es[indicador],
+         fuente = recode(fuente, CASEN_interpolado = "CASEN interpolado")) %>%
+  ggplot(aes(factor(anio), fct_rev(indicador), fill = fuente)) +
+  geom_tile(colour = "white", linewidth = 0.8) +
+  facet_wrap(~ grupo) +
+  scale_fill_manual(values = c("CASEN" = "#1B7837", "CASEN interpolado" = "#A6DBA0", "ENE" = "#2E86AB")) +
+  labs(x = NULL, y = NULL, fill = "Fuente", title = "Chile: origen de cada valor") + tema
+```
+
+## Poblaciones comparadas
+
+- **Población migrante.** En Argentina, personas nacidas en otro país (EPH, CH15), lo que incluye a las naturalizadas. En Chile, personas de nacionalidad extranjera (CASEN, r1a), lo que excluye a quienes tienen doble nacionalidad con la chilena. Esta diferencia responde a la información disponible en cada encuesta.
+- **Población migrante reciente.** Personas migrantes que vivían en otro país cinco años antes de la encuesta (EPH, CH16; CASEN 2015, 2017 y 2022, r2). En la CASEN 2024, que no incluye esa pregunta, las que llegaron al país entre 2020 y 2024 (r1cp).
+- **Población no migrante.** El resto de la población.
+
+Ninguna de las dos encuestas releva la situación documentaria. El tamaño de las muestras tampoco permite estimaciones anuales robustas por país de origen.
+
+## Indicadores y valencias
+
+Cada indicador tiene una **valencia**: positiva si valores más altos representan un mejor acceso a derechos y negativa si representan un déficit. La valencia define el signo con que entra la brecha.
+
+```{r tabla-a1}
+tribble(
+  ~Indicador, ~Dimensión, ~Valencia, ~Cálculo, ~`Argentina (EPH)`, ~`Chile`,
+  "I1 – Tasa de actividad", "Laboral", "Positiva",
+    "Población económicamente activa de 15 años y más / población de 15 años y más × 100",
+    "ESTADO", "Total: ENE. Reciente: CASEN (activ)",
+  "I2 – Tasa de desempleo", "Laboral", "Negativa",
+    "Desocupados / población económicamente activa × 100 (15+)",
+    "ESTADO", "Total: ENE. Reciente: CASEN (activ)",
+  "I3 – Informalidad asalariada", "Laboral", "Negativa",
+    "Asalariados sin aportes previsionales / total de asalariados × 100 (15+)",
+    "PP07H: no le descuentan jubilación", "CASEN: no cotiza (o29/o32), incluidos los no afiliados (o28/o31)",
+  "I4 – Cuentapropismo", "Laboral", "Negativa",
+    "Trabajadores por cuenta propia / total de ocupados × 100 (15+)",
+    "CAT_OCUP", "CASEN (o15, todos los ocupados)",
+  "I5 – Pobreza por ingresos", "Pobreza", "Negativa",
+    "Personas en hogares con ingreso per cápita por debajo de la línea de pobreza × 100",
+    "Canastas regionales del INDEC (librería eph), ponderador PONDIH", "CASEN (2024 con la metodología anterior)",
+  "I6 – Pobreza extrema", "Pobreza", "Negativa",
+    "Personas por debajo de la línea de indigencia × 100",
+    "Ídem, ponderador PONDIH", "CASEN (2024 con la metodología anterior)",
+  "I7 – Asistencia escolar", "Social", "Positiva",
+    "Personas de 6 a 17 años que asisten a un establecimiento educativo × 100",
+    "CH10", "CASEN (asiste)",
+  "I8 – Asistencia a educación superior", "Social", "Positiva",
+    "Personas de 18 a 29 años que asisten a educación superior × 100",
+    "CH10 y CH12", "CASEN (asiste y nivel)",
+  "I9 – Cobertura de salud", "Social", "Positiva",
+    "Personas afiliadas a algún sistema de salud (FONASA, ISAPRE, FF.AA. u otro) × 100",
+    "No se construye", "CASEN (s12/s13)"
+) %>% tabla("Tabla A1. Indicadores construidos, interpretación y forma de cálculo", align = "l")
+```
+
+**Justificación de las valencias menos evidentes**
+
+- **Tasa de actividad (positiva).** Una mayor participación expresa un mayor ejercicio del derecho al trabajo. Como la tasa depende de la estructura etaria, se calcula sobre la población de 15 años y más en ambos países y se controla con una versión estandarizada por edad (sección de composición y robustez).
+- **Cuentapropismo (negativa).** El trabajo por cuenta propia se asocia con formas de empleo informal, precario o de plataformas que afectan de manera desproporcionada a la población migrante, y puede reflejar estrategias de inserción condicionadas por restricciones de acceso al empleo formal (Longo et al., 2023).
+- **Informalidad.** Se calculó inicialmente un indicador de informalidad total, pero su inclusión junto con la informalidad asalariada y el cuentapropismo introducía una redundancia estructural. Se conservan los dos componentes desagregados.
+- **Salud.** El indicador identifica a las personas sin ninguna cobertura. En Chile, la afiliación a un sistema de salud es la vía de acceso a la red de prestaciones, y su ausencia expresa exclusión. En Argentina, durante el período, la cobertura del sistema público fue universal, no requería afiliación y no dependía de la situación migratoria ni laboral (Ley 25.871, art. 8), por lo que la brecha de cobertura es, en el plano formal, nula; la EPH, además, no permite observar exclusión de hecho. Por eso el indicador no se construye para Argentina, y la sección de robustez muestra qué ocurre si se lo incluye con brecha igual a cero (S4). Hacia el final del período esto empezó a cambiar: en 2024 Salta, Mendoza, Jujuy y Santa Cruz comenzaron a cobrar la atención a personas extranjeras no residentes, y el DNU 366/2025 condicionó el acceso de quienes no son residentes permanentes, salvo emergencias, al pago previo o a un seguro de salud.
+
+Las dos valencias discutibles (actividad y cuentapropismo) se someten a prueba en la sección de robustez.
+
+```{r lectura-signo}
+tribble(
+  ~Indicador, ~`Brecha positiva significa`, ~`Brecha negativa significa`,
+  "I1 – Actividad", "La población migrante participa menos", "La población migrante participa más",
+  "I2 – Desempleo", "La población migrante tiene más desempleo", "La población migrante tiene menos desempleo",
+  "I3 – Informalidad asalariada", "La población migrante es más informal", "La población migrante es menos informal",
+  "I4 – Cuentapropismo", "La población migrante es más cuentapropista", "La población migrante es menos cuentapropista",
+  "I5-I6 – Pobreza", "La población migrante es más pobre", "La población migrante es menos pobre",
+  "I7-I8 – Asistencia educativa", "La población migrante asiste menos", "La población migrante asiste más",
+  "I9 – Cobertura de salud", "La población migrante tiene menos cobertura", "La población migrante tiene más cobertura"
+) %>% tabla("Cómo leer el signo de la brecha en cada indicador", align = "l")
+```
+
+## Brecha armonizada
+
+Sea $X_{i,c,t}^{g}$ el valor del indicador $i$ en el país $c$, el año $t$ y el grupo $g$ (no migrante, $nm$, o migrante, $m$). Con un factor de orientación $s_i$ igual a $+1$ para los indicadores de valencia positiva y $-1$ para los de valencia negativa, la brecha armonizada es
+
+$$\Delta_{i,c,t} = s_i \cdot \left(X_{i,c,t}^{nm} - X_{i,c,t}^{m}\right)$$
+
+Un valor positivo indica ventaja relativa de la población no migrante y uno negativo, de la población migrante. La brecha se calcula por separado para la población migrante total y para la reciente.
+
+## Estandarización: por qué la referencia es la paridad
+
+Los indicadores tienen niveles y variabilidades muy distintos (el desempleo ronda el 8% y la actividad el 60%), por lo que una misma brecha en puntos porcentuales no tiene el mismo significado en todos ellos. Para hacerlas comparables, cada brecha se divide por la **dispersión individual** del indicador:
+
+$$Z_{i,c,t} = \frac{\Delta_{i,c,t}}{\sqrt{\bar p_{i,c,t}\,(1-\bar p_{i,c,t})}}, \qquad \bar p_{i,c,t} = \frac{X_{i,c,t}^{nm} + X_{i,c,t}^{m}}{200}$$
+
+donde $\sqrt{\bar p(1-\bar p)}$ es el desvío estándar de una variable dicotómica con la prevalencia promedio de los dos grupos. El resultado es una diferencia de proporciones estandarizada, equivalente a la d de Cohen para proporciones (Cohen, 1988). En el artículo y en este documento se la denota $Z$, y sus valores se expresan en unidades d.
+
+En la construcción de índices compuestos es habitual normalizar los indicadores como puntajes z, restando la media de los casos comparados y dividiendo por su desvío (OECD & JRC, 2008). Aquí no se hace así porque el ISDM no busca ordenar países entre sí, sino medir la distancia entre dos grupos respecto de una referencia sustantiva, la **igualdad en el acceso a derechos**. Restar la media de las brechas tendría tres consecuencias indeseadas.
+
+1. **El cero dejaría de ser la paridad.** Pasaría a representar «la brecha promedio de los casos comparados», de modo que un valor cercano a cero podría corresponder a una desigualdad considerable si ambos países la comparten.
+2. **Con dos países, los resultados quedarían en espejo.** Lo que uno se aleja del promedio, el otro se aleja en sentido contrario, y uno de los dos aparecería siempre en situación favorable aunque en ambos la población migrante estuviera en desventaja.
+3. **El índice dependería de la muestra de casos.** Cambiaría al agregar o quitar países o años, y sería inestable en indicadores observados en pocos casos, como la cobertura de salud, que solo existe para Chile.
+
+La dispersión individual, en cambio, conserva el cero como paridad, se calcula dentro de cada país y año sin depender de los demás casos y pondera la brecha según el nivel del indicador. Por ejemplo, una brecha de 5 pp pesa más cuando la tasa ronda el 10% que cuando ronda el 50%. La sección de robustez muestra que la comparación entre países se mantiene si se usan directamente los puntos porcentuales.
+
+## Agregación jerárquica
+
+En un primer nivel, las brechas estandarizadas de cada dimensión se promedian en un **subíndice**:
+
+$$SI_{D,c,t} = \frac{1}{n_D}\sum_{i \in D} Z_{i,c,t}$$
+
+En un segundo nivel, el ISDM es el promedio simple de los tres subíndices (laboral, pobreza y social), de modo que cada dimensión aporta un tercio del índice con independencia de cuántos indicadores contiene. Esto evita que la dimensión laboral, con cuatro indicadores, pese más que las otras, y permite incluir indicadores correlacionados, como pobreza y pobreza extrema, sin distorsionar el peso de su dimensión. Se calculan dos versiones.
+
+$$ISDM^{dir}_{c,t} = \frac{1}{3}\sum_{D} \frac{1}{n_D}\sum_{i \in D} Z_{i,c,t} \qquad\qquad ISDM^{abs}_{c,t} = \frac{1}{3}\sum_{D} \frac{1}{n_D}\sum_{i \in D} \left|Z_{i,c,t}\right|$$
+
+El **direccional** conserva el signo e indica hacia qué grupo se inclina la desigualdad. El **absoluto** promedia el valor absoluto y mide su magnitud, sin que las brechas de signo contrario se compensen. Ambos se expresan también en puntos porcentuales, aplicando la misma agregación a las brechas sin estandarizar. El valor del período es el promedio de los valores anuales (sin 2020), y el índice se calcula por separado para la población migrante total y para la reciente.
+
+## Calidad de las estimaciones
+
+Para cada indicador, país, año y grupo se calcula el tamaño muestral y el **tamaño efectivo de Kish** (Kish, 1965), $n_{ef} = (\sum w)^2 / \sum w^2$, que descuenta la pérdida de precisión por la variabilidad de los ponderadores. Se clasifica como OK si $n \ge 100$ y $n_{ef} \ge 50$, como CUIDADO si $n \ge 30$ y $n_{ef} \ge 30$, y como NO USAR por debajo. Es un diagnóstico: ningún valor se excluye del índice principal, y la sección de robustez muestra qué pasa si se excluyen.
+
+## Limitaciones
+
+- Las encuestas no relevan la situación documentaria y subrepresentan situaciones de irregularidad extrema.
+- La población migrante se define por nacimiento en Argentina y por nacionalidad en Chile.
+- En Chile, la mayor parte de los valores anuales son interpolados entre ondas de la CASEN, y la serie de la población migrante total combina la ENE con la CASEN. Las variaciones anuales deben leerse como tendencias.
+- En Chile, en 2015 y 2016 la dimensión laboral de la población migrante total tiene solo dos indicadores (la ENE comienza en 2017).
+- Algunas estimaciones de la población migrante reciente en Argentina se basan en muestras reducidas.
+- Los indicadores de ingresos dependen de ingresos declarados.
+
+# Contexto
+
+```{r contexto, results = "asis"}
+contexto <- c("Gráfico 1. Stock migratorio de Argentina y Chile 1960-2024 (miles de personas)" = "output/contexto/stock_migratorio_arg_chl.png",
+              "Gráfico A1. PIB per cápita Argentina y Chile (1995-2022)" = "output/contexto/gdp_per_capita_arg_chl_media.png",
+              "Gráfico A2. Coeficiente de Gini Argentina y Chile (1995-2022)" = "output/contexto/gini_arg_chl_media.png")
 for (i in seq_along(contexto)) {
   if (file.exists(contexto[i])) {
     cat("\n\n**", names(contexto)[i], "**\n\n", sep = "")
@@ -110,51 +279,18 @@ for (i in seq_along(contexto)) {
 }
 ```
 
-# Fuentes y cobertura
-
-## Qué fuente alimenta cada indicador
-
-En Argentina todo sale de la EPH. En Chile, la actividad y el desempleo de la población migrante total salen de la ENE (indicadores publicados por el INE, desde 2017); todo lo demás, y todos los indicadores de migrantes recientes, de la CASEN. Entre ondas de la CASEN (2015, 2017, 2022, 2024) los valores se interpolan linealmente; 2020 no se usa como ancla.
-
-```{r fuentes}
-fuente_tab <- bind_rows(
-  brechas_ene %>% mutate(grupo = "Migrante"),
-  brechas_sc  %>% mutate(grupo = "Migrante reciente")) %>%
-  filter(!is.na(if_else(grupo == "Migrante", brecha_nat_mig, brecha_nat_rec))) %>%
-  mutate(fuente = recode(fuente, CASEN_interpolado = "CASEN interpolado")) %>%
-  count(pais, grupo, fuente) %>%
-  pivot_wider(names_from = fuente, values_from = n, values_fill = 0) %>%
-  rename(País = pais, Grupo = grupo)
-tabla(fuente_tab, "Cantidad de valores (indicador × año, incluye 2020 y el indicador de sensibilidad) por fuente")
-```
-
-```{r fuentes-grafico, fig.height = 5}
-bind_rows(
-  brechas_ene %>% filter(pais == "Chile", !is.na(brecha_nat_mig)) %>% mutate(grupo = "Migrante"),
-  brechas_sc  %>% filter(pais == "Chile", !is.na(brecha_nat_rec)) %>% mutate(grupo = "Migrante reciente")) %>%
-  mutate(indicador = ind_es[indicador],
-         fuente = recode(fuente, CASEN_interpolado = "CASEN interpolado")) %>%
-  filter(!is.na(indicador)) %>%
-  ggplot(aes(factor(anio), fct_rev(indicador), fill = fuente)) +
-  geom_tile(colour = "white", linewidth = 0.8) +
-  facet_wrap(~ grupo) +
-  scale_fill_manual(values = c("CASEN" = "#1B7837", "CASEN interpolado" = "#A6DBA0", "ENE" = "#2E86AB")) +
-  labs(x = NULL, y = NULL, fill = "Fuente", title = "Chile: de dónde sale cada valor",
-       caption = "2020 figura como interpolado porque la CASEN 2020 no se usa; ese año queda fuera del índice.") + tema
-```
-
 # Indicadores por país, año y grupo
 
-Tasas (%) de cada grupo. En Chile, los puntos son años observados y las líneas sin punto, tramos interpolados.
+Tasas (%) de cada grupo. Los puntos marcan valores observados; en Chile, los tramos sin punto son interpolados.
 
 ```{r indicadores, fig.height = 11}
 ind_largo <- bind_rows(
   brechas_ene %>% transmute(pais, fuente, anio, indicador, `No migrante` = nativos, Migrante = migrantes),
   brechas_sc  %>% transmute(pais, fuente, anio, indicador, `Migrante reciente` = migrantes_recientes)) %>%
   pivot_longer(c(`No migrante`, Migrante, `Migrante reciente`), names_to = "grupo", values_to = "tasa") %>%
-  filter(!is.na(tasa), anio != 2020, indicador %in% names(ind_es)[1:9]) %>%
+  filter(!is.na(tasa), anio != 2020, indicador %in% clasif$indicador) %>%
   distinct(pais, anio, indicador, grupo, .keep_all = TRUE) %>%
-  mutate(indicador = factor(ind_es[indicador], levels = ind_es[1:9]),
+  mutate(indicador = factor(ind_es[indicador], levels = ind_es[clasif$indicador]),
          grupo = factor(grupo, levels = names(colores_grupo)),
          observado = fuente != "CASEN_interpolado")
 
@@ -167,31 +303,36 @@ ggplot(ind_largo, aes(anio, tasa, colour = grupo, linetype = pais)) +
   labs(x = NULL, y = "%", colour = "Grupo", linetype = "País") + tema
 ```
 
-# Brechas por dimensión (Tablas 1 a 3 y Gráficos 2 a 4)
+# Brechas por dimensión
 
-Brecha normalizada promedio del período (pp, sin 2020). Positivo = mejor la población no migrante.
+Brecha armonizada promedio del período, en puntos porcentuales y sin estandarizar (promedio 2015-2024, sin 2020). Positivo = mejor la población no migrante. Los gráficos muestran la distribución de los valores anuales.
 
 ```{r tablas-brechas, results = "asis"}
 brechas_ind <- prep %>%
   group_by(dimension, indicador, pais, grupo) %>%
-  summarise(brecha_pp = mean(brecha_normalizada), .groups = "drop") %>%
-  mutate(columna = paste(pais, grupo_es[grupo], sep = " · ")) %>%
-  select(dimension, indicador, columna, brecha_pp) %>%
-  pivot_wider(names_from = columna, values_from = brecha_pp) %>%
-  select(dimension, indicador, `Argentina · Migrante`, `Chile · Migrante`,
-         `Argentina · Migrante reciente`, `Chile · Migrante reciente`) %>%
-  mutate(indicador = ind_es[indicador])
-numeros <- c(Labor = "Tabla 1. Dimensión laboral", Poverty = "Tabla 2. Pobreza",
-             Social = "Tabla 3. Derechos sociales")
-for (d in names(numeros)) {
-  print(tabla(brechas_ind %>% filter(dimension == d) %>% select(-dimension), numeros[d]))
+  summarise(b = mean(brecha_normalizada), .groups = "drop") %>%
+  pivot_wider(names_from = pais, values_from = b) %>%
+  mutate(`CHL−ARG` = Chile - Argentina) %>%
+  pivot_wider(names_from = grupo, values_from = c(Argentina, Chile, `CHL−ARG`)) %>%
+  transmute(dimension, Indicador = ind_es[indicador],
+            ARG = Argentina_Migrants, CHL = Chile_Migrants, `CHL−ARG` = `CHL−ARG_Migrants`,
+            `ARG ` = `Argentina_Recent migrants`, `CHL ` = `Chile_Recent migrants`,
+            `CHL−ARG ` = `CHL−ARG_Recent migrants`)
+titulos <- c(Labor   = "Tabla 1. Brechas laborales no migrante-migrante por país y subgrupo poblacional (pp). Argentina y Chile, 2015–2024",
+             Poverty = "Tabla 2. Brechas relativas a privación económica no migrante-migrante por país y subgrupo poblacional (pp). Argentina y Chile, 2015–2024",
+             Social  = "Tabla 3. Brechas relativas a derechos sociales no migrante-migrante por país y subgrupo poblacional (pp). Argentina y Chile, 2015–2024")
+for (d in names(titulos)) {
+  print(brechas_ind %>% filter(dimension == d) %>% select(-dimension) %>%
+          tabla(titulos[d], digits = 1) %>%
+          add_header_above(c(" " = 1, "Migración total" = 3, "Migración reciente" = 3)))
   cat("\n\n")
 }
 ```
 
-```{r graficos-brechas, fig.height = 6}
-grafico_dim <- function(dim) {
-  prep %>%
+```{r graficos-brechas, fig.height = 6, results = "asis"}
+grafico_dim <- function(dim, titulo) {
+  cat("\n\n**", titulo, "**\n\n", sep = "")
+  p <- prep %>%
     filter(dimension == dim) %>%
     mutate(indicador = fct_rev(factor(ind_es[indicador], levels = ind_es)),
            grupo = grupo_es[grupo]) %>%
@@ -202,15 +343,81 @@ grafico_dim <- function(dim) {
                alpha = 0.6, size = 1.8) +
     coord_flip() + facet_wrap(~ grupo) +
     scale_colour_manual(values = colores_pais) +
-    labs(x = NULL, y = "Brecha normalizada (pp)  ·  negativo = mejor migrante | positivo = mejor no migrante",
-         colour = "País", title = paste("Dimensión", tolower(dim_es[dim]), "(cada punto es un año)")) + tema
+    labs(x = NULL, y = "Brecha armonizada (pp)  ·  negativo = mejor migrante | positivo = mejor no migrante",
+         colour = "País", caption = "Cada punto es un año. Datos sin estandarizar, normalizados según la dirección del indicador.") + tema
+  print(p)
 }
-grafico_dim("Labor")
-grafico_dim("Poverty")
-grafico_dim("Social")
+grafico_dim("Labor",   "Gráfico 2. Distribución anual de las brechas laborales no migrante-migrante por país y subgrupo poblacional (pp). Argentina y Chile, 2015–2024")
+grafico_dim("Poverty", "Gráfico 3. Distribución anual de las brechas relativas a privación económica no migrante-migrante por país y subgrupo poblacional (pp). Argentina y Chile, 2015–2024")
+grafico_dim("Social",  "Gráfico 4. Distribución anual de brechas relativas a derechos sociales no migrante-migrante por país y subgrupo poblacional (pp). Argentina y Chile, 2015–2024")
 ```
 
-# El índice (Tabla 4 y Gráficos 5 y 6)
+# El índice
+
+## Cómo se calcula
+
+El ISDM se construye en cuatro pasos, para cada país $c$, año $t$ y grupo migrante (total o reciente).
+
+**1. Brecha armonizada (pp).** Diferencia entre la tasa de la población no migrante y la del grupo migrante, con el signo de la valencia ($s_i = +1$ si más es mejor, $-1$ si más es peor):
+
+$$\Delta_{i,c,t} = s_i \cdot \left(X_{i,c,t}^{nm} - X_{i,c,t}^{m}\right)$$
+
+**2. Brecha estandarizada (Z, en unidades d).** La brecha se divide por la dispersión individual del indicador, calculada con la tasa promedio de los dos grupos:
+
+$$Z_{i,c,t} = \frac{\Delta_{i,c,t}}{\sqrt{\bar p_{i,c,t}\,(1-\bar p_{i,c,t})}}, \qquad \bar p_{i,c,t} = \frac{X_{i,c,t}^{nm} + X_{i,c,t}^{m}}{200}$$
+
+**3. Subíndices por dimensión.** Promedio de las brechas estandarizadas de los indicadores de cada dimensión $D$ (laboral, pobreza, social), con signo para el direccional y en valor absoluto para el absoluto:
+
+$$SI^{dir}_{D,c,t} = \frac{1}{n_D}\sum_{i \in D} Z_{i,c,t} \qquad\qquad SI^{abs}_{D,c,t} = \frac{1}{n_D}\sum_{i \in D} \left|Z_{i,c,t}\right|$$
+
+**4. ISDM.** Promedio simple de los tres subíndices, de modo que cada dimensión pesa un tercio:
+
+$$ISDM^{dir}_{c,t} = \frac{1}{3}\sum_{D} SI^{dir}_{D,c,t} \qquad\qquad ISDM^{abs}_{c,t} = \frac{1}{3}\sum_{D} SI^{abs}_{D,c,t}$$
+
+El valor del período es el promedio de los valores anuales, sin 2020. Las versiones en puntos porcentuales aplican los pasos 3 y 4 a $\Delta$ en lugar de $Z$.
+
+**Cómo leer los valores.** El ISDM absoluto vale 0 cuando hay paridad en todos los indicadores y crece con la distancia entre grupos, sin importar quién está mejor. Como referencia, en unidades d, alrededor de 0,2 es una diferencia pequeña y alrededor de 0,5, moderada (Cohen, 1988). El ISDM direccional es positivo cuando, en promedio, la población no migrante está mejor y negativo cuando lo está la migrante. Como las brechas de distinto signo se compensan, el direccional es siempre menor o igual que el absoluto en valor absoluto; la distancia entre ambos indica cuánto se compensan ventajas y desventajas entre indicadores.
+
+### Ejemplo completo: Chile, 2022, población migrante total
+
+```{r ejemplo}
+ej_pais <- "Chile"; ej_anio <- 2022; ej_grupo <- "Migrants"
+ej <- prep %>% filter(pais == ej_pais, anio == ej_anio, grupo == ej_grupo) %>%
+  mutate(dimension = factor(dimension, levels = names(dim_es))) %>%
+  arrange(dimension, indicador)
+ej %>%
+  transmute(Dimensión = dim_es[as.character(dimension)], Indicador = ind_es[indicador],
+            Valencia = if_else(tipo == "positivo", "+1", "−1"),
+            `No migrante (%)` = tasa_no_migrante, `Migrante (%)` = tasa_grupo,
+            `Δ (pp)` = brecha_normalizada, `p̄` = p_media,
+            `√(p̄(1−p̄)) (pp)` = disp_ind, `Z (d)` = brecha_z) %>%
+  tabla(sprintf("Paso 1 y 2. Brechas de %s en %d, población migrante total", ej_pais, ej_anio), digits = 3)
+```
+
+```{r ejemplo-paso, include = FALSE}
+f <- function(x, k = 2) formatC(x, format = "f", digits = k, decimal.mark = ",")
+fm <- function(x, k = 2) sub(",", "{,}", f(x, k), fixed = TRUE)
+inf <- ej %>% filter(indicador == "I3_informalidad_asalariada")
+```
+
+Por ejemplo, en informalidad asalariada la valencia es negativa, de modo que la brecha armonizada es $\Delta = -1 \cdot (`r fm(inf$tasa_no_migrante)` - `r fm(inf$tasa_grupo)`) = `r fm(inf$brecha_normalizada)`$ pp. La tasa promedio de ambos grupos es $\bar p = (`r fm(inf$tasa_no_migrante)` + `r fm(inf$tasa_grupo)`)/200 = `r fm(inf$p_media, 3)`$, y la dispersión, $\sqrt{`r fm(inf$p_media, 3)` \cdot (1 - `r fm(inf$p_media, 3)`)} = `r fm(inf$disp_ind / 100, 3)`$, es decir, `r f(inf$disp_ind, 1)` pp. Entonces $Z = `r fm(inf$brecha_normalizada)` / `r fm(inf$disp_ind, 1)` = `r fm(inf$brecha_z, 3)`$: la población migrante está en desventaja, con una diferencia pequeña a moderada. En la tasa de actividad, en cambio, la población migrante participa más, por lo que la brecha es negativa (ventaja migrante).
+
+```{r ejemplo-agregacion}
+ej_sub <- ej %>% group_by(dimension) %>%
+  summarise(n = n(), `SI direccional (d)` = mean(brecha_z), `SI absoluto (d)` = mean(abs(brecha_z)),
+            `SI direccional (pp)` = mean(brecha_normalizada), `SI absoluto (pp)` = mean(abs(brecha_normalizada)),
+            .groups = "drop") %>%
+  mutate(dimension = dim_es[as.character(dimension)])
+ej_isdm <- ej_sub %>% summarise(dimension = "ISDM (promedio de los tres subíndices)", n = sum(n),
+                                across(starts_with("SI"), mean))
+bind_rows(ej_sub, ej_isdm) %>%
+  rename(Dimensión = dimension, Indicadores = n) %>%
+  tabla(sprintf("Pasos 3 y 4. Subíndices e ISDM de %s en %d, población migrante total", ej_pais, ej_anio), digits = 3) %>%
+  row_spec(nrow(ej_sub) + 1, bold = TRUE)
+ej_ctrl <- res$anual %>% filter(pais == ej_pais, anio == ej_anio, grupo == ej_grupo)
+```
+
+El resultado coincide con el ISDM anual guardado por la cadena (absoluto `r formatC(ej_ctrl$isdm_abs_de, format = "f", digits = 3, decimal.mark = ",")` y direccional `r formatC(ej_ctrl$isdm_dir_de, format = "f", digits = 3, decimal.mark = ",")` en unidades d). Repetido para cada año y promediado, se obtiene el valor del período de la Tabla 4.
 
 ## Promedio del período
 
@@ -219,7 +426,7 @@ res$resumen %>%
   transmute(País = pais, Grupo = grupo_es[grupo],
             `Absoluto (d)` = isdm_abs_de, `Direccional (d)` = isdm_dir_de,
             `Absoluto (pp)` = isdm_abs_pp, `Direccional (pp)` = isdm_dir_pp, Años = n_anios) %>%
-  tabla("Tabla 4. ISDM por país y grupo, promedio 2015-2024 sin 2020", digits = 3)
+  tabla("Tabla 4. Índice Sintético de Desigualdad Migratoria (ISDM) por país y subgrupo poblacional. Argentina y Chile, promedio 2015–2024 (sin 2020)", digits = 3)
 ```
 
 ## Evolución anual
@@ -232,7 +439,8 @@ ggplot(anual, aes(anio, isdm_abs_de, colour = pais, linetype = grupo)) +
   scale_x_continuous(breaks = sort(unique(anual$anio))) +
   scale_y_continuous(limits = c(0, NA)) +
   labs(x = NULL, y = "ISDM absoluto (d)  ·  0 = paridad", colour = "País", linetype = "Grupo",
-       title = "Gráfico 5. Magnitud de la desigualdad por año") + tema
+       title = "Gráfico 5. Evolución del ISDM absoluto por país y subgrupo poblacional (d). Argentina y Chile, 2015–2024") + tema +
+  theme(plot.title = element_text(size = 11))
 
 ggplot(anual, aes(anio, isdm_dir_pp, colour = pais, linetype = grupo)) +
   geom_hline(yintercept = 0, linewidth = 0.6) +
@@ -241,15 +449,17 @@ ggplot(anual, aes(anio, isdm_dir_pp, colour = pais, linetype = grupo)) +
   scale_x_continuous(breaks = sort(unique(anual$anio))) +
   labs(x = NULL, y = "ISDM direccional (pp)  ·  positivo = mejor no migrante",
        colour = "País", linetype = "Grupo", title = "Dirección de la desigualdad por año") + tema
-```
 
-```{r anual-tabla}
 anual %>%
+  arrange(anio) %>%
   select(pais, grupo, anio, isdm_abs_de) %>%
   pivot_wider(names_from = anio, values_from = isdm_abs_de) %>%
   rename(País = pais, Grupo = grupo) %>%
+  arrange(País, Grupo) %>%
   tabla("ISDM absoluto (d) por año", digits = 3)
 ```
+
+En todos los años con información para ambos países, el ISDM absoluto de Chile supera al de Argentina, tanto para la migración total como para la reciente: `r anual %>% select(pais, grupo, anio, isdm_abs_de) %>% pivot_wider(names_from = pais, values_from = isdm_abs_de) %>% filter(!is.na(Argentina), !is.na(Chile)) %>% summarise(n = n(), si = sum(Chile > Argentina)) %>% glue::glue_data("{si} de {n} comparaciones (cada año, para cada grupo)")`.
 
 ## Subíndices por dimensión
 
@@ -265,7 +475,9 @@ ggplot(sub, aes(sub_dir_pp, fct_rev(dimension), fill = pais)) +
   scale_fill_manual(values = colores_pais) +
   scale_x_continuous(expand = expansion(mult = 0.3)) +
   labs(x = "Subíndice direccional (pp)  ·  negativo = mejor migrante | positivo = mejor no migrante",
-       y = NULL, fill = "País", title = "Gráfico 6. Subíndices direccionales, promedio del período") + tema
+       y = NULL, fill = "País",
+       title = "Gráfico 6. Sub-índices direccionales del ISDM por dimensión, país y subgrupo poblacional (pp).\nArgentina y Chile, promedio 2015–2024") + tema +
+  theme(plot.title = element_text(size = 11))
 
 sub %>%
   transmute(País = pais, Grupo = grupo, Dimensión = dimension,
@@ -277,49 +489,223 @@ sub %>%
 
 # Robustez
 
-## Fuentes e interpolación en Chile
+Cada prueba cambia una decisión metodológica y recalcula el índice. La pregunta central es si se mantiene el resultado principal, es decir, que **la magnitud de la desigualdad (ISDM absoluto) es mayor en Chile que en Argentina**, para la migración total y para la reciente. Al final de la sección, una tabla resume todas las pruebas.
 
-La serie chilena combina la ENE con la CASEN e interpola entre ondas. Para ver si eso mueve el resultado, el índice se recalcula de dos formas: solo con la CASEN (sin la ENE) y solo con los años efectivamente relevados por la CASEN (2015, 2017, 2022 y 2024), sin valores interpolados.
-
-```{r robustez}
-arch_sc <- "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv"
-isdm_de <- function(d) calcular_isdm(preparar_isdm(d, salud = "cobertura"))$resumen
-solo_casen <- isdm_de(cargar_brechas(archivo_ene = arch_sc))
-solo_relevados <- isdm_de(cargar_brechas(archivo_ene = arch_sc) %>%
-                            filter(pais == "Argentina" | anio %in% c(2015, 2017, 2022, 2024)))
-list(`Principal (ENE + CASEN, interpolado)` = res$resumen,
-     `Solo CASEN` = solo_casen,
-     `Solo años relevados` = solo_relevados) %>%
-  imap_dfr(~ .x %>% mutate(Especificación = .y)) %>%
-  filter(pais == "Chile") %>%
-  transmute(Especificación, Grupo = grupo_es[grupo], `Absoluto (d)` = isdm_abs_de,
-            `Direccional (pp)` = isdm_dir_pp, Años = n_anios) %>%
-  tabla("Chile: ISDM según fuentes y años", digits = 3)
+```{r rob-helpers}
+resumir <- function(r, prueba, familia) {
+  r$resumen %>% transmute(familia, prueba, pais, grupo,
+                          abs_d = isdm_abs_de, dir_pp = isdm_dir_pp, abs_pp = isdm_abs_pp)
+}
+ancho <- function(df, var) {
+  df %>% select(familia, prueba, pais, grupo, v = {{ var }}) %>%
+    mutate(col = paste(if_else(pais == "Argentina", "ARG", "CHL"),
+                       if_else(grupo == "Migrants", "total", "reciente"))) %>%
+    select(-pais, -grupo) %>%
+    pivot_wider(names_from = col, values_from = v) %>%
+    select(familia, prueba, `ARG total`, `CHL total`, `ARG reciente`, `CHL reciente`)
+}
+principal <- resumir(res, "Especificación principal", "Principal")
 ```
 
-## Indicador de salud (Tabla A2)
+## Valencias
 
-```{r sensibilidad}
+El ISDM absoluto no depende de las valencias. Cambiar la valencia de un indicador solo cambia el signo de su brecha, y el absoluto toma el valor absoluto, por lo que su magnitud es idéntica. Las valencias solo afectan al ISDM direccional y a los subíndices direccionales. Las dos valencias discutibles son la de la tasa de actividad y la del cuentapropismo. Se prueba invertir cada una y excluir cada indicador.
+
+```{r rob-valencias}
+cambiar <- function(cl, ind, tipo_nuevo) cl %>% mutate(tipo = if_else(indicador == ind, tipo_nuevo, tipo))
+val <- list(
+  "Cuentapropismo con valencia positiva" = cambiar(clasif, "I4_cuentapropismo", "positivo"),
+  "Sin cuentapropismo"                   = filter(clasif, indicador != "I4_cuentapropismo"),
+  "Actividad con valencia negativa"      = cambiar(clasif, "I1_tasa_actividad", "negativo"),
+  "Sin tasa de actividad"                = filter(clasif, indicador != "I1_tasa_actividad"),
+  "Sin actividad ni cuentapropismo"      = filter(clasif, !indicador %in% c("I1_tasa_actividad", "I4_cuentapropismo"))
+)
+rob_val <- imap_dfr(val, ~ resumir(isdm_con(datos, .x), .y, "Valencias"))
+lab_val <- imap_dfr(c(list("Especificación principal" = clasif), val), function(cl, nombre) {
+  isdm_con(datos, cl)$subindices_resumen %>% filter(dimension == "Labor") %>%
+    transmute(prueba = nombre, pais, grupo, lab = sub_dir_pp)
+}) %>%
+  mutate(col = paste("Laboral dir. (pp)", if_else(pais == "Argentina", "ARG", "CHL"),
+                     if_else(grupo == "Migrants", "total", "reciente"))) %>%
+  select(-pais, -grupo) %>% pivot_wider(names_from = col, values_from = lab) %>%
+  select(prueba, ends_with("ARG total"), ends_with("CHL total"), ends_with("ARG reciente"), ends_with("CHL reciente"))
+
+bind_rows(principal, rob_val) %>% ancho(dir_pp) %>% select(-familia) %>%
+  left_join(lab_val, by = "prueba") %>%
+  rename(Prueba = prueba) %>%
+  tabla("ISDM direccional y subíndice laboral direccional (pp) según las valencias", digits = 2) %>%
+  add_header_above(c(" " = 1, "ISDM direccional (pp)" = 4, "Subíndice laboral direccional (pp)" = 4))
+
+bind_rows(principal, rob_val) %>% ancho(abs_d) %>% select(-familia) %>% rename(Prueba = prueba) %>%
+  tabla("ISDM absoluto (d) según las valencias", digits = 3)
+dir_chile <- rob_val %>% filter(pais == "Chile") %>% pull(dir_pp)
+```
+
+Invertir una valencia deja intacto el ISDM absoluto, como se espera. Excluir la tasa de actividad o el cuentapropismo lo modifica poco y no altera el orden entre países. En la dirección, el ISDM direccional de Chile se mantiene favorable a la población no migrante en todas las variantes (entre `r formatC(min(dir_chile), format = "f", digits = 1, decimal.mark = ",")` y `r formatC(max(dir_chile), format = "f", digits = 1, decimal.mark = ",")` pp). La valencia de la tasa de actividad es la decisión con más peso sobre la dirección del subíndice laboral de Chile, porque la población migrante participa mucho más que la no migrante. Con valencia positiva, esa mayor participación cuenta como ventaja migrante y compensa la desventaja en informalidad; si se la considera un déficit, el subíndice laboral chileno pasa a ser desfavorable a la población migrante.
+
+## Indicador de salud
+
+Se comparan cinco especificaciones. S0 mide el uso exclusivo del sistema público con valencia positiva, una operacionalización habitual del acceso a la salud. En Argentina, sin embargo, esa variable identifica a quienes no tienen obra social ni prepaga, por lo que expresa sobre todo la falta de cobertura contributiva y se superpone con la informalidad, que ya integra la dimensión laboral. S1 excluye la salud, S2 invierte la valencia de S0, S3 es la especificación principal (cobertura en Chile, sin indicador en Argentina) y S4 incorpora además el indicador en Argentina con una brecha igual a cero, que corresponde a la cobertura universal y sin afiliación del sistema público durante el período.
+
+```{r rob-salud}
+# S4: cobertura de salud también en Argentina, con brecha nula (cobertura pública universal sin afiliación)
+arg_salud <- datos %>% filter(pais == "Argentina") %>% distinct(pais, anio, grupo) %>%
+  mutate(fuente = "supuesto", indicador = "I9_cobertura_salud",
+         tasa_no_migrante = 99, tasa_grupo = 99, brecha = 0)   # Δ = 0 => Z = 0
+r_s4 <- isdm_con(bind_rows(datos, arg_salud))
+s4 <- r_s4$resumen %>%
+  left_join(r_s4$subindices_resumen %>% filter(dimension == "Social") %>% select(pais, grupo, social_dir_pp = sub_dir_pp),
+            by = c("pais", "grupo")) %>%
+  mutate(escenario = "S4 Cobertura (Chile) y brecha nula en Argentina", .before = 1)
+sensibilidad <- bind_rows(sensibilidad, s4)
 sensibilidad %>%
   transmute(Escenario = escenario, País = pais, Grupo = grupo_es[grupo],
             `Absoluto (d)` = isdm_abs_de, `Direccional (pp)` = isdm_dir_pp,
             `Social direccional (pp)` = social_dir_pp) %>%
-  tabla("Tabla A2. ISDM según la especificación del indicador de salud", digits = 3)
+  tabla("Tabla A2. ISDM absoluto y dimensión social según la especificación del indicador de salud. Argentina y Chile, promedio 2015–2024", digits = 3)
+rob_salud <- sensibilidad %>%
+  filter(!str_starts(escenario, "S3")) %>%
+  transmute(familia = "Salud", prueba = escenario, pais, grupo,
+            abs_d = isdm_abs_de, dir_pp = isdm_dir_pp, abs_pp = isdm_abs_pp)
 ```
 
-## Escala de estandarización
+## Fuentes e interpolación en Chile
 
-El cálculo original estandarizaba centrando en la media de las brechas (Z centrado), lo que dejaba a los dos países en espejo. Esta tabla documenta el cambio: la columna principal es la d.
+La serie chilena combina la ENE con la CASEN e interpola entre ondas. Se recalcula el índice solo con la CASEN (sin la ENE) y solo con los años efectivamente relevados por la CASEN (2015, 2017, 2022 y 2024), sin ningún valor interpolado.
 
-```{r escalas}
-escalas %>%
-  transmute(País = pais, Grupo = grupo_es[grupo], `Absoluto d (principal)` = abs_d,
-            `Absoluto / DE de brechas` = abs_de_brechas, `Absoluto Z centrado (original)` = abs_centrado_original,
-            `Direccional d (principal)` = dir_d, `Direccional Z centrado (original)` = dir_centrado_original) %>%
-  tabla("ISDM con la escala principal y con las anteriores", digits = 3)
+```{r rob-fuentes}
+arch_sc <- "Data/indicadores_con_brechas_solocasen_arg_chile_2015_2024.csv"
+rob_fuentes <- bind_rows(
+  resumir(isdm_con(cargar_brechas(archivo_ene = arch_sc)), "Chile solo con CASEN", "Fuentes"),
+  resumir(isdm_con(cargar_brechas(archivo_ene = arch_sc) %>%
+                     filter(pais == "Argentina" | anio %in% c(2015, 2017, 2022, 2024))),
+          "Chile solo con años relevados (sin interpolar)", "Fuentes"))
+bind_rows(principal, rob_fuentes) %>% filter(pais == "Chile") %>%
+  transmute(Prueba = prueba, Grupo = grupo_es[grupo], `Absoluto (d)` = abs_d, `Direccional (pp)` = dir_pp) %>%
+  tabla("Chile: ISDM según fuentes y años", digits = 3)
 ```
 
-# Composición de las poblaciones (Tablas A3 y A4)
+## Exclusión de indicadores y dimensiones
+
+Se recalcula el índice excluyendo un indicador por vez y, luego, una dimensión por vez.
+
+```{r rob-exclusion}
+rob_ind <- map_dfr(clasif$indicador, function(i)
+  resumir(isdm_con(datos, filter(clasif, indicador != i)), paste("Sin", ind_es[i]), "Exclusión de indicadores"))
+rob_dim <- map_dfr(names(dim_es), function(d)
+  resumir(isdm_con(datos, filter(clasif, dimension != d)),
+          paste("Sin la dimensión", tolower(dim_es[d])), "Exclusión de dimensiones"))
+bind_rows(principal, rob_ind, rob_dim) %>% ancho(abs_d) %>% select(-familia) %>% rename(Prueba = prueba) %>%
+  tabla("ISDM absoluto (d) excluyendo indicadores y dimensiones", digits = 3)
+```
+
+## Ponderación
+
+En la especificación principal cada dimensión pesa un tercio. Como alternativa, se da el mismo peso a cada indicador (promedio simple de todas las brechas estandarizadas, sin pasar por los subíndices), lo que aumenta el peso de la dimensión laboral.
+
+```{r rob-pesos}
+plano <- prep %>%
+  group_by(pais, anio, grupo) %>%
+  summarise(isdm_abs_de = mean(abs(brecha_z)), isdm_dir_pp = mean(brecha_normalizada),
+            isdm_abs_pp = mean(abs(brecha_normalizada)), .groups = "drop") %>%
+  group_by(pais, grupo) %>%
+  summarise(across(starts_with("isdm_"), mean), .groups = "drop")
+rob_pesos <- resumir(list(resumen = plano), "Mismo peso para cada indicador", "Ponderación")
+bind_rows(principal, rob_pesos) %>% ancho(abs_d) %>% select(-familia) %>% rename(Prueba = prueba) %>%
+  tabla("ISDM absoluto (d) según la ponderación", digits = 3)
+```
+
+## Escala
+
+El índice se calcula también en puntos porcentuales, sin estandarizar. El orden entre países no depende de la estandarización.
+
+```{r rob-escala}
+rob_escala <- principal %>% mutate(familia = "Escala", prueba = "Brechas en pp, sin estandarizar", abs_d = abs_pp)
+bind_rows(principal %>% mutate(prueba = "Diferencia estandarizada (d)"), rob_escala) %>%
+  ancho(abs_d) %>% select(-familia) %>% rename(Escala = prueba) %>%
+  tabla("ISDM absoluto según la escala (d o pp)", digits = 3)
+```
+
+## Calidad muestral
+
+Se excluyen del cálculo las brechas cuyo grupo migrante o no migrante tiene una estimación clasificada como NO USAR y, en una segunda prueba, también las clasificadas como CUIDADO. Todas corresponden a la población migrante reciente de Argentina.
+
+```{r rob-calidad}
+excluir_celdas <- function(umbral) {
+  ex <- calidad %>% filter(semaforo %in% umbral) %>%
+    mutate(indicador = if_else(indicador == "I5_I6_pobreza", "I5_pobreza|I6_pobreza_extrema", indicador)) %>%
+    separate_rows(indicador, sep = "\\|")
+  bind_rows(
+    ex %>% filter(grupo == "No migrante") %>% select(-grupo) %>% crossing(grupo = c("Migrants", "Recent migrants")),
+    ex %>% filter(grupo != "No migrante") %>%
+      mutate(grupo = recode(grupo, "Migrante" = "Migrants", "Migrante reciente" = "Recent migrants"))) %>%
+    distinct(indicador, pais, anio, grupo)
+}
+celdas_no_usar <- excluir_celdas("NO USAR")
+celdas_cuidado <- excluir_celdas(c("NO USAR", "CUIDADO"))
+rob_calidad <- bind_rows(
+  resumir(isdm_con(anti_join(datos, celdas_no_usar, by = c("indicador", "pais", "anio", "grupo"))),
+          sprintf("Sin las %d brechas con muestra NO USAR", nrow(celdas_no_usar)), "Calidad muestral"),
+  resumir(isdm_con(anti_join(datos, celdas_cuidado, by = c("indicador", "pais", "anio", "grupo"))),
+          sprintf("Sin las %d brechas con muestra NO USAR o CUIDADO", nrow(celdas_cuidado)), "Calidad muestral"))
+bind_rows(principal, rob_calidad) %>% ancho(abs_d) %>% select(-familia) %>% rename(Prueba = prueba) %>%
+  tabla("ISDM absoluto (d) excluyendo estimaciones con muestra reducida", digits = 3)
+```
+
+## Estructura etaria de la tasa de actividad
+
+Se reemplaza la tasa de actividad por su versión estandarizada por edad (método directo, con la estructura etaria de la población no migrante). La versión estandarizada existe para los años con microdatos (en Chile, solo las ondas de la CASEN), por lo que la comparación se hace sobre esos mismos años.
+
+```{r rob-edad}
+act <- actividad_a %>%
+  transmute(pais, anio, grupo = recode(grupo, "Migrante" = "Migrants", "Migrante reciente" = "Recent migrants"),
+            tasa_no_migrante, tasa_grupo = tasa_estandarizada)
+mismos <- datos %>% semi_join(distinct(act, pais, anio), by = c("pais", "anio"))
+con_edad <- mismos %>%
+  filter(indicador != "I1_tasa_actividad") %>%
+  bind_rows(act %>% mutate(fuente = "estandarizada", indicador = "I1_tasa_actividad",
+                           brecha = tasa_no_migrante - tasa_grupo))
+rob_edad <- bind_rows(
+  resumir(isdm_con(mismos), "Mismos años, actividad bruta", "Estructura etaria"),
+  resumir(isdm_con(con_edad), "Mismos años, actividad estandarizada por edad", "Estructura etaria"))
+rob_edad %>% ancho(abs_d) %>% select(-familia) %>% rename(Prueba = prueba) %>%
+  tabla("ISDM absoluto (d) con la tasa de actividad bruta y estandarizada por edad", digits = 3)
+```
+
+Otra decisión ligada a la edad es el umbral de la población en edad de trabajar. La definición oficial del INDEC es de 10 años y más, pero se armonizó en 15 años y más en los dos países, como usan la CASEN y la ENE. La brecha de actividad de Argentina para la migración total depende de ese umbral (−9,5 pp sin filtro de edad, −3,1 pp con 10 años y más y +1,3 pp con 15 años y más; véase el script 03), y por eso el artículo la complementa con la versión estandarizada por edad.
+
+## Resumen de las pruebas
+
+```{r rob-resumen}
+todas <- bind_rows(principal, rob_val, rob_salud, rob_fuentes, rob_ind, rob_dim,
+                   rob_pesos, rob_escala, rob_calidad, rob_edad)
+resumen_rob <- todas %>% ancho(abs_d) %>%
+  mutate(`Chile > Argentina` = if_else(`CHL total` > `ARG total` & `CHL reciente` > `ARG reciente`, "Sí", "No"))
+resumen_rob %>% rename(Familia = familia, Prueba = prueba) %>%
+  tabla("Todas las pruebas: ISDM absoluto (d; en la prueba de escala, pp)", digits = 3) %>%
+  column_spec(7, bold = TRUE, color = if_else(resumen_rob$`Chile > Argentina` == "Sí", "#1A9850", "#D73027")) %>%
+  collapse_rows(columns = 1, valign = "top")
+```
+
+En `r sum(resumen_rob$"Chile > Argentina" == "Sí")` de las `r nrow(resumen_rob)` especificaciones, la magnitud de la desigualdad es mayor en Chile que en Argentina, tanto para la migración total como para la reciente.
+
+```{r rob-grafico, fig.height = 9}
+todas %>%
+  mutate(grupo = grupo_es[grupo], prueba = fct_inorder(prueba)) %>%
+  filter(familia != "Escala") %>%
+  ggplot(aes(abs_d, fct_rev(prueba), colour = pais)) +
+  geom_vline(data = principal %>% mutate(grupo = grupo_es[grupo]),
+             aes(xintercept = abs_d, colour = pais), linetype = "dashed", alpha = 0.6) +
+  geom_point(size = 2.3) +
+  facet_wrap(~ grupo) +
+  scale_colour_manual(values = colores_pais) +
+  scale_x_continuous(limits = c(0, NA)) +
+  labs(x = "ISDM absoluto (d)", y = NULL, colour = "País",
+       title = "ISDM absoluto en todas las pruebas (líneas punteadas: especificación principal)") + tema +
+  theme(axis.text.y = element_text(size = 8))
+```
+
+# Composición de las poblaciones y estructura etaria
 
 ```{r composicion}
 composicion %>%
@@ -329,38 +715,36 @@ composicion %>%
             `25+ hasta secundaria incompleta` = `educ25_Hasta secundaria incompleta`,
             `25+ secundaria completa o superior incompleta` = `educ25_Secundaria completa o superior incompleta`,
             `25+ superior completa` = `educ25_Superior completa`) %>%
-  tabla("Tabla A3. Composición, promedio de los años del período (%)", digits = 1)
+  tabla("Tabla A3. Composición de la población no migrante, migrante y migrante reciente. Argentina y Chile, promedio 2015–2024 (%)", digits = 1)
 ```
 
-La tasa de actividad estandarizada aplica a cada grupo migrante la estructura etaria de la población no migrante (método directo). Si la brecha cambia mucho al estandarizar, la diferencia bruta se explica en buena parte por la edad.
+La tasa de actividad estandarizada aplica las tasas específicas por grupos quinquenales de edad de cada grupo migrante a la estructura etaria de la población no migrante del mismo país y año (método directo). En Chile se usa la CASEN, porque la ENE no ofrece microdatos, por lo que los valores brutos difieren levemente de los de la Tabla 1.
 
 ```{r actividad}
 actividad %>%
   transmute(País = pais, Grupo = grupo, `Tasa no migrante` = tasa_no_migrante,
             `Tasa bruta` = tasa_bruta, `Tasa estandarizada` = tasa_estandarizada,
             `Brecha bruta (pp)` = brecha_bruta, `Brecha estandarizada (pp)` = brecha_estandarizada) %>%
-  tabla("Tabla A4. Tasa de actividad (15+), bruta y estandarizada por edad", digits = 1)
+  tabla("Tabla A4. Tasa de actividad de la población de 15 años y más, bruta y estandarizada por edad. Argentina y Chile, promedio 2015–2024 (%)", digits = 1)
 
 actividad_a %>%
-  select(pais, anio, grupo, `Bruta` = brecha_bruta, `Estandarizada por edad` = brecha_estandarizada) %>%
+  select(pais, anio, grupo, Bruta = brecha_bruta, `Estandarizada por edad` = brecha_estandarizada) %>%
   pivot_longer(c(Bruta, `Estandarizada por edad`), names_to = "medida", values_to = "brecha") %>%
   ggplot(aes(anio, brecha, colour = medida)) +
   geom_hline(yintercept = 0, linewidth = 0.5) +
   geom_line(linewidth = 1) + geom_point(size = 1.8) +
   facet_grid(grupo ~ pais) +
   scale_colour_manual(values = c("Bruta" = "#999999", "Estandarizada por edad" = "#D95F02")) +
-  labs(x = NULL, y = "Brecha de actividad no migrante − migrante (pp)", colour = NULL) + tema
+  labs(x = NULL, y = "Brecha de actividad (pp)  ·  negativo = la población migrante participa más", colour = NULL) + tema
 ```
 
-# Calidad muestral (paso 10)
-
-Semáforo por indicador, país, año y grupo: **OK** con n ≥ 100 y n efectivo de Kish ≥ 50; **CUIDADO** con n ≥ 30 y n efectivo ≥ 30; **NO USAR** por debajo. Es un diagnóstico: ningún valor se excluye del índice. Los indicadores de la ENE no tienen microdatos y no aparecen.
+# Calidad muestral
 
 ```{r calidad, fig.height = 8}
 calidad %>% count(pais, grupo, semaforo) %>%
   pivot_wider(names_from = semaforo, values_from = n, values_fill = 0) %>%
   rename(País = pais, Grupo = grupo) %>%
-  tabla("Cantidad de celdas por categoría")
+  tabla("Cantidad de estimaciones (indicador × año) por categoría")
 
 calidad %>%
   mutate(indicador = coalesce(ind_es[indicador], recode(indicador, I5_I6_pobreza = "I5-I6 Pobreza y pobreza extrema")),
@@ -369,25 +753,46 @@ calidad %>%
   geom_tile(colour = "white") +
   facet_grid(grupo ~ pais, scales = "free_x", space = "free_x") +
   scale_fill_manual(values = c("OK" = "#1A9850", "CUIDADO" = "#FEB24C", "NO USAR" = "#D73027"), drop = FALSE) +
-  labs(x = NULL, y = NULL, fill = NULL) + tema +
+  labs(x = NULL, y = NULL, fill = NULL,
+       caption = "Los indicadores de la ENE (actividad y desempleo de la población migrante total en Chile) no tienen microdatos.") + tema +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
 ```
 
-# Dónde está cada cosa del artículo
+# Correspondencia con el artículo
 
 ```{r mapa}
 tribble(
-  ~`En el artículo`,      ~`Archivo`,                                              ~`Lo produce`,
-  "Gráfico 1",            "output/contexto/stock_migratorio_arg_chl.png",          "00",
-  "Gráficos A1 y A2",     "output/contexto/gdp_per_capita…, gini…",                "00",
-  "Tablas 1, 2 y 3",      "output/isdm/brechas_por_indicador.csv",                 "07",
-  "Gráficos 2, 3 y 4",    "output/articulo/grafico2_laboral.png … grafico4_social.png", "09",
-  "Tabla 4",              "output/isdm/isdm_resumen_pais.csv",                     "07",
-  "Gráfico 5",            "output/articulo/grafico5_isdm_absoluto.png",            "09",
-  "Gráfico 6",            "output/articulo/grafico6_subindices.png",               "09",
-  "Tabla A2",             "output/isdm/sensibilidad_salud.csv",                    "07",
-  "Tablas A3 y A4",       "output/isdm/composicion_poblaciones.csv, actividad_estandarizada_edad.csv", "08",
-  "Nota sobre calidad muestral", "output/calidad/calidad_muestral.csv",           "10",
-  "Nota sobre interpolación (robustez)", "esta notebook, sección Robustez",        "11"
-) %>% tabla()
+  ~`En el artículo`, ~`Archivo`, ~`Paso`,
+  "Gráfico 1", "output/contexto/stock_migratorio_arg_chl.png", "00",
+  "Gráficos A1 y A2", "output/contexto/gdp_per_capita_arg_chl_media.png, gini_arg_chl_media.png", "00",
+  "Tablas 1, 2 y 3", "output/isdm/brechas_por_indicador.csv", "07",
+  "Gráficos 2, 3 y 4", "output/articulo/grafico2_laboral.png, grafico3_pobreza.png, grafico4_social.png", "09",
+  "Tabla 4", "output/isdm/isdm_resumen_pais.csv", "07",
+  "Gráfico 5", "output/articulo/grafico5_isdm_absoluto.png", "09",
+  "Gráfico 6", "output/articulo/grafico6_subindices.png", "09",
+  "Tabla A2", "output/isdm/sensibilidad_salud.csv", "07",
+  "Tablas A3 y A4", "output/isdm/composicion_poblaciones.csv, actividad_estandarizada_edad.csv", "08",
+  "Calidad muestral", "output/calidad/calidad_muestral.csv", "10",
+  "Pruebas de robustez", "Este documento", "11"
+) %>% tabla(align = "l")
 ```
+
+# Referencias
+
+Cohen, J. (1988). *Statistical power analysis for the behavioral sciences* (2.ª ed.). Lawrence Erlbaum.
+
+ETI-Rafidha, Equipo de Trabajo e Investigación sobre Indicadores. (s. f.). *Indicadores de medición de derechos humanos. Aproximaciones conceptuales y avances* [Documento de trabajo] (L. Pautassi & F. Geller, Comps.). Rafidha, CONICET y Secretaría de Derechos Humanos y Pluralismo Cultural.
+
+Grupo de Trabajo para el Análisis de los Informes Nacionales previstos en el Protocolo de San Salvador [GTPSS]. (2015). *Indicadores de progreso para la medición de derechos contemplados en el Protocolo de San Salvador* (OEA/Ser.D/XXVI.11). Organización de los Estados Americanos.
+
+Kish, L. (1965). *Survey sampling*. John Wiley & Sons.
+
+Kozlowski, D., Tiscornia, P., Weksler, G., Rosati, G., & Shokida, N. (2020). *eph: Argentina's Permanent Household Survey Data and Manipulation Utilities*. https://doi.org/10.5281/zenodo.3462677
+
+Longo, J., Busso, M., & Fernández Massi, M. (2023). Trabajar en plataformas en Argentina: Usos y valoraciones de esta nueva modalidad de trabajo. *Trabajo y Sociedad, 24*(41).
+
+OECD & JRC. (2008). *Handbook on constructing composite indicators: Methodology and user guide*. OECD Publishing. https://doi.org/10.1787/9789264043466-en
+
+Pautassi, L. (2010). Indicadores en materia de derechos económicos, sociales y culturales. Más allá de la medición. En V. Abramovich & L. Pautassi (Comps.), *La medición de derechos en las políticas sociales*. Editores del Puerto.
+
+Zack, G., Schteingart, D., & Favata, F. (2020). Pobreza e indigencia en Argentina: Construcción de una serie completa y metodológicamente homogénea. *Sociedad y Economía*, (40). https://doi.org/10.25100/sye.v0i40.7990
